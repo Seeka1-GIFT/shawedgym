@@ -1,0 +1,909 @@
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/api.js';
+import { payments } from '../data/dummy.js';
+import { 
+  DollarSign, Plus, Search, Filter, Calendar, CreditCard,
+  TrendingUp, TrendingDown, CheckCircle, XCircle, Clock,
+  Printer, Download, Eye, RefreshCw, AlertTriangle,
+  BarChart3, PieChart, Users, Award, Target, FileText
+} from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
+import QuickActions from '../components/QuickActions.jsx';
+import RelatedData from '../components/RelatedData.jsx';
+
+/**
+ * Modern Payment Management System with transaction tracking, analytics, and financial insights
+ */
+const Payments = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPlan, setFilterPlan] = useState('all');
+  const [dateRange, setDateRange] = useState('all');
+  const [viewMode, setViewMode] = useState('overview'); // 'overview', 'transactions', 'analytics'
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingPayment, setEditingPayment] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingPayment, setDeletingPayment] = useState(null);
+
+  const [backendPayments, setBackendPayments] = useState([]);
+  const [memberOptions, setMemberOptions] = useState([]);
+  const [planOptions, setPlanOptions] = useState([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await apiService.getPayments();
+        const apiPayments = Array.isArray(res?.data) ? res.data : res?.data?.payments || [];
+        setBackendPayments(apiPayments);
+      } catch (e) {
+        setBackendPayments([]);
+      }
+    };
+    const loadRefs = async () => {
+      try {
+        const [mRes, pRes] = await Promise.all([
+          apiService.getMembers({ limit: 500 }),
+          apiService.getPlans()
+        ]);
+        setMemberOptions(mRes?.data?.members || []);
+        const p = Array.isArray(pRes?.data) ? pRes.data : pRes?.data?.plans || [];
+        setPlanOptions(p);
+      } catch {
+        setMemberOptions([]);
+        setPlanOptions([]);
+      }
+    };
+    load();
+    loadRefs();
+  }, []);
+
+  const sourcePayments = backendPayments.length ? backendPayments : payments;
+
+  // Enhanced payments data with additional transaction details
+  const enhancedPayments = sourcePayments.map(payment => ({
+    ...payment,
+    // Normalize foreign keys from backend/dummy
+    _memberId: payment.memberId ?? payment.member_id ?? payment.memberid ?? payment.member_id_fk ?? null,
+    _planId: payment.planId ?? payment.plan_id ?? payment.planid ?? payment.plan_id_fk ?? null,
+    amount: Number(payment.amount) || 0,
+    memberPhoto: `https://images.unsplash.com/photo-${
+      ((payment.memberId ?? payment.member_id ?? 1) % 2 === 0) ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
+    }?w=150&h=150&fit=crop&crop=face`,
+    status: Math.random() > 0.1 ? 'completed' : Math.random() > 0.5 ? 'pending' : 'failed',
+    paymentMethod: ['Credit Card', 'Cash', 'Bank Transfer', 'Mobile Payment'][Math.floor(Math.random() * 4)],
+    transactionId: `TXN${String(payment.id).padStart(6, '0')}`,
+    processingFee: 0,
+    netAmount: Number(payment.amount) || 0,
+    currency: 'USD',
+    refundable: Math.random() > 0.8,
+    invoiceNumber: `INV-2024-${String(payment.id).padStart(4, '0')}`,
+    dueDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    paymentType: payment.id % 3 === 0 ? 'Membership' : payment.id % 3 === 1 ? 'Personal Training' : 'Class Fee'
+  }));
+
+  const getMemberName = (memberId) => {
+    const m = memberOptions.find((mm) => mm.id === memberId);
+    if (!m) return 'Unknown Member';
+    return m.first_name ? `${m.first_name} ${m.last_name || ''}`.trim() : (m.name || 'Unknown Member');
+  };
+  const getPlanName = (planId) => planOptions.find((p) => p.id === planId)?.name || 'Unknown Plan';
+  
+  const getMemberPhoto = (memberId) => {
+    return `https://images.unsplash.com/photo-${
+      memberId % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
+    }?w=150&h=150&fit=crop&crop=face`;
+  };
+
+  const filteredPayments = enhancedPayments.filter(payment => {
+    const memberName = getMemberName(payment._memberId);
+    const planName = getPlanName(payment._planId);
+    
+    const matchesSearch = memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         planName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (payment.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || payment.status === filterStatus;
+    const matchesPlan = filterPlan === 'all' || String(payment._planId || '') === filterPlan;
+    
+    return matchesSearch && matchesStatus && matchesPlan;
+  });
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+      case 'pending':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+      case 'failed':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'completed':
+        return CheckCircle;
+      case 'pending':
+        return Clock;
+      case 'failed':
+        return XCircle;
+      default:
+        return AlertTriangle;
+    }
+  };
+
+  const getPaymentMethodIcon = (method) => {
+    switch (method) {
+      case 'Credit Card':
+        return CreditCard;
+      case 'Cash':
+        return DollarSign;
+      case 'Bank Transfer':
+        return FileText;
+      case 'Mobile Payment':
+        return CreditCard;
+      default:
+        return DollarSign;
+    }
+  };
+
+  // Hook edit/delete buttons in Transactions list/table if present later
+  const onEditPayment = (payment) => {
+    setEditingPayment({
+      id: payment.id,
+      amount: payment.amount || 0,
+      paymentMethod: payment.paymentMethod || 'Cash',
+      status: payment.status || 'completed'
+    });
+    setShowEditModal(true);
+  };
+
+  const onDeletePayment = (payment) => {
+    setDeletingPayment(payment);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeletePayment = async () => {
+    try {
+      if (deletingPayment?.id) {
+        await apiService.deletePayment(deletingPayment.id);
+        const refreshed = await apiService.getPayments();
+        const apiPayments = Array.isArray(refreshed?.data) ? refreshed.data : refreshed?.data?.payments || [];
+        setBackendPayments(apiPayments);
+      }
+    } catch (e) {
+      console.error('Delete payment failed', e);
+    } finally {
+      setShowDeleteModal(false);
+      setDeletingPayment(null);
+    }
+  };
+
+  const submitEditPayment = async (e) => {
+    e.preventDefault();
+    try {
+      const form = e.currentTarget;
+      const data = new FormData(form);
+      const payload = {
+        amount: Number(data.get('amount')) || editingPayment.amount,
+        paymentMethod: data.get('paymentMethod') || editingPayment.paymentMethod,
+        status: data.get('status') || editingPayment.status
+      };
+      await apiService.updatePayment(editingPayment.id, payload);
+      const refreshed = await apiService.getPayments();
+      const apiPayments = Array.isArray(refreshed?.data) ? refreshed.data : refreshed?.data?.payments || [];
+      setBackendPayments(apiPayments);
+      setShowEditModal(false);
+      setEditingPayment(null);
+    } catch (err) {
+      console.error('Update payment failed', err);
+    }
+  };
+
+  // Handle edit payment
+  const handleEditPayment = (payment) => {
+    setEditingPayment(payment);
+    setShowEditModal(true);
+  };
+
+  // Handle delete payment
+  const handleDeletePayment = (payment) => {
+    setDeletingPayment(payment);
+    setShowDeleteModal(true);
+  };
+
+  // Confirm delete payment handled above (async) to call backend
+
+  // Calculate statistics
+  const completedPayments = enhancedPayments.filter(p => p.status === 'completed');
+  const pendingPayments = enhancedPayments.filter(p => p.status === 'pending');
+  const totalRevenue = completedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const averageTransaction = completedPayments.length ? Math.round(totalRevenue / completedPayments.length) : 0;
+  const stats = {
+    totalTransactions: enhancedPayments.length,
+    totalRevenue,
+    pendingAmount: pendingPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+    failedTransactions: enhancedPayments.filter(p => p.status === 'failed').length,
+    averageTransaction,
+    processingFees: 0
+  };
+
+  // Chart data
+  const monthlyData = [
+    { month: 'Jan', revenue: 12500, transactions: 45 },
+    { month: 'Feb', revenue: 13200, transactions: 52 },
+    { month: 'Mar', revenue: 11800, transactions: 48 },
+    { month: 'Apr', revenue: 14500, transactions: 58 },
+    { month: 'May', revenue: 15200, transactions: 62 },
+    { month: 'Jun', revenue: 16800, transactions: 68 }
+  ];
+
+  const paymentMethodData = [
+    { name: 'Credit Card', value: enhancedPayments.filter(p => p.paymentMethod === 'Credit Card').length, color: '#3B82F6' },
+    { name: 'Cash', value: enhancedPayments.filter(p => p.paymentMethod === 'Cash').length, color: '#10B981' },
+    { name: 'Bank Transfer', value: enhancedPayments.filter(p => p.paymentMethod === 'Bank Transfer').length, color: '#8B5CF6' },
+    { name: 'Mobile Payment', value: enhancedPayments.filter(p => p.paymentMethod === 'Mobile Payment').length, color: '#F59E0B' }
+  ];
+
+  const handlePrint = (payment) => {
+    try {
+      const memberName = getMemberName(payment.memberId);
+      const planName = getPlanName(payment.planId);
+      const date = payment.date || new Date().toISOString().split('T')[0];
+      // Default paper size (no prompts). Change to 'pos80' or 'a5' if needed.
+      const format = 'a4';
+      const pageSize = format === 'a5' ? 'A5' : format === 'pos80' ? '80mm auto' : format === 'pos57' ? '57mm auto' : 'A4';
+      const containerWidth = format === 'a5' ? '580px' : format === 'pos80' ? '72mm' : format === 'pos57' ? '54mm' : '780px';
+      const fontSize = format.startsWith('pos') ? '12px' : '14px';
+      const headingSize = format.startsWith('pos') ? '16px' : '20px';
+      const html = `
+        <html>
+          <head>
+            <title>Receipt ${payment.transactionId || ''}</title>
+            <style>
+              *{box-sizing:border-box}
+              @page { size: ${pageSize}; margin: 10mm; }
+              body{font-family:Arial,Helvetica,sans-serif;padding:0;color:#111}
+              .paper{width:${containerWidth}; margin:0 auto;}
+              h2{margin:0 0 8px 0; font-size:${headingSize}; text-align:center}
+              .meta{margin:8px 0; font-size:${fontSize}; display:grid; grid-template-columns: 1fr 1fr;}
+              table{width:100%;border-collapse:collapse; font-size:${fontSize}}
+              td{padding:6px 4px; vertical-align:top}
+              .right{text-align:right}
+              .muted{color:#666}
+              .total{font-weight:700}
+              .sep{height:1px;background:#e5e7eb;margin:12px 0}
+              .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+              .brand{font-weight:700}
+              .box{border:1px solid #e5e7eb; border-radius:8px; padding:10px}
+            </style>
+          </head>
+          <body>
+            <div class="paper">
+              <div class="header">
+                <div class="brand">ShawedGym</div>
+                <div class="muted">Payment Receipt</div>
+              </div>
+              <div class="box">
+                <h2>Receipt</h2>
+                <div class="meta">
+                  <div>Receipt #: <strong>${payment.transactionId || '-'}</strong></div>
+                  <div class="right">Date: <strong>${date}</strong></div>
+                </div>
+                <table>
+                  <tr><td class="muted">Member</td><td class="right">${memberName}</td></tr>
+                  <tr><td class="muted">Plan</td><td class="right">${planName}</td></tr>
+                  <tr><td class="muted">Method</td><td class="right">${payment.paymentMethod}</td></tr>
+                </table>
+                <div class="sep"></div>
+                <table>
+                  <tr><td>Amount</td><td class="right">$${payment.amount}</td></tr>
+                  <tr><td class="total">Net Amount</td><td class="right total">$${payment.netAmount}</td></tr>
+                </table>
+                <p class="muted" style="text-align:center;margin-top:10px">Thanks for your payment.</p>
+              </div>
+            </div>
+          </body>
+        </html>`;
+
+      // Try hidden iframe first
+      const printViaIFrame = () => new Promise((resolve, reject) => {
+        try {
+          const iframe = document.createElement('iframe');
+          iframe.style.position = 'fixed';
+          iframe.style.right = '0';
+          iframe.style.bottom = '0';
+          iframe.style.width = '0';
+          iframe.style.height = '0';
+          iframe.style.border = '0';
+          document.body.appendChild(iframe);
+          const doc = iframe.contentWindow?.document;
+          if (!doc) throw new Error('no-iframe-doc');
+          doc.open();
+          doc.write(html);
+          doc.close();
+          setTimeout(() => {
+            try {
+              iframe.contentWindow?.focus();
+              iframe.contentWindow?.print();
+              resolve(true);
+            } catch (e) {
+              reject(e);
+            } finally {
+              document.body.removeChild(iframe);
+            }
+          }, 150);
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      // Fallback: open a new window using Blob URL (works when iframes are blocked)
+      const printViaWindow = () => new Promise((resolve, reject) => {
+        try {
+          const blob = new Blob([html], { type: 'text/html' });
+          const url = URL.createObjectURL(blob);
+          const w = window.open(url, '_blank', 'noopener');
+          if (!w) throw new Error('popup-blocked');
+          const done = () => {
+            try { w.focus(); w.print(); } catch {}
+            setTimeout(() => { try { w.close(); URL.revokeObjectURL(url); } catch {}; resolve(true); }, 250);
+          };
+          // In most browsers print after load
+          w.onload = done;
+          // Safety fallback
+          setTimeout(done, 700);
+        } catch (e) {
+          reject(e);
+        }
+      });
+
+      printViaIFrame().catch(() => printViaWindow()).catch(() => {
+        window.alert('Print failed. Please try again or allow pop-ups.');
+      });
+    } catch (e) {
+      console.error('Print failed', e);
+      window.alert('Print failed. Please try again.');
+    }
+  };
+
+  const safeMembers = Array.isArray(memberOptions) ? memberOptions : [];
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
+            <DollarSign className="w-6 h-6 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+            Payment Management
+          </h1>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400">Track transactions, manage payments, and analyze revenue streams</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Transactions</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalTransactions}</p>
+            </div>
+            <FileText className="w-6 h-6 text-green-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Revenue</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">${Number(stats.totalRevenue || 0).toFixed(2)}</p>
+            </div>
+            <TrendingUp className="w-6 h-6 text-blue-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.pendingAmount.toLocaleString()}</p>
+            </div>
+            <Clock className="w-6 h-6 text-yellow-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Failed</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.failedTransactions}</p>
+            </div>
+            <XCircle className="w-6 h-6 text-red-500" />
+          </div>
+        </div>
+        
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Transaction</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.averageTransaction}</p>
+            </div>
+            <Target className="w-6 h-6 text-purple-500" />
+          </div>
+        </div>
+        
+        {false && (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Processing Fees</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.processingFees}</p>
+              </div>
+              <TrendingDown className="w-6 h-6 text-orange-500" />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Simplified UI per request */}
+
+      {/* View Mode Toggle */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('overview')}
+                className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                  viewMode === 'overview' 
+                    ? 'bg-white dark:bg-gray-600 text-green-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setViewMode('transactions')}
+                className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                  viewMode === 'transactions' 
+                    ? 'bg-white dark:bg-gray-600 text-green-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                }`}
+              >
+                Transactions
+              </button>
+                  <button
+                onClick={() => setViewMode('analytics')}
+                className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                  viewMode === 'analytics' 
+                    ? 'bg-white dark:bg-gray-600 text-green-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                }`}
+              >
+                Analytics
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Download className="w-4 h-4" />
+              <span>Export</span>
+            </button>
+            <button className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+              <Plus className="w-4 h-4" />
+              <span>New Payment</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content based on view mode */}
+      {viewMode === 'overview' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Monthly Revenue Chart */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Monthly Revenue</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="month" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: 'none', 
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                  <Line type="monotone" dataKey="revenue" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Payment Methods Distribution */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
+                <PieChart className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Payment Methods</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={paymentMethodData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={false}
+                    labelLine={false}
+                  >
+                    {paymentMethodData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend verticalAlign="bottom" align="center" iconType="circle" />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'transactions' && (
+        <div>
+          {/* Search and Filter Controls */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              <div className="flex flex-1 items-center space-x-4 w-full lg:w-auto">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    placeholder="Search payments..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Filter className="w-4 h-4 text-gray-400" />
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <select
+                    value={filterPlan}
+                    onChange={(e) => setFilterPlan(e.target.value)}
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="all">All Plans</option>
+                    {planOptions.map(plan => (
+                      <option key={plan.id} value={plan.id}>{plan.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredPayments.map((payment) => {
+              const StatusIcon = getStatusIcon(payment.status);
+              const PaymentMethodIcon = getPaymentMethodIcon(payment.paymentMethod);
+              
+              return (
+                <div key={payment.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                  <div className="p-6">
+                    {/* Payment Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={getMemberPhoto(payment._memberId)}
+                          alt={getMemberName(payment._memberId)}
+                          className="w-12 h-12 rounded-full object-cover"
+                        />
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {getMemberName(payment._memberId)}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{payment.transactionId}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <StatusIcon className={`w-5 h-5 ${
+                          payment.status === 'completed' ? 'text-green-500' :
+                          payment.status === 'pending' ? 'text-yellow-500' : 'text-red-500'
+                        }`} />
+                      </div>
+                    </div>
+
+                    {/* Payment Details */}
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Plan:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{getPlanName(payment._planId)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
+                        <span className="text-lg font-bold text-green-600">${payment.amount}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Method:</span>
+                        <div className="flex items-center space-x-1">
+                          <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium text-gray-900 dark:text-white">{payment.paymentMethod}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Date:</span>
+                        <span className="font-medium text-gray-900 dark:text-white">{payment.date}</span>
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="mb-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                        <StatusIcon className="w-3 h-3 mr-1" />
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </span>
+                    </div>
+
+                    {/* Financial Breakdown */}
+                    {payment.status === 'completed' && (
+                      <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span className="text-gray-600 dark:text-gray-400">Gross Amount:</span>
+                          <span className="text-gray-900 dark:text-white">${payment.amount}</span>
+                        </div>
+                      {/* Processing fee removed per request */}
+                        <div className="flex justify-between text-sm font-medium border-t border-gray-200 dark:border-gray-600 pt-1">
+                          <span className="text-gray-900 dark:text-white">Net Amount:</span>
+                          <span className="text-green-600">${payment.netAmount}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex space-x-2">
+                      <button 
+                        onClick={() => handlePrint(payment)}
+                        className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                      >
+                        <Printer className="w-4 h-4" />
+                        <span>Print</span>
+                      </button>
+                      <button className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      {payment.status === 'failed' && (
+                        <button className="p-2 border border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors">
+                          <RefreshCw className="w-4 h-4" />
+                  </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Edit Payment Modal */}
+      {showEditModal && editingPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Edit Payment</h3>
+                <button onClick={() => setShowEditModal(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">✕</button>
+              </div>
+              <form onSubmit={submitEditPayment} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Amount</label>
+                  <input name="amount" type="number" defaultValue={editingPayment.amount} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Method</label>
+                  <select name="paymentMethod" defaultValue={editingPayment.paymentMethod} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <option>Credit Card</option>
+                    <option>Cash</option>
+                    <option>Bank Transfer</option>
+                    <option>Mobile Payment</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                  <select name="status" defaultValue={editingPayment.status} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+                <div className="flex space-x-3 pt-2">
+                  <button type="button" onClick={() => setShowEditModal(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg">Cancel</button>
+                  <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Update</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && deletingPayment && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Delete Payment</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">Are you sure you want to delete payment <strong>{deletingPayment.transactionId || deletingPayment.id}</strong>?</p>
+              <div className="flex space-x-3">
+                <button onClick={() => setShowDeleteModal(false)} className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg">Cancel</button>
+                <button onClick={confirmDeletePayment} className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewMode === 'analytics' && (
+        <div className="space-y-6">
+          {/* Revenue Trends */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="p-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Revenue Trends</h3>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                  <XAxis dataKey="month" stroke="#6B7280" />
+                  <YAxis stroke="#6B7280" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: 'none', 
+                      borderRadius: '8px',
+                      color: 'white'
+                    }} 
+                  />
+                  <Bar dataKey="revenue" fill="#10B981" name="Revenue" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Financial Insights */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Top Paying Members</h3>
+              </div>
+              <div className="space-y-4">
+                {[...safeMembers]
+                  .map(m => {
+                    const total = enhancedPayments
+                      .filter(p => p._memberId === m.id && p.status === 'completed')
+                      .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+                    return {
+                      id: m.id,
+                      name: m.first_name ? `${m.first_name} ${m.last_name || ''}`.trim() : (m.name || 'Unknown Member'),
+                      total
+                    };
+                  })
+                  .filter(x => x.total > 0)
+                  .sort((a, b) => b.total - a.total)
+                  .slice(0, 5)
+                  .map((row, index) => (
+                    <div key={row.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm ${
+                          index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : index === 2 ? 'bg-orange-600' : 'bg-blue-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <img
+                          src={getMemberPhoto(row.id)}
+                          alt={row.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                        <span className="font-medium text-gray-900 dark:text-white">{row.name}</span>
+                      </div>
+                      <span className="text-sm font-bold text-green-600">${row.total.toLocaleString()}</span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Payment Insights */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Payment Insights</h3>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
+                    <span className="font-medium text-green-800 dark:text-green-400">Success Rate</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    95% of payments processed successfully
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <CreditCard className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium text-blue-800 dark:text-blue-400">Popular Method</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Credit cards account for 60% of transactions
+                  </p>
+                </div>
+                
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Calendar className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium text-purple-800 dark:text-purple-400">Peak Days</span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Month-end shows 40% increase in payments
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {filteredPayments.length === 0 && viewMode === 'transactions' && (
+        <div className="text-center py-12">
+          <DollarSign className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No payments found</h3>
+          <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria</p>
+      </div>
+      )}
+    </div>
+  );
+};
+
+export default Payments;
