@@ -232,21 +232,43 @@ shawedgym/
 
 ## 🚀 Deployment
 
-### Backend Deployment
-1. Set up PostgreSQL database on your server
-2. Configure environment variables
-3. Deploy to your preferred platform (Heroku, DigitalOcean, AWS, etc.)
+### Quick Guide (Render + Vercel)
 
-### Frontend Deployment
-1. Build the frontend: `npm run build`
-2. Deploy the `dist` folder to your web server
-3. Configure your web server to serve the React app
+Backend (Render):
+- Root: `shawedgym/backend`
+- Start: `npm run start`
+- Env:
+  - `DATABASE_URL` (Postgres connection string)
+  - `JWT_SECRET`
+  - `NODE_ENV=production`
+  - `FRONTEND_URL=https://YOUR-VERCEL-APP.vercel.app`
 
-### Full-Stack Deployment
-The backend can serve both API and frontend:
-1. Build frontend: `npm run build`
-2. Backend automatically serves frontend from `dist` folder
-3. Deploy backend with built frontend
+Frontend (Vercel):
+- Root: `shawedgym/`
+- Build: `npm run build`
+- Output: `dist`
+- Env:
+  - `VITE_API_BASE_URL=https://YOUR-BACKEND.onrender.com/api`
+
+Notes:
+- CORS is restricted to `FRONTEND_URL` in backend `src/server.js`.
+- Frontend reads API URL from `VITE_API_BASE_URL` (see `src/services/api.js`).
+
+### Environment Examples
+
+Backend `.env` (Render):
+```
+DATABASE_URL=postgresql://neondb_owner:password@ep-XXXX.pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=change_this_to_a_long_random_secret
+NODE_ENV=production
+FRONTEND_URL=https://shawedgym.vercel.app
+PORT=5000
+```
+
+Frontend (Vercel Project Env):
+```
+VITE_API_BASE_URL=https://shawedgym.onrender.com/api
+```
 
 ## 🤝 Contributing
 

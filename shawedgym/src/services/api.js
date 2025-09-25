@@ -6,7 +6,9 @@
 import axios from 'axios';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL)
+  ? import.meta.env.VITE_API_BASE_URL
+  : 'https://shawedgym.onrender.com/api';
 
 // Create axios instance
 const api = axios.create({
@@ -243,7 +245,7 @@ export const getConnectionStatus = () => {
     isConnected: true,
     backendUrl: API_BASE_URL,
     usingMockData: false,
-    type: 'Express + PostgreSQL Backend (Port: 5000)'
+    type: 'Express + PostgreSQL Backend'
   };
 };
 
