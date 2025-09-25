@@ -13,7 +13,8 @@ const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && i
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  // Increase timeout to tolerate Render cold starts
+  timeout: 25000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -76,6 +77,16 @@ const apiCall = async (endpoint, options = {}) => {
       errorResponse.message = 'Server error. Please try again later.';
     }
     
+    // If timeout (cold start), retry once after short delay
+    if (error.code === 'ECONNABORTED' || /timeout/i.test(error.message)) {
+      try {
+        await new Promise(r => setTimeout(r, 1500));
+        const retry = await api.request({ url: endpoint, ...options });
+        return retry.data;
+      } catch (_) {
+        // fall through
+      }
+    }
     throw errorResponse;
   }
 };
