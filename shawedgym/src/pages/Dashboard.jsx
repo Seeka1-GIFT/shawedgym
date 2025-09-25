@@ -139,6 +139,7 @@ const Dashboard = () => {
         <p className="text-gray-600 dark:text-gray-400">Welcome back! Here's what's happening at ShawedGym today.</p>
       </div>
 
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {metrics.map(({ title, value, icon, gradient }) => (
