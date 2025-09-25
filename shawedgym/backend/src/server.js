@@ -84,6 +84,12 @@ app.get('/api/dashboard/stats', async (req, res) => {
 
     const checkedIn = await pool.query("SELECT COUNT(*) as inside FROM attendance WHERE check_out_time IS NULL");
 
+    // Derive additional metrics from DB instead of mock numbers
+    const [activeEquip, todays] = await Promise.all([
+      pool.query("SELECT COUNT(*)::int AS cnt FROM assets WHERE status ILIKE 'active'"),
+      pool.query("SELECT COUNT(*)::int AS cnt FROM attendance WHERE DATE(check_in_time) = CURRENT_DATE")
+    ]);
+
     const stats = {
       totalMembers: parseInt(membersResult.rows[0].total) || 0,
       activeMembers: parseInt(membersResult.rows[0].active) || 0,
@@ -91,8 +97,8 @@ app.get('/api/dashboard/stats', async (req, res) => {
       totalClasses: parseInt(classesResult.rows[0].total) || 0,
       checkedInMembers: parseInt(checkedIn.rows[0].inside) || 0,
       monthlyRevenue: Math.floor((parseFloat(paymentsResult.rows[0].revenue) || 0) * 0.3),
-      activeEquipment: 25,
-      todayAttendance: Math.floor(Math.random() * 30) + 20
+      activeEquipment: activeEquip.rows?.[0]?.cnt || 0,
+      todayAttendance: todays.rows?.[0]?.cnt || 0
     };
 
     res.json({ success: true, data: stats });

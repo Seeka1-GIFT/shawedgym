@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api.js';
-import { payments } from '../data/dummy.js';
+// Removed dummy payments to keep only backend data
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
@@ -71,7 +71,7 @@ const Payments = () => {
     loadRefs();
   }, [showError]);
 
-  const sourcePayments = backendPayments.length ? backendPayments : payments;
+  const sourcePayments = backendPayments;
 
   // Enhanced payments data with additional transaction details
   const enhancedPayments = sourcePayments.map(payment => ({

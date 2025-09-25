@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { members as allMembers, plans } from '../data/dummy.js';
+// Removed dummy imports to ensure DB-only data
 import { apiService } from '../services/api.js';
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
@@ -161,7 +161,7 @@ const Members = () => {
         const errorMessage = error.message || 'Failed to load members';
         setError(errorMessage);
         showError(errorMessage);
-        setMembers(allMembers);
+        setMembers([]);
       } finally {
         setLoading(false);
       }
