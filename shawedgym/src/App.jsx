@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { authHelpers } from './services/api.js';
+import { ToastProvider } from './contexts/ToastContext.jsx';
 
 // Import auth pages
 import Login from './pages/Login.jsx';
@@ -47,43 +48,45 @@ function App() {
   const isAuthenticated = authHelpers.isAuthenticated();
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      
-      {/* Protected routes */}
-      <Route path="/*" element={
-        <ProtectedRoute>
-          <div className="flex">
-            {/* Sidebar navigation.  On small screens the sidebar can be toggled via
-                the hamburger menu within the Navbar component. */}
-            <Navbar theme={theme} setTheme={setTheme} />
-            {/* Main content area.  A min-h-screen ensures that the main area
-                stretches to full height.  Padding provides breathing room. */}
-            <main className="flex-1 min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/members" element={<Members />} />
-                <Route path="/plans" element={<Plans />} />
-                <Route path="/assets" element={<Assets />} />
-                <Route path="/classes" element={<Classes />} />
-                <Route path="/trainers" element={<Trainers />} />
-                <Route path="/attendance" element={<Attendance />} />
-                <Route path="/payments" element={<Payments />} />
-                <Route path="/expenses" element={<Expenses />} />
-                <Route path="/reports" element={<Reports />} />
-                <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
-                <Route path="/checkin" element={<CheckIn />} />
-                {/* Redirect unknown paths back to the dashboard. */}
-                <Route path="*" element={<Navigate to="/dashboard" />} />
-              </Routes>
-            </main>
-          </div>
-        </ProtectedRoute>
-      } />
-    </Routes>
+    <ToastProvider>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected routes */}
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <div className="flex">
+              {/* Sidebar navigation.  On small screens the sidebar can be toggled via
+                  the hamburger menu within the Navbar component. */}
+              <Navbar theme={theme} setTheme={setTheme} />
+              {/* Main content area.  A min-h-screen ensures that the main area
+                  stretches to full height.  Padding provides breathing room. */}
+              <main className="flex-1 min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/members" element={<Members />} />
+                  <Route path="/plans" element={<Plans />} />
+                  <Route path="/assets" element={<Assets />} />
+                  <Route path="/classes" element={<Classes />} />
+                  <Route path="/trainers" element={<Trainers />} />
+                  <Route path="/attendance" element={<Attendance />} />
+                  <Route path="/payments" element={<Payments />} />
+                  <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
+                  <Route path="/checkin" element={<CheckIn />} />
+                  {/* Redirect unknown paths back to the dashboard. */}
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                </Routes>
+              </main>
+            </div>
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </ToastProvider>
   );
 }
 
