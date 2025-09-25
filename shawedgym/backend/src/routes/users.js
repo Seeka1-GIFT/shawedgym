@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const authMiddleware = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/authorize');
 
 // Protect all user routes
-router.use(authMiddleware);
+router.use(authMiddleware, authorizeRoles('admin'));
 
 // GET /api/users → list users
 router.get('/', async (req, res) => {

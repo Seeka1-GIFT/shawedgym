@@ -2,30 +2,31 @@ const express = require('express');
 const router = express.Router();
 const membersController = require('../controllers/membersController');
 const authMiddleware = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/authorize');
 
 // All member routes require authentication
 router.use(authMiddleware);
 
 // GET /api/members - Get all members
-router.get('/', membersController.getMembers);
+router.get('/', authorizeRoles('admin', 'user'), membersController.getMembers);
 
 // GET /api/members/stats/dashboard - Get member statistics
-router.get('/stats/dashboard', membersController.getMemberStats);
+router.get('/stats/dashboard', authorizeRoles('admin', 'user'), membersController.getMemberStats);
 
 // GET /api/members/:id - Get member by ID
-router.get('/:id', membersController.getMember);
+router.get('/:id', authorizeRoles('admin', 'user'), membersController.getMember);
 
 // POST /api/members - Create new member
-router.post('/', membersController.createMember);
+router.post('/', authorizeRoles('admin'), membersController.createMember);
 
 // PUT /api/members/:id - Update member
-router.put('/:id', membersController.updateMember);
+router.put('/:id', authorizeRoles('admin'), membersController.updateMember);
 
 // DELETE /api/members/:id - Delete member
-router.delete('/:id', membersController.deleteMember);
+router.delete('/:id', authorizeRoles('admin'), membersController.deleteMember);
 
 // POST /api/members/:id/checkin - Check in member
-router.post('/:id/checkin', membersController.checkInMember);
+router.post('/:id/checkin', authorizeRoles('admin'), membersController.checkInMember);
 
 // POST /api/members/seed - quick seed member for testing
 router.post('/seed/create', async (req, res) => {

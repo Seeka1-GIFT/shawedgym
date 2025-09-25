@@ -1,6 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
+const authMiddleware = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/authorize');
+
+// Protect all report routes for admin only
+router.use(authMiddleware, authorizeRoles('admin'));
 
 // Create a report snapshot
 router.post('/', async (req, res) => {
