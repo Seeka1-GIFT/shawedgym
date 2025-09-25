@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { members as allMembers, plans } from '../data/dummy.js';
 import { apiService } from '../services/api.js';
+import { useToast } from '../contexts/ToastContext.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { 
   Users, Plus, Search, Filter, Download, Mail, Phone, 
   Calendar, CreditCard, AlertTriangle, CheckCircle, 
@@ -10,6 +13,7 @@ import {
 
 // Add Member Form Component
 const AddMemberForm = ({ onClose, onMemberAdded }) => {
+  const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -38,13 +42,17 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
     try {
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
         setError('Please fill in all required fields');
+        showError('Please fill in all required fields');
         setLoading(false);
         return;
       }
 
       await onMemberAdded(formData);
+      showSuccess('Member created successfully!');
     } catch (error) {
-      setError(error.message || 'Failed to create member');
+      const errorMessage = error.message || 'Failed to create member';
+      setError(errorMessage);
+      showError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -128,6 +136,7 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
 };
 
 const Members = () => {
+  const { showSuccess, showError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -149,14 +158,16 @@ const Members = () => {
         setError(null);
       } catch (error) {
         console.error('Failed to load members:', error);
-        setError('Failed to load members. Using demo data.');
+        const errorMessage = error.message || 'Failed to load members';
+        setError(errorMessage);
+        showError(errorMessage);
         setMembers(allMembers);
       } finally {
         setLoading(false);
       }
     };
     loadMembers();
-  }, [searchTerm]);
+  }, [searchTerm, showError]);
 
   // Enhanced member data
   const enhancedMembers = members.map(member => ({
@@ -187,9 +198,12 @@ const Members = () => {
         const refreshResponse = await apiService.getMembers();
         setMembers(refreshResponse.data.members || []);
         setShowAddModal(false);
+        showSuccess('Member added successfully!');
       }
     } catch (error) {
       console.error('Failed to add member:', error);
+      showError(error.message || 'Failed to add member');
+      throw error; // Re-throw to be handled by the form
     }
   };
 
@@ -201,9 +215,11 @@ const Members = () => {
         const refreshResponse = await apiService.getMembers({ search: searchTerm });
         setMembers(refreshResponse.data.members || []);
         setDeletingMember(null);
+        showSuccess('Member deleted successfully!');
       }
     } catch (error) {
       console.error('Failed to delete member:', error);
+      showError(error.message || 'Failed to delete member');
     }
   };
 
@@ -228,8 +244,10 @@ const Members = () => {
       const refreshResponse = await apiService.getMembers({ search: searchTerm });
       setMembers(refreshResponse.data.members || []);
       setEditingMember(null);
+      showSuccess('Member updated successfully!');
     } catch (err) {
       console.error('Failed to update member:', err);
+      showError(err.message || 'Failed to update member');
     }
   };
 
@@ -255,21 +273,18 @@ const Members = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Loading members...</p>
-        </div>
+        <LoadingSpinner size="xl" text="Loading members..." />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
-      {error && (
-        <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-800">{error}</p>
-        </div>
-      )}
+      <ErrorBoundary 
+        error={error ? { message: error } : null} 
+        onRetry={() => window.location.reload()}
+        onDismiss={() => setError(null)}
+      >
       
       {/* Header */}
       <div className="mb-8">
@@ -329,7 +344,7 @@ const Members = () => {
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
-      </div>
+            </div>
 
       {/* Members List - vertical (compact) */}
       <div className="grid grid-cols-1 gap-2">
@@ -372,8 +387,8 @@ const Members = () => {
                 <span className={`px-1.5 py-0.5 rounded text-[11px] ${member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                   {member.status}
                 </span>
-              </div>
             </div>
+          </div>
             )}
             
             <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
@@ -531,6 +546,7 @@ const Members = () => {
           </div>
         </div>
       )}
+      </ErrorBoundary>
     </div>
   );
 };
