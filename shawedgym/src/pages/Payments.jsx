@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { apiService } from '../services/api.js';
+import { apiService, authHelpers } from '../services/api.js';
 // Removed dummy payments to keep only backend data
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
@@ -19,6 +19,8 @@ import RelatedData from '../components/RelatedData.jsx';
  */
 const Payments = () => {
   const { showSuccess, showError } = useToast();
+  const currentUser = authHelpers.getUser();
+  const isAdmin = currentUser?.role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPlan, setFilterPlan] = useState('all');
@@ -414,6 +416,11 @@ const Payments = () => {
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-400">Track transactions, manage payments, and analyze revenue streams</p>
+        {isAdmin && (
+          <div className="mt-4">
+            <button onClick={() => setViewMode('transactions')} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Add New Payment</button>
+          </div>
+        )}
       </div>
 
       {/* Stats Cards */}

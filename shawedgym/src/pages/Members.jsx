@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 // Removed dummy imports to ensure DB-only data
-import { apiService } from '../services/api.js';
+import { apiService, authHelpers } from '../services/api.js';
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
@@ -137,6 +137,8 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
 
 const Members = () => {
   const { showSuccess, showError } = useToast();
+  const currentUser = authHelpers.getUser();
+  const isAdmin = currentUser?.role === 'admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
@@ -192,6 +194,10 @@ const Members = () => {
 
   // CRUD Functions
   const handleAddMember = async (memberData) => {
+    if (!isAdmin) {
+      showError('Only administrators can create members');
+       return;
+    }
     try {
       const response = await apiService.createMember(memberData);
       if (response.success) {
@@ -208,6 +214,10 @@ const Members = () => {
   };
 
   const handleDeleteMember = async (memberId) => {
+    if (!isAdmin) {
+      showError('Only administrators can delete members');
+      return;
+    }
     try {
       const response = await apiService.deleteMember(memberId);
       if (response.success) {
@@ -225,6 +235,10 @@ const Members = () => {
 
   const handleUpdateMember = async (e) => {
     e.preventDefault();
+    if (!isAdmin) {
+      showError('Only administrators can update members');
+      return;
+    }
     try {
       const form = e.currentTarget;
       const data = new FormData(form);
@@ -293,6 +307,7 @@ const Members = () => {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Members Management</h1>
             <p className="text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
           </div>
+          {isAdmin && (
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -300,6 +315,7 @@ const Members = () => {
             <Plus className="w-4 h-4" />
             <span>Add Member</span>
           </button>
+          )}
         </div>
       </div>
 
