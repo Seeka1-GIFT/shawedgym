@@ -47,7 +47,7 @@ api.interceptors.response.use(
   }
 );
 
-// Helper function for API calls
+// Helper function for API calls with enhanced error handling
 const apiCall = async (endpoint, options = {}) => {
   try {
     const response = await api.request({
@@ -57,7 +57,26 @@ const apiCall = async (endpoint, options = {}) => {
     return response.data;
   } catch (error) {
     console.error('API call failed:', error);
-    throw error.response?.data || error;
+    
+    // Enhanced error handling
+    const errorResponse = {
+      message: error.response?.data?.message || error.message || 'An error occurred',
+      status: error.response?.status || 500,
+      data: error.response?.data || null
+    };
+    
+    // Show user-friendly error messages
+    if (error.response?.status === 401) {
+      errorResponse.message = 'Authentication required. Please login again.';
+    } else if (error.response?.status === 403) {
+      errorResponse.message = 'Access denied. You do not have permission to perform this action.';
+    } else if (error.response?.status === 404) {
+      errorResponse.message = 'Resource not found.';
+    } else if (error.response?.status === 500) {
+      errorResponse.message = 'Server error. Please try again later.';
+    }
+    
+    throw errorResponse;
   }
 };
 
@@ -80,6 +99,25 @@ export const apiService = {
     data: userData
   }),
   getCurrentUser: () => apiCall('/auth/me'),
+  resetPassword: (data) => apiCall('/auth/reset-password', {
+    method: 'POST',
+    data: data
+  }),
+  
+  // Users (Admin only)
+  getUsers: () => apiCall('/users'),
+  getUser: (id) => apiCall(`/users/${id}`),
+  createUser: (data) => apiCall('/users', {
+    method: 'POST',
+    data: data
+  }),
+  updateUser: (id, data) => apiCall(`/users/${id}`, {
+    method: 'PUT',
+    data: data
+  }),
+  deleteUser: (id) => apiCall(`/users/${id}`, {
+    method: 'DELETE'
+  }),
   
   // Members
   getMembers: (params = {}) => {
@@ -295,6 +333,73 @@ export const authHelpers = {
     const token = localStorage.getItem('authToken');
     const user = localStorage.getItem('user');
     return !!(token && user);
+  },
+  
+  // Login helper that stores both token and user data
+  login: async (credentials) => {
+    try {
+      const response = await apiService.login(credentials);
+      if (response.success && response.data.token) {
+        authHelpers.setAuthToken(response.data.token);
+        authHelpers.setUser(response.data.user);
+        return response;
+      }
+      throw new Error('Login failed: No token received');
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
+  },
+  
+  // Logout helper
+  logout: () => {
+    authHelpers.removeAuthToken();
+    window.location.href = '/login';
+  }
+};
+
+// Utility functions for common operations
+export const apiUtils = {
+  // Handle API responses with loading states
+  withLoading: async (apiCall, setLoading) => {
+    try {
+      if (setLoading) setLoading(true);
+      const result = await apiCall();
+      return result;
+    } catch (error) {
+      console.error('API call with loading failed:', error);
+      throw error;
+    } finally {
+      if (setLoading) setLoading(false);
+    }
+  },
+  
+  // Retry failed requests
+  withRetry: async (apiCall, maxRetries = 3, delay = 1000) => {
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await apiCall();
+      } catch (error) {
+        if (i === maxRetries - 1) throw error;
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+      }
+    }
+  },
+  
+  // Batch operations
+  batch: async (operations) => {
+    try {
+      const results = await Promise.allSettled(operations);
+      return results.map((result, index) => ({
+        index,
+        success: result.status === 'fulfilled',
+        data: result.status === 'fulfilled' ? result.value : null,
+        error: result.status === 'rejected' ? result.reason : null
+      }));
+    } catch (error) {
+      console.error('Batch operations failed:', error);
+      throw error;
+    }
   }
 };
 
