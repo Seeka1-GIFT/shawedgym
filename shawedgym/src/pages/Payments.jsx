@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api.js';
 import { payments } from '../data/dummy.js';
+import { useToast } from '../contexts/ToastContext.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
 import { 
   DollarSign, Plus, Search, Filter, Calendar, CreditCard,
   TrendingUp, TrendingDown, CheckCircle, XCircle, Clock,
@@ -15,6 +18,7 @@ import RelatedData from '../components/RelatedData.jsx';
  * Modern Payment Management System with transaction tracking, analytics, and financial insights
  */
 const Payments = () => {
+  const { showSuccess, showError } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPlan, setFilterPlan] = useState('all');
@@ -28,15 +32,24 @@ const Payments = () => {
   const [backendPayments, setBackendPayments] = useState([]);
   const [memberOptions, setMemberOptions] = useState([]);
   const [planOptions, setPlanOptions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const load = async () => {
       try {
+        setLoading(true);
         const res = await apiService.getPayments();
         const apiPayments = Array.isArray(res?.data) ? res.data : res?.data?.payments || [];
         setBackendPayments(apiPayments);
+        setError(null);
       } catch (e) {
+        console.error('Failed to load payments:', e);
+        setError(e.message || 'Failed to load payments');
+        showError(e.message || 'Failed to load payments');
         setBackendPayments([]);
+      } finally {
+        setLoading(false);
       }
     };
     const loadRefs = async () => {
@@ -48,14 +61,15 @@ const Payments = () => {
         setMemberOptions(mRes?.data?.members || []);
         const p = Array.isArray(pRes?.data) ? pRes.data : pRes?.data?.plans || [];
         setPlanOptions(p);
-      } catch {
+      } catch (e) {
+        console.error('Failed to load references:', e);
         setMemberOptions([]);
         setPlanOptions([]);
       }
     };
     load();
     loadRefs();
-  }, []);
+  }, [showError]);
 
   const sourcePayments = backendPayments.length ? backendPayments : payments;
 
@@ -171,9 +185,11 @@ const Payments = () => {
         const refreshed = await apiService.getPayments();
         const apiPayments = Array.isArray(refreshed?.data) ? refreshed.data : refreshed?.data?.payments || [];
         setBackendPayments(apiPayments);
+        showSuccess('Payment deleted successfully!');
       }
     } catch (e) {
       console.error('Delete payment failed', e);
+      showError(e.message || 'Failed to delete payment');
     } finally {
       setShowDeleteModal(false);
       setDeletingPayment(null);
@@ -196,8 +212,10 @@ const Payments = () => {
       setBackendPayments(apiPayments);
       setShowEditModal(false);
       setEditingPayment(null);
+      showSuccess('Payment updated successfully!');
     } catch (err) {
       console.error('Update payment failed', err);
+      showError(err.message || 'Failed to update payment');
     }
   };
 
@@ -369,8 +387,22 @@ const Payments = () => {
   };
 
   const safeMembers = Array.isArray(memberOptions) ? memberOptions : [];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6 flex items-center justify-center">
+        <LoadingSpinner size="xl" text="Loading payments..." />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
+      <ErrorBoundary 
+        error={error ? { message: error } : null} 
+        onRetry={() => window.location.reload()}
+        onDismiss={() => setError(null)}
+      >
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-2">
@@ -902,6 +934,7 @@ const Payments = () => {
           <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria</p>
       </div>
       )}
+      </ErrorBoundary>
     </div>
   );
 };
