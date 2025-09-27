@@ -159,6 +159,13 @@ const Payments = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingPayment, setDeletingPayment] = useState(null);
   const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
+  const [newPayment, setNewPayment] = useState({
+    memberId: '',
+    amount: '',
+    method: 'Cash',
+    description: '',
+    planId: ''
+  });
 
   const [backendPayments, setBackendPayments] = useState([]);
   const [memberOptions, setMemberOptions] = useState([]);
