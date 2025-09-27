@@ -387,7 +387,7 @@ const Payments = () => {
       const refreshed = await apiService.getPayments();
       const apiPayments = Array.isArray(refreshed?.data) ? refreshed.data : refreshed?.data?.payments || [];
       setBackendPayments(apiPayments);
-      setShowAddModal(false);
+      setShowAddPaymentModal(false);
       setNewPayment({
         memberId: '',
         amount: '',
@@ -410,7 +410,7 @@ const Payments = () => {
       description: '',
       planId: ''
     });
-    setShowAddModal(true);
+    setShowAddPaymentModal(true);
   };
 
   // Handle edit payment
@@ -1009,14 +1009,14 @@ const Payments = () => {
       )}
 
       {/* Add New Payment Modal */}
-      {showAddModal && (
+      {showAddPaymentModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Add New Payment</h3>
                 <button 
-                  onClick={() => setShowAddModal(false)} 
+                  onClick={() => setShowAddPaymentModal(false)} 
                   className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
                   ✕
@@ -1109,7 +1109,7 @@ const Payments = () => {
                 <div className="flex space-x-3 pt-2">
                   <button 
                     type="button" 
-                    onClick={() => setShowAddModal(false)} 
+                    onClick={() => setShowAddPaymentModal(false)} 
                     className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     Cancel
