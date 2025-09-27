@@ -3,11 +3,15 @@ const pool = require('../config/database');
 // Get all payments
 const getPayments = async (req, res) => {
   try {
+    console.log('getPayments called with user:', req.user);
     const { page = 1, limit = 20, status, memberId } = req.query;
     const offset = (page - 1) * limit;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
+    console.log('getPayments - gymId:', gymId, 'user:', req.user);
+
     if (!gymId) {
+      console.log('getPayments - No gym_id found in user object');
       return res.status(400).json({
         error: 'Bad Request',
         message: 'Gym ID is required'
@@ -23,6 +27,8 @@ const getPayments = async (req, res) => {
     let countQuery = 'SELECT COUNT(*) FROM payments p WHERE p.gym_id = $1';
     let queryParams = [gymId];
     let paramIndex = 2;
+    
+    console.log('getPayments - Executing query with gymId:', gymId);
 
     // Status filter
     if (status) {
@@ -43,10 +49,18 @@ const getPayments = async (req, res) => {
     query += ` ORDER BY p.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(parseInt(limit), offset);
 
+    console.log('getPayments - Final query:', query);
+    console.log('getPayments - Query params:', queryParams);
+
     const [paymentsResult, countResult] = await Promise.all([
       pool.query(query, queryParams),
       pool.query(countQuery, queryParams.slice(0, -2))
     ]);
+
+    console.log('getPayments - Query results:', {
+      paymentsCount: paymentsResult.rows.length,
+      totalCount: countResult.rows[0]?.count
+    });
 
     const totalPayments = parseInt(countResult.rows[0].count);
     const totalPages = Math.ceil(totalPayments / parseInt(limit));

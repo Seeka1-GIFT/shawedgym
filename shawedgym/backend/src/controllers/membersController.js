@@ -3,11 +3,15 @@ const pool = require('../config/database');
 // Get all members
 const getMembers = async (req, res) => {
   try {
+    console.log('getMembers called with user:', req.user);
     const { page = 1, limit = 20, search } = req.query;
     const offset = (page - 1) * limit;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
+    console.log('getMembers - gymId:', gymId, 'user:', req.user);
+
     if (!gymId) {
+      console.log('getMembers - No gym_id found in user object');
       return res.status(400).json({
         error: 'Bad Request',
         message: 'Gym ID is required'
@@ -18,6 +22,8 @@ const getMembers = async (req, res) => {
     let countQuery = 'SELECT COUNT(*) FROM members WHERE gym_id = $1';
     let queryParams = [gymId];
     let paramIndex = 2;
+    
+    console.log('getMembers - Executing query with gymId:', gymId);
 
     // Search filter
     if (search) {
@@ -30,10 +36,18 @@ const getMembers = async (req, res) => {
     query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     queryParams.push(parseInt(limit), offset);
 
+    console.log('getMembers - Final query:', query);
+    console.log('getMembers - Query params:', queryParams);
+    
     const [membersResult, countResult] = await Promise.all([
       pool.query(query, queryParams),
       pool.query(countQuery, queryParams.slice(0, -2))
     ]);
+
+    console.log('getMembers - Query results:', {
+      membersCount: membersResult.rows.length,
+      totalCount: countResult.rows[0]?.count
+    });
 
     const totalMembers = parseInt(countResult.rows[0].count);
     const totalPages = Math.ceil(totalMembers / parseInt(limit));
