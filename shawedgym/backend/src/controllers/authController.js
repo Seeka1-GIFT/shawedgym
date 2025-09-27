@@ -91,10 +91,12 @@ const login = async (req, res) => {
     }
 
     // Find user with gym_id
+    console.log('Login attempt for email:', email);
     const result = await pool.query(
       'SELECT id, email, password, first_name, last_name, role, gym_id FROM users WHERE email = $1',
       [email]
     );
+    console.log('User query result:', result.rows.length > 0 ? 'User found' : 'User not found');
 
     if (result.rows.length === 0) {
       return res.status(401).json({
@@ -104,9 +106,12 @@ const login = async (req, res) => {
     }
 
     const user = result.rows[0];
+    console.log('User found:', { id: user.id, email: user.email, role: user.role, gym_id: user.gym_id });
 
     // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
+    console.log('Password check result:', isValidPassword);
+    
     if (!isValidPassword) {
       return res.status(401).json({
         error: 'Authentication Failed',
@@ -116,8 +121,9 @@ const login = async (req, res) => {
 
     // Generate token
     const token = generateToken(user.id);
+    console.log('Token generated successfully');
 
-    res.json({
+    const response = {
       success: true,
       message: 'Login successful',
       data: {
@@ -132,7 +138,15 @@ const login = async (req, res) => {
           gym_id: user.gym_id
         }
       }
+    };
+    
+    console.log('Login response prepared:', { 
+      success: response.success, 
+      user_id: response.data.user.id, 
+      gym_id: response.data.gym_id 
     });
+    
+    res.json(response);
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
