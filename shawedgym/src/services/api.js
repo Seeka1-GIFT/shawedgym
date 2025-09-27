@@ -387,10 +387,16 @@ export const authHelpers = {
   removeAuthToken: () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('gym_id');
+    localStorage.removeItem('currentGym');
   },
   
   setUser: (user) => {
     localStorage.setItem('user', JSON.stringify(user));
+    // Also store gym_id separately for easy access
+    if (user.gym_id) {
+      localStorage.setItem('gym_id', user.gym_id);
+    }
   },
   
   getUser: () => {
@@ -402,6 +408,11 @@ export const authHelpers = {
     const token = localStorage.getItem('authToken');
     const user = localStorage.getItem('user');
     return !!(token && user);
+  },
+  
+  getGymId: () => {
+    const user = authHelpers.getUser();
+    return user?.gym_id || localStorage.getItem('gym_id');
   },
   
   // Login helper that stores both token and user data

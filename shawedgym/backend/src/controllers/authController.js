@@ -44,9 +44,9 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create user with default gym_id = 1
     const result = await pool.query(
-      'INSERT INTO users (email, password, first_name, last_name, role, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING id, email, first_name, last_name, role, created_at',
+      'INSERT INTO users (email, password, first_name, last_name, role, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, 1, NOW()) RETURNING id, email, first_name, last_name, role, gym_id, created_at',
       [email, hashedPassword, firstName, lastName, role]
     );
 
@@ -63,7 +63,8 @@ const register = async (req, res) => {
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
-          role: user.role
+          role: user.role,
+          gym_id: user.gym_id
         }
       }
     });
@@ -89,9 +90,9 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user
+    // Find user with gym_id
     const result = await pool.query(
-      'SELECT id, email, password, first_name, last_name, role FROM users WHERE email = $1',
+      'SELECT id, email, password, first_name, last_name, role, gym_id FROM users WHERE email = $1',
       [email]
     );
 
@@ -121,12 +122,14 @@ const login = async (req, res) => {
       message: 'Login successful',
       data: {
         token,
+        gym_id: user.gym_id,
         user: {
           id: user.id,
           email: user.email,
           firstName: user.first_name,
           lastName: user.last_name,
-          role: user.role
+          role: user.role,
+          gym_id: user.gym_id
         }
       }
     });
@@ -145,7 +148,7 @@ const getCurrentUser = async (req, res) => {
     const userId = req.user.id;
     
     const result = await pool.query(
-      'SELECT id, email, first_name, last_name, role, created_at FROM users WHERE id = $1',
+      'SELECT id, email, first_name, last_name, role, gym_id, created_at FROM users WHERE id = $1',
       [userId]
     );
 
@@ -167,6 +170,7 @@ const getCurrentUser = async (req, res) => {
           firstName: user.first_name,
           lastName: user.last_name,
           role: user.role,
+          gym_id: user.gym_id,
           createdAt: user.created_at
         }
       }

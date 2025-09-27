@@ -28,7 +28,19 @@ const authMiddleware = async (req, res, next) => {
         });
       }
       
-      req.user = userResult.rows[0];
+      const user = userResult.rows[0];
+      
+      // Check if user has gym_id (required for multi-tenant)
+      if (!user.gym_id) {
+        console.log('Auth Check: User missing gym_id:', user);
+        return res.status(401).json({ 
+          error: 'Access denied', 
+          message: 'User not assigned to any gym' 
+        });
+      }
+      
+      console.log('Auth Check: User authenticated:', { id: user.id, email: user.email, role: user.role, gym_id: user.gym_id });
+      req.user = user;
       next();
     } catch (jwtError) {
       return res.status(401).json({ 
