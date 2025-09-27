@@ -57,6 +57,13 @@ const Login = () => {
         // Clear any cached gym data to force reload
         localStorage.removeItem('currentGym');
         
+        // Dispatch storage event to notify other components
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'authToken',
+          newValue: response.data.token,
+          oldValue: null
+        }));
+        
         // Redirect to dashboard
         navigate('/dashboard');
       } else {

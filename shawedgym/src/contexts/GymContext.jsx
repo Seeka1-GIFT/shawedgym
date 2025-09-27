@@ -26,6 +26,26 @@ export const GymProvider = ({ children }) => {
     }
   }, []);
 
+  // Reload gyms when authentication status changes
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'authToken') {
+        if (e.newValue) {
+          // Token was added, load gyms
+          loadGyms();
+        } else {
+          // Token was removed, clear gym data
+          setGyms([]);
+          setCurrentGym(null);
+          localStorage.removeItem('currentGym');
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
   // Load current gym from localStorage on mount
   useEffect(() => {
     const savedGym = localStorage.getItem('currentGym');

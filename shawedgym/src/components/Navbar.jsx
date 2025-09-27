@@ -45,6 +45,12 @@ const Navbar = ({ theme, setTheme }) => {
 
   const handleLogout = () => {
     authHelpers.removeAuthToken();
+    // Dispatch storage event to notify other components
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'authToken',
+      newValue: null,
+      oldValue: localStorage.getItem('authToken')
+    }));
     navigate('/login');
   };
 

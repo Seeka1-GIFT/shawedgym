@@ -43,6 +43,12 @@ api.interceptors.response.use(
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       localStorage.removeItem('currentGym');
+      // Dispatch storage event to notify other components
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: 'authToken',
+        newValue: null,
+        oldValue: localStorage.getItem('authToken')
+      }));
       // Only redirect if not already on login page
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
