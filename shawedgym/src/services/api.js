@@ -26,6 +26,12 @@ api.interceptors.request.use(
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // If no token, don't make the request for protected endpoints
+      if (config.url && !config.url.includes('/auth/') && !config.url.includes('/health')) {
+        console.log('No auth token found, skipping request to:', config.url);
+        return Promise.reject(new Error('No authentication token'));
+      }
     }
     return config;
   },

@@ -22,7 +22,11 @@ export const GymProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     if (token) {
-      loadGyms();
+      // Add a small delay to ensure auth state is fully established
+      const timer = setTimeout(() => {
+        loadGyms();
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, []);
 
@@ -62,6 +66,14 @@ export const GymProvider = ({ children }) => {
   const loadGyms = async () => {
     try {
       setLoading(true);
+      
+      // Double-check authentication before making API call
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.log('No auth token found, skipping gym load');
+        return;
+      }
+      
       const response = await apiService.getGyms();
       if (response.success) {
         setGyms(response.data.gyms || []);
@@ -78,6 +90,11 @@ export const GymProvider = ({ children }) => {
       // Don't show error for authentication issues - let the auth system handle it
       if (error.response?.status !== 401) {
         showError('Failed to load gyms');
+      } else {
+        // Clear gym data on auth error
+        setGyms([]);
+        setCurrentGym(null);
+        localStorage.removeItem('currentGym');
       }
     } finally {
       setLoading(false);
