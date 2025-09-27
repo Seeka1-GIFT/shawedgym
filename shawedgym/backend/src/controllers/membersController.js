@@ -66,9 +66,16 @@ const getMembers = async (req, res) => {
     });
   } catch (error) {
     console.error('Get members error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      detail: error.detail
+    });
     res.status(500).json({
       error: 'Server Error',
-      message: 'Failed to fetch members'
+      message: 'Failed to fetch members',
+      details: error.message
     });
   }
 };
