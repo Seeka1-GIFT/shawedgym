@@ -5,11 +5,19 @@ const getMembers = async (req, res) => {
   try {
     const { page = 1, limit = 20, search } = req.query;
     const offset = (page - 1) * limit;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    let query = 'SELECT * FROM members WHERE 1=1';
-    let countQuery = 'SELECT COUNT(*) FROM members WHERE 1=1';
-    let queryParams = [];
-    let paramIndex = 1;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    let query = 'SELECT * FROM members WHERE gym_id = $1';
+    let countQuery = 'SELECT COUNT(*) FROM members WHERE gym_id = $1';
+    let queryParams = [gymId];
+    let paramIndex = 2;
 
     // Search filter
     if (search) {
@@ -55,8 +63,16 @@ const getMembers = async (req, res) => {
 const getMember = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
     
-    const result = await pool.query('SELECT * FROM members WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM members WHERE id = $1 AND gym_id = $2', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -93,6 +109,14 @@ const createMember = async (req, res) => {
       emergencyPhone,
       registrationFee
     } = req.body;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
 
     // Validation
     if (!firstName || !lastName || !email || !phone || !membershipType) {
@@ -102,8 +126,8 @@ const createMember = async (req, res) => {
       });
     }
 
-    // Check if email already exists
-    const existingMember = await pool.query('SELECT id FROM members WHERE email = $1', [email]);
+    // Check if email already exists in this gym
+    const existingMember = await pool.query('SELECT id FROM members WHERE email = $1 AND gym_id = $2', [email, gymId]);
     if (existingMember.rows.length > 0) {
       return res.status(400).json({
         error: 'Validation Error',
@@ -113,10 +137,10 @@ const createMember = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO members 
-       (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', NOW()) 
+       (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
        RETURNING *`,
-      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone]
+      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone, gymId]
     );
 
     const member = result.rows[0];
@@ -189,9 +213,17 @@ const updateMember = async (req, res) => {
       emergencyPhone,
       status 
     } = req.body;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    // Check if member exists
-    const existingMember = await pool.query('SELECT id FROM members WHERE id = $1', [id]);
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    // Check if member exists in this gym
+    const existingMember = await pool.query('SELECT id FROM members WHERE id = $1 AND gym_id = $2', [id, gymId]);
     if (existingMember.rows.length === 0) {
       return res.status(404).json({
         error: 'Member Not Found',
@@ -204,9 +236,9 @@ const updateMember = async (req, res) => {
        SET first_name = $1, last_name = $2, email = $3, phone = $4, membership_type = $5, 
            date_of_birth = $6, address = $7, emergency_contact = $8, emergency_phone = $9, 
            status = $10, updated_at = NOW()
-       WHERE id = $11 
+       WHERE id = $11 AND gym_id = $12
        RETURNING *`,
-      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone, status, id]
+      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone, status, id, gymId]
     );
 
     res.json({
@@ -227,8 +259,16 @@ const updateMember = async (req, res) => {
 const deleteMember = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    const result = await pool.query('DELETE FROM members WHERE id = $1 RETURNING *', [id]);
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    const result = await pool.query('DELETE FROM members WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -254,6 +294,15 @@ const deleteMember = async (req, res) => {
 // Get member stats for dashboard
 const getMemberStats = async (req, res) => {
   try {
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
     const stats = await pool.query(`
       SELECT 
         COUNT(*) as total_members,
@@ -261,7 +310,8 @@ const getMemberStats = async (req, res) => {
         COUNT(CASE WHEN status = 'Inactive' THEN 1 END) as inactive_members,
         COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as new_members_this_month
       FROM members
-    `);
+      WHERE gym_id = $1
+    `, [gymId]);
 
     res.json({
       success: true,
@@ -280,9 +330,17 @@ const getMemberStats = async (req, res) => {
 const checkInMember = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    // Check if member exists and is active
-    const memberResult = await pool.query('SELECT * FROM members WHERE id = $1 AND status = $2', [id, 'Active']);
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    // Check if member exists and is active in this gym
+    const memberResult = await pool.query('SELECT * FROM members WHERE id = $1 AND status = $2 AND gym_id = $3', [id, 'Active', gymId]);
     
     if (memberResult.rows.length === 0) {
       return res.status(404).json({
@@ -295,8 +353,8 @@ const checkInMember = async (req, res) => {
 
     // Record check-in in attendance table
     await pool.query(
-      'INSERT INTO attendance (member_id, check_in_time, created_at) VALUES ($1, NOW(), NOW())',
-      [id]
+      'INSERT INTO attendance (member_id, check_in_time, gym_id, created_at) VALUES ($1, NOW(), $2, NOW())',
+      [id, gymId]
     );
 
     res.json({

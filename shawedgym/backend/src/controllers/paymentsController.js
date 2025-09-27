@@ -5,16 +5,24 @@ const getPayments = async (req, res) => {
   try {
     const { page = 1, limit = 20, status, memberId } = req.query;
     const offset = (page - 1) * limit;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
 
     let query = `
       SELECT p.*, m.first_name, m.last_name, m.email 
       FROM payments p 
       LEFT JOIN members m ON p.member_id = m.id 
-      WHERE 1=1
+      WHERE p.gym_id = $1
     `;
-    let countQuery = 'SELECT COUNT(*) FROM payments p WHERE 1=1';
-    let queryParams = [];
-    let paramIndex = 1;
+    let countQuery = 'SELECT COUNT(*) FROM payments p WHERE p.gym_id = $1';
+    let queryParams = [gymId];
+    let paramIndex = 2;
 
     // Status filter
     if (status) {
@@ -68,13 +76,21 @@ const getPayments = async (req, res) => {
 const getPayment = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
     
     const result = await pool.query(`
       SELECT p.*, m.first_name, m.last_name, m.email 
       FROM payments p 
       LEFT JOIN members m ON p.member_id = m.id 
-      WHERE p.id = $1
-    `, [id]);
+      WHERE p.id = $1 AND p.gym_id = $2
+    `, [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -106,6 +122,14 @@ const createPayment = async (req, res) => {
       description, 
       planId 
     } = req.body;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
 
     // Validation
     if (!memberId || !amount || !method) {
@@ -115,8 +139,8 @@ const createPayment = async (req, res) => {
       });
     }
 
-    // Verify member exists
-    const memberResult = await pool.query('SELECT id FROM members WHERE id = $1', [memberId]);
+    // Verify member exists in this gym
+    const memberResult = await pool.query('SELECT id FROM members WHERE id = $1 AND gym_id = $2', [memberId, gymId]);
     if (memberResult.rows.length === 0) {
       return res.status(400).json({
         error: 'Validation Error',
@@ -125,15 +149,15 @@ const createPayment = async (req, res) => {
     }
 
     // Generate receipt number
-    const receiptResult = await pool.query('SELECT COUNT(*) FROM payments');
+    const receiptResult = await pool.query('SELECT COUNT(*) FROM payments WHERE gym_id = $1', [gymId]);
     const receiptNumber = `PAY${String(parseInt(receiptResult.rows[0].count) + 1).padStart(6, '0')}`;
 
     const result = await pool.query(
       `INSERT INTO payments 
-       (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, NOW()) 
+       (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, gym_id, created_at) 
+       VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, $7, NOW()) 
        RETURNING *`,
-      [memberId, amount, method, description, planId, receiptNumber]
+      [memberId, amount, method, description, planId, receiptNumber, gymId]
     );
 
     res.status(201).json({
@@ -160,9 +184,17 @@ const updatePayment = async (req, res) => {
       description, 
       status 
     } = req.body;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    // Check if payment exists
-    const existingPayment = await pool.query('SELECT id FROM payments WHERE id = $1', [id]);
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    // Check if payment exists in this gym
+    const existingPayment = await pool.query('SELECT id FROM payments WHERE id = $1 AND gym_id = $2', [id, gymId]);
     if (existingPayment.rows.length === 0) {
       return res.status(404).json({
         error: 'Payment Not Found',
@@ -173,9 +205,9 @@ const updatePayment = async (req, res) => {
     const result = await pool.query(
       `UPDATE payments 
        SET amount = $1, method = $2, description = $3, status = $4, updated_at = NOW()
-       WHERE id = $5 
+       WHERE id = $5 AND gym_id = $6
        RETURNING *`,
-      [amount, method, description, status, id]
+      [amount, method, description, status, id, gymId]
     );
 
     res.json({
@@ -196,8 +228,16 @@ const updatePayment = async (req, res) => {
 const deletePayment = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
-    const result = await pool.query('DELETE FROM payments WHERE id = $1 RETURNING *', [id]);
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
+    const result = await pool.query('DELETE FROM payments WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -223,6 +263,15 @@ const deletePayment = async (req, res) => {
 // Get payment statistics
 const getPaymentStats = async (req, res) => {
   try {
+    const gymId = req.user?.gym_id; // Get gym_id from authenticated user
+
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID is required'
+      });
+    }
+
     const stats = await pool.query(`
       SELECT 
         COUNT(*) as total_payments,
@@ -230,7 +279,8 @@ const getPaymentStats = async (req, res) => {
         SUM(CASE WHEN status = 'completed' AND payment_date >= CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as monthly_revenue,
         COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending_payments
       FROM payments
-    `);
+      WHERE gym_id = $1
+    `, [gymId]);
 
     const methodStats = await pool.query(`
       SELECT 
@@ -238,9 +288,9 @@ const getPaymentStats = async (req, res) => {
         COUNT(*) as count,
         SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END) as total
       FROM payments 
-      WHERE status = 'completed'
+      WHERE status = 'completed' AND gym_id = $1
       GROUP BY method
-    `);
+    `, [gymId]);
 
     res.json({
       success: true,
