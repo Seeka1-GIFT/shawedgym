@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const gymsController = require('../controllers/gymsController');
 const authMiddleware = require('../middleware/auth');
-const authorizeRoles = require('../middleware/authorize');
+const { authorizeRoles } = require('../middleware/authorize');
 
 // All gym routes require authentication
 router.use(authMiddleware);
