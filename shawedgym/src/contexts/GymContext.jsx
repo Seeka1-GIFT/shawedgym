@@ -18,9 +18,12 @@ export const GymProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const { showError, showSuccess } = useToast();
 
-  // Load gyms on component mount
+  // Load gyms on component mount only if authenticated
   useEffect(() => {
-    loadGyms();
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      loadGyms();
+    }
   }, []);
 
   // Load current gym from localStorage on mount
@@ -52,7 +55,10 @@ export const GymProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Error loading gyms:', error);
-      showError('Failed to load gyms');
+      // Don't show error for authentication issues - let the auth system handle it
+      if (error.response?.status !== 401) {
+        showError('Failed to load gyms');
+      }
     } finally {
       setLoading(false);
     }

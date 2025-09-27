@@ -54,6 +54,9 @@ const Login = () => {
         authHelpers.setAuthToken(response.data.token);
         authHelpers.setUser(response.data.user);
         
+        // Clear any cached gym data to force reload
+        localStorage.removeItem('currentGym');
+        
         // Redirect to dashboard
         navigate('/dashboard');
       } else {
