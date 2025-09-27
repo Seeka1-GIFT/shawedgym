@@ -7,6 +7,7 @@ import {
   Activity, Target, LogOut 
 } from 'lucide-react';
 import NotificationSystem from './NotificationSystem.jsx';
+import GymSelector from './GymSelector.jsx';
 import { authHelpers } from '../services/api.js';
 
 // Enhanced navigation items with icons
@@ -91,6 +92,11 @@ const Navbar = ({ theme, setTheme }) => {
               <div className="hidden md:block">
                 <NotificationSystem />
               </div>
+            </div>
+            
+            {/* Gym Selector */}
+            <div className="mt-4">
+              <GymSelector />
             </div>
           </div>
 

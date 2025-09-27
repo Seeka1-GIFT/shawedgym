@@ -132,6 +132,21 @@ export const apiService = {
   deleteUser: (id) => apiCall(`/users/${id}`, {
     method: 'DELETE'
   }),
+
+  // Gyms
+  getGyms: () => apiCall('/gyms'),
+  getGym: (id) => apiCall(`/gyms/${id}`),
+  createGym: (data) => apiCall('/gyms', {
+    method: 'POST',
+    data: data
+  }),
+  updateGym: (id, data) => apiCall(`/gyms/${id}`, {
+    method: 'PUT',
+    data: data
+  }),
+  deleteGym: (id) => apiCall(`/gyms/${id}`, {
+    method: 'DELETE'
+  }),
   
   // Members
   getMembers: (params = {}) => {

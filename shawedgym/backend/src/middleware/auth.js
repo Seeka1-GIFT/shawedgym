@@ -17,8 +17,8 @@ const authMiddleware = async (req, res, next) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'shawedgym_super_secret_key_2024');
       
-      // Verify user still exists in database
-      const userQuery = 'SELECT id, email, role FROM users WHERE id = $1';
+      // Verify user still exists in database and get gym_id
+      const userQuery = 'SELECT id, email, role, gym_id FROM users WHERE id = $1';
       const userResult = await pool.query(userQuery, [decoded.userId]);
       
       if (userResult.rows.length === 0) {
