@@ -16,6 +16,7 @@ const NAV_ITEMS = [
   { label: 'Check-In/Out', path: '/checkin', icon: Activity },
   { label: 'Members', path: '/members', icon: Users },
   { label: 'Plans', path: '/plans', icon: CreditCard },
+  { label: 'Subscriptions', path: '/subscriptions', icon: Target },
   { label: 'Assets', path: '/assets', icon: Package },
   { label: 'Classes', path: '/classes', icon: Calendar },
   { label: 'Trainers', path: '/trainers', icon: UserCheck },

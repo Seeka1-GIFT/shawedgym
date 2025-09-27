@@ -147,6 +147,30 @@ export const apiService = {
   deleteGym: (id) => apiCall(`/gyms/${id}`, {
     method: 'DELETE'
   }),
+
+  // Subscriptions
+  getSubscriptionPlans: () => apiCall('/subscriptions/plans'),
+  getSubscriptionPlan: (id) => apiCall(`/subscriptions/plans/${id}`),
+  createSubscriptionPlan: (data) => apiCall('/subscriptions/plans', {
+    method: 'POST',
+    data: data
+  }),
+  updateSubscriptionPlan: (id, data) => apiCall(`/subscriptions/plans/${id}`, {
+    method: 'PUT',
+    data: data
+  }),
+  deleteSubscriptionPlan: (id) => apiCall(`/subscriptions/plans/${id}`, {
+    method: 'DELETE'
+  }),
+  getGymSubscription: () => apiCall('/subscriptions/gym'),
+  subscribeGym: (data) => apiCall('/subscriptions/gym', {
+    method: 'POST',
+    data: data
+  }),
+  cancelSubscription: () => apiCall('/subscriptions/gym', {
+    method: 'DELETE'
+  }),
+  getSubscriptionUsage: () => apiCall('/subscriptions/usage'),
   
   // Members
   getMembers: (params = {}) => {

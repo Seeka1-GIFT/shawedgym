@@ -25,6 +25,7 @@ import Expenses from './pages/Expenses.jsx';
 import Reports from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
 import CheckIn from './pages/CheckIn.jsx';
+import Subscriptions from './pages/Subscriptions.jsx';
 
 function App() {
   // Persist the user's theme choice in localStorage.  This state is
@@ -71,6 +72,7 @@ function App() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/members" element={<Members />} />
                     <Route path="/plans" element={<Plans />} />
+                    <Route path="/subscriptions" element={<Subscriptions />} />
                     <Route path="/assets" element={<Assets />} />
                     <Route path="/classes" element={<Classes />} />
                     <Route path="/trainers" element={<Trainers />} />
