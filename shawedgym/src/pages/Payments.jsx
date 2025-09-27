@@ -14,6 +14,134 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import QuickActions from '../components/QuickActions.jsx';
 import RelatedData from '../components/RelatedData.jsx';
 
+// Add Payment Form Component
+const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }) => {
+  const { showSuccess, showError } = useToast();
+  const [formData, setFormData] = useState({
+    memberId: '',
+    planId: '',
+    amount: '',
+    method: 'cash',
+    description: '',
+    status: 'completed'
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (!formData.memberId || !formData.amount) {
+        showError('Please select a member and enter an amount');
+        setLoading(false);
+        return;
+      }
+
+      await onPaymentAdded(formData);
+      showSuccess('Payment created successfully!');
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to create payment';
+      showError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Add New Payment</h2>
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <X className="w-6 h-6 text-gray-500" />
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Member *</label>
+              <select name="memberId" value={formData.memberId} onChange={handleChange} 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white" required>
+                <option value="">Select Member</option>
+                {memberOptions.map(member => (
+                  <option key={member.id} value={member.id}>
+                    {member.first_name ? `${member.first_name} ${member.last_name || ''}`.trim() : member.name || 'Unknown Member'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Plan (Optional)</label>
+              <select name="planId" value={formData.planId} onChange={handleChange} 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white">
+                <option value="">No Plan</option>
+                {planOptions.map(plan => (
+                  <option key={plan.id} value={plan.id}>{plan.name} - ${plan.price}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Amount ($) *</label>
+              <input type="number" min="0" step="0.01" name="amount" value={formData.amount} onChange={handleChange} 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white" 
+                placeholder="20.00" required />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
+              <select name="method" value={formData.method} onChange={handleChange} 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white">
+                <option value="cash">Cash</option>
+                <option value="credit_card">Credit Card</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="mobile_payment">Mobile Payment</option>
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+              <textarea name="description" value={formData.description} onChange={handleChange} rows="3"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                placeholder="Payment description..." />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+              <select name="status" value={formData.status} onChange={handleChange} 
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white">
+                <option value="completed">Completed</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center justify-end space-x-3 pt-4">
+              <button type="button" onClick={onClose} disabled={loading}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 rounded-lg transition-colors">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}
+                className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 flex items-center space-x-2">
+                <Plus className="w-4 h-4" />
+                <span>{loading ? 'Creating...' : 'Create Payment'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /**
  * Modern Payment Management System with transaction tracking, analytics, and financial insights
  */
@@ -30,6 +158,7 @@ const Payments = () => {
   const [editingPayment, setEditingPayment] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deletingPayment, setDeletingPayment] = useState(null);
+  const [showAddPaymentModal, setShowAddPaymentModal] = useState(false);
 
   const [backendPayments, setBackendPayments] = useState([]);
   const [memberOptions, setMemberOptions] = useState([]);
@@ -195,6 +324,23 @@ const Payments = () => {
     } finally {
       setShowDeleteModal(false);
       setDeletingPayment(null);
+    }
+  };
+
+  const handleCreatePayment = async (paymentData) => {
+    try {
+      const response = await apiService.createPayment(paymentData);
+      if (response.success) {
+        const refreshed = await apiService.getPayments();
+        const apiPayments = Array.isArray(refreshed?.data) ? refreshed.data : refreshed?.data?.payments || [];
+        setBackendPayments(apiPayments);
+        setShowAddPaymentModal(false);
+        showSuccess('Payment created successfully!');
+      }
+    } catch (error) {
+      console.error('Create payment error:', error);
+      showError(error.message || 'Failed to create payment');
+      throw error; // Re-throw to be handled by the form
     }
   };
 
@@ -418,7 +564,7 @@ const Payments = () => {
         <p className="text-gray-600 dark:text-gray-400">Track transactions, manage payments, and analyze revenue streams</p>
         {isAdmin && (
           <div className="mt-4">
-            <button onClick={() => setViewMode('transactions')} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Add New Payment</button>
+            <button onClick={() => setShowAddPaymentModal(true)} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Add New Payment</button>
           </div>
         )}
       </div>
@@ -533,7 +679,7 @@ const Payments = () => {
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button onClick={() => setShowAddPaymentModal(true)} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <Plus className="w-4 h-4" />
               <span>New Payment</span>
             </button>
@@ -940,6 +1086,16 @@ const Payments = () => {
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No payments found</h3>
           <p className="text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria</p>
       </div>
+      )}
+
+      {/* Add Payment Modal */}
+      {showAddPaymentModal && (
+        <AddPaymentModal
+          onClose={() => setShowAddPaymentModal(false)}
+          onPaymentAdded={handleCreatePayment}
+          memberOptions={memberOptions}
+          planOptions={planOptions}
+        />
       )}
       </ErrorBoundary>
     </div>
