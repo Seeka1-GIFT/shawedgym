@@ -18,6 +18,7 @@ const usersRoutes = require('./routes/users');
 const databaseRoutes = require('./routes/database');
 const cleanupRoutes = require('./routes/cleanup');
 const gymsRoutes = require('./routes/gyms');
+const multiTenantSetupRoutes = require('./routes/multiTenantSetup');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -129,6 +130,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/cleanup', cleanupRoutes);
 app.use('/api/gyms', gymsRoutes);
+app.use('/api/multi-tenant', multiTenantSetupRoutes);
 
 // ✅ 404 handler
 app.use('/api/*', (req, res) => {
