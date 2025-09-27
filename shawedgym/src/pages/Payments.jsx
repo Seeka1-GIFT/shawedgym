@@ -8,7 +8,7 @@ import {
   DollarSign, Plus, Search, Filter, Calendar, CreditCard,
   TrendingUp, TrendingDown, CheckCircle, XCircle, Clock,
   Printer, Download, Eye, RefreshCw, AlertTriangle,
-  BarChart3, PieChart, Users, Award, Target, FileText
+  BarChart3, PieChart, Users, Award, Target, FileText, X
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart as RechartsPieChart, Pie, Cell } from 'recharts';
 import QuickActions from '../components/QuickActions.jsx';
