@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, CheckCircle, Building, Phone, MapPin } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import apiService from '../services/api';
 
@@ -10,7 +10,10 @@ const SimpleSignup = () => {
     last_name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    gym_name: '',
+    gym_phone: '',
+    gym_address: ''
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -60,6 +63,17 @@ const SimpleSignup = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
+    // Gym Info Validation
+    if (!formData.gym_name.trim()) {
+      newErrors.gym_name = 'Gym name is required';
+    }
+    if (!formData.gym_phone.trim()) {
+      newErrors.gym_phone = 'Phone number is required';
+    }
+    if (!formData.gym_address.trim()) {
+      newErrors.gym_address = 'Gym address is required';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -75,13 +89,17 @@ const SimpleSignup = () => {
     setLoading(true);
     
     try {
-      // Register user as admin
-      const response = await apiService.register({
-        firstName: formData.first_name,
-        lastName: formData.last_name,
+      // Register user and create individual gym
+      const response = await apiService.registerGymOwner({
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
         password: formData.password,
-        role: 'admin' // Make all new users admin
+        role: 'admin',
+        gym_name: formData.gym_name,
+        gym_phone: formData.gym_phone,
+        gym_address: formData.gym_address,
+        subscription_plan: 'basic'
       });
 
       showSuccess('Account created successfully!');
@@ -127,10 +145,10 @@ const SimpleSignup = () => {
               <User className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Create Account
+              Create Your Gym Business
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Join ShawedGym and start managing your fitness business
+              Start your own gym management system with individual data isolation
             </p>
           </div>
 
@@ -257,6 +275,79 @@ const SimpleSignup = () => {
               </div>
             </div>
 
+            {/* Gym Information Section */}
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                <Building className="w-5 h-5 mr-2 text-blue-500" />
+                Gym Information
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Gym Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="gym_name"
+                    value={formData.gym_name}
+                    onChange={handleChange}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
+                      errors.gym_name ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                    }`}
+                    placeholder="Enter your gym name"
+                  />
+                  {errors.gym_name && (
+                    <p className="text-red-500 text-xs mt-1">{errors.gym_name}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number *
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                      type="tel"
+                      name="gym_phone"
+                      value={formData.gym_phone}
+                      onChange={handleChange}
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
+                        errors.gym_phone ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="Enter gym phone number"
+                    />
+                  </div>
+                  {errors.gym_phone && (
+                    <p className="text-red-500 text-xs mt-1">{errors.gym_phone}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Gym Address *
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <textarea
+                      name="gym_address"
+                      value={formData.gym_address}
+                      onChange={handleChange}
+                      rows="3"
+                      className={`w-full pl-10 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
+                        errors.gym_address ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                      placeholder="Enter gym address"
+                    />
+                  </div>
+                  {errors.gym_address && (
+                    <p className="text-red-500 text-xs mt-1">{errors.gym_address}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Features List */}
             <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center">
@@ -264,10 +355,12 @@ const SimpleSignup = () => {
                 What you get:
               </h3>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                <li>• Your own individual gym business</li>
                 <li>• Complete gym management system</li>
                 <li>• Member and payment tracking</li>
                 <li>• Real-time analytics and reports</li>
                 <li>• Admin access to all features</li>
+                <li>• Data isolated from other gyms</li>
               </ul>
             </div>
 
@@ -283,8 +376,8 @@ const SimpleSignup = () => {
                 </>
               ) : (
                 <>
-                  <User className="w-5 h-5 mr-2" />
-                  Create Account
+                  <Building className="w-5 h-5 mr-2" />
+                  Create Gym Business
                 </>
               )}
             </button>
