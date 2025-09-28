@@ -8,17 +8,17 @@ const getGyms = async (req, res) => {
         g.*,
         sp.name as plan_name,
         sp.price as plan_price,
-        sp.max_members as plan_max_members,
+        sp.member_limit as plan_max_members,
         COUNT(DISTINCT m.id) as current_members,
         COUNT(DISTINCT p.id) as total_payments,
         COALESCE(SUM(p.amount), 0) as total_revenue
       FROM gyms g
-      LEFT JOIN subscription_plans sp ON g.subscription_plan = sp.name
+      LEFT JOIN subscription_plans sp ON g.subscription_plan_id = sp.id
       LEFT JOIN members m ON g.id = m.gym_id
       LEFT JOIN payments p ON g.id = p.gym_id AND p.status = 'completed'
       GROUP BY g.id, g.name, g.owner_email, g.owner_name, g.phone, g.address, 
-               g.subscription_plan, g.subscription_status, g.max_members, 
-               g.created_at, g.updated_at, sp.name, sp.price, sp.max_members
+               g.subscription_plan_id, g.subscription_status, g.max_members, 
+               g.created_at, g.updated_at, sp.name, sp.price, sp.member_limit
       ORDER BY g.created_at DESC
     `);
 
@@ -45,19 +45,19 @@ const getGym = async (req, res) => {
         g.*,
         sp.name as plan_name,
         sp.price as plan_price,
-        sp.max_members as plan_max_members,
+        sp.member_limit as plan_max_members,
         sp.features as plan_features,
         COUNT(DISTINCT m.id) as current_members,
         COUNT(DISTINCT p.id) as total_payments,
         COALESCE(SUM(p.amount), 0) as total_revenue
       FROM gyms g
-      LEFT JOIN subscription_plans sp ON g.subscription_plan = sp.name
+      LEFT JOIN subscription_plans sp ON g.subscription_plan_id = sp.id
       LEFT JOIN members m ON g.id = m.gym_id
       LEFT JOIN payments p ON g.id = p.gym_id AND p.status = 'completed'
       WHERE g.id = $1
       GROUP BY g.id, g.name, g.owner_email, g.owner_name, g.phone, g.address, 
-               g.subscription_plan, g.subscription_status, g.max_members, 
-               g.created_at, g.updated_at, sp.name, sp.price, sp.max_members, sp.features
+               g.subscription_plan_id, g.subscription_status, g.max_members, 
+               g.created_at, g.updated_at, sp.name, sp.price, sp.member_limit, sp.features
     `, [id]);
     
     if (result.rows.length === 0) {
@@ -127,10 +127,10 @@ const createGym = async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO gyms 
-       (name, owner_email, owner_name, phone, address, subscription_plan, max_members) 
+       (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
-      [name, owner_email, owner_name, phone, address, subscription_plan, plan.max_members]
+      [name, owner_email, owner_name, phone, address, plan.id, plan.member_limit]
     );
 
     const gym = result.rows[0];
@@ -178,13 +178,22 @@ const updateGym = async (req, res) => {
       });
     }
 
+    // Get plan ID if subscription_plan is provided
+    let planId = null;
+    if (subscription_plan) {
+      const planResult = await pool.query('SELECT id FROM subscription_plans WHERE name = $1', [subscription_plan]);
+      if (planResult.rows.length > 0) {
+        planId = planResult.rows[0].id;
+      }
+    }
+
     const result = await pool.query(
       `UPDATE gyms 
        SET name = $1, owner_name = $2, phone = $3, address = $4, 
-           subscription_plan = $5, subscription_status = $6, updated_at = NOW()
+           subscription_plan_id = $5, subscription_status = $6, updated_at = NOW()
        WHERE id = $7 
        RETURNING *`,
-      [name, owner_name, phone, address, subscription_plan, subscription_status, id]
+      [name, owner_name, phone, address, planId, subscription_status, id]
     );
 
     res.json({
@@ -255,7 +264,7 @@ const getGymStats = async (req, res) => {
     const result = await pool.query(`
       SELECT 
         g.name,
-        g.subscription_plan,
+        g.subscription_plan_id,
         g.subscription_status,
         g.max_members,
         COUNT(DISTINCT m.id) as current_members,
@@ -272,7 +281,7 @@ const getGymStats = async (req, res) => {
       LEFT JOIN trainers t ON g.id = t.gym_id
       LEFT JOIN assets a ON g.id = a.gym_id
       WHERE g.id = $1
-      GROUP BY g.id, g.name, g.subscription_plan, g.subscription_status, g.max_members
+      GROUP BY g.id, g.name, g.subscription_plan_id, g.subscription_status, g.max_members
     `, [id]);
 
     if (result.rows.length === 0) {
