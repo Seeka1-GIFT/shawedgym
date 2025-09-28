@@ -44,40 +44,42 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create individual gym for admin users, or assign to existing gym for regular users
+    // Create individual gym for ALL users (both admin and regular)
     let gymId;
     
-    if (role === 'admin') {
-      try {
-        console.log('Creating new gym for admin:', email);
-        // Create new gym for admin
-        const gymResult = await pool.query(
-          `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
-           VALUES ($1, $2, $3, $4, $5, $6, $7) 
-           RETURNING id`,
-          [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', 1, 50]
-        );
-        gymId = gymResult.rows[0].id;
-        console.log('Created gym with ID:', gymId);
-        
-        // Create subscription record for the new gym
-        await pool.query(
-          `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
-           VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
-          [gymId, 1]
-        );
-        console.log('Created subscription for gym:', gymId);
-      } catch (gymError) {
-        console.error('Gym creation error:', gymError);
-        console.error('Gym error details:', gymError.message);
-        // Fallback: assign to gym_id = 1 if gym creation fails
-        gymId = 1;
-        console.log('Fallback: using gym_id = 1');
-      }
-    } else {
-      // For regular users, assign to gym_id = 1 (default gym)
+    try {
+      console.log('Creating new gym for user:', email);
+      
+      // Get the basic subscription plan ID
+      const planResult = await pool.query('SELECT id FROM subscription_plans WHERE name = $1 LIMIT 1', ['basic']);
+      const planId = planResult.rows.length > 0 ? planResult.rows[0].id : 1;
+      
+      // Create new gym for user
+      const gymResult = await pool.query(
+        `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7) 
+         RETURNING id`,
+        [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', planId, 50]
+      );
+      gymId = gymResult.rows[0].id;
+      console.log('Created gym with ID:', gymId);
+      
+      // Create subscription record for the new gym
+      await pool.query(
+        `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
+         VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
+        [gymId, planId]
+      );
+      console.log('Created subscription for gym:', gymId);
+      
+    } catch (gymError) {
+      console.error('Gym creation error:', gymError);
+      console.error('Gym error details:', gymError.message);
+      console.error('Gym error code:', gymError.code);
+      
+      // Fallback: assign to gym_id = 1 if gym creation fails
       gymId = 1;
-      console.log('Regular user: using gym_id = 1');
+      console.log('Fallback: using gym_id = 1');
     }
 
     // Create user with appropriate gym_id
