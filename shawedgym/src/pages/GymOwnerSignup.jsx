@@ -528,7 +528,7 @@ const GymOwnerSignup = () => {
                 </button>
 
                 {/* Login Link */}
-                <div className="text-center">
+                <div className="text-center space-y-2">
                   <p className="text-gray-600 dark:text-gray-400">
                     Already have an account?{' '}
                     <Link
@@ -537,6 +537,9 @@ const GymOwnerSignup = () => {
                     >
                       Sign in here
                     </Link>
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                    This creates a gym owner account with your own gym business
                   </p>
                 </div>
               </form>
