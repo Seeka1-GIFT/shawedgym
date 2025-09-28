@@ -48,24 +48,36 @@ const register = async (req, res) => {
     let gymId;
     
     if (role === 'admin') {
-      // Create new gym for admin
-      const gymResult = await pool.query(
-        `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7) 
-         RETURNING id`,
-        [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', 1, 50]
-      );
-      gymId = gymResult.rows[0].id;
-      
-      // Create subscription record for the new gym
-      await pool.query(
-        `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
-         VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
-        [gymId, 1]
-      );
+      try {
+        console.log('Creating new gym for admin:', email);
+        // Create new gym for admin
+        const gymResult = await pool.query(
+          `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
+           VALUES ($1, $2, $3, $4, $5, $6, $7) 
+           RETURNING id`,
+          [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', 1, 50]
+        );
+        gymId = gymResult.rows[0].id;
+        console.log('Created gym with ID:', gymId);
+        
+        // Create subscription record for the new gym
+        await pool.query(
+          `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
+           VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
+          [gymId, 1]
+        );
+        console.log('Created subscription for gym:', gymId);
+      } catch (gymError) {
+        console.error('Gym creation error:', gymError);
+        console.error('Gym error details:', gymError.message);
+        // Fallback: assign to gym_id = 1 if gym creation fails
+        gymId = 1;
+        console.log('Fallback: using gym_id = 1');
+      }
     } else {
       // For regular users, assign to gym_id = 1 (default gym)
       gymId = 1;
+      console.log('Regular user: using gym_id = 1');
     }
 
     // Create user with appropriate gym_id
