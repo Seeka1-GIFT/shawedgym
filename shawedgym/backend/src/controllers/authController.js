@@ -44,10 +44,34 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create user with default gym_id = 1
+    // Create individual gym for admin users, or assign to existing gym for regular users
+    let gymId;
+    
+    if (role === 'admin') {
+      // Create new gym for admin
+      const gymResult = await pool.query(
+        `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7) 
+         RETURNING id`,
+        [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', 1, 50]
+      );
+      gymId = gymResult.rows[0].id;
+      
+      // Create subscription record for the new gym
+      await pool.query(
+        `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
+         VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
+        [gymId, 1]
+      );
+    } else {
+      // For regular users, assign to gym_id = 1 (default gym)
+      gymId = 1;
+    }
+
+    // Create user with appropriate gym_id
     const result = await pool.query(
-      'INSERT INTO users (email, password, first_name, last_name, role, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, 1, NOW()) RETURNING id, email, first_name, last_name, role, gym_id, created_at',
-      [email, hashedPassword, firstName, lastName, role]
+      'INSERT INTO users (email, password, first_name, last_name, role, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, email, first_name, last_name, role, gym_id, created_at',
+      [email, hashedPassword, firstName, lastName, role, gymId]
     );
 
     const user = result.rows[0];
@@ -58,6 +82,7 @@ const register = async (req, res) => {
       message: 'User registered successfully',
       data: {
         token,
+        gym_id: user.gym_id,
         user: {
           id: user.id,
           email: user.email,
