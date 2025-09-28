@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, User, Mail, Lock, Building, Phone, MapPin } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, Building, Phone, MapPin, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
 import apiService from '../services/api';
 
@@ -24,9 +24,73 @@ const GymOwnerSignup = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [autoSaveStatus, setAutoSaveStatus] = useState('idle'); // 'idle', 'saving', 'saved', 'error'
+  const [lastSaved, setLastSaved] = useState(null);
 
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
+
+  // Auto-save functionality
+  const autoSave = useCallback(async () => {
+    // Only auto-save if we have minimum required data
+    if (!formData.first_name || !formData.last_name || !formData.email || !formData.gym_name) {
+      return;
+    }
+
+    setAutoSaveStatus('saving');
+    
+    try {
+      // Create a draft version of the data
+      const draftData = {
+        ...formData,
+        status: 'draft' // Mark as draft
+      };
+
+      // Save to localStorage as backup
+      localStorage.setItem('gymOwnerDraft', JSON.stringify(draftData));
+      
+      // Simulate API call (you can implement actual draft saving endpoint)
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setAutoSaveStatus('saved');
+      setLastSaved(new Date());
+      
+      // Clear saved status after 3 seconds
+      setTimeout(() => {
+        setAutoSaveStatus('idle');
+      }, 3000);
+      
+    } catch (error) {
+      setAutoSaveStatus('error');
+      console.error('Auto-save error:', error);
+    }
+  }, [formData]);
+
+  // Auto-save effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      autoSave();
+    }, 2000); // Auto-save after 2 seconds of no typing
+
+    return () => clearTimeout(timer);
+  }, [formData, autoSave]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('gymOwnerDraft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        setFormData(prev => ({
+          ...prev,
+          ...draft
+        }));
+        setLastSaved(new Date(draft.lastSaved || Date.now()));
+      } catch (error) {
+        console.error('Error loading draft:', error);
+      }
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -110,6 +174,9 @@ const GymOwnerSignup = () => {
         subscription_plan: formData.subscription_plan
       });
 
+      // Clear draft after successful submission
+      localStorage.removeItem('gymOwnerDraft');
+      
       showSuccess('Gym owner account created successfully!');
       
       // Auto-login after successful registration
@@ -141,6 +208,32 @@ const GymOwnerSignup = () => {
       showError(errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getAutoSaveIcon = () => {
+    switch (autoSaveStatus) {
+      case 'saving':
+        return <Save className="w-4 h-4 animate-spin text-blue-500" />;
+      case 'saved':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return null;
+    }
+  };
+
+  const getAutoSaveText = () => {
+    switch (autoSaveStatus) {
+      case 'saving':
+        return 'Saving...';
+      case 'saved':
+        return `Saved ${lastSaved ? lastSaved.toLocaleTimeString() : ''}`;
+      case 'error':
+        return 'Save failed';
+      default:
+        return '';
     }
   };
 
@@ -179,9 +272,18 @@ const GymOwnerSignup = () => {
             {/* Right Side - Form */}
             <div className="md:w-1/2 p-8">
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                  Create Gym Owner Account
-                </h2>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Create Gym Owner Account
+                  </h2>
+                  {/* Auto-save indicator */}
+                  <div className="flex items-center space-x-2 text-sm">
+                    {getAutoSaveIcon()}
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {getAutoSaveText()}
+                    </span>
+                  </div>
+                </div>
                 <p className="text-gray-600 dark:text-gray-400">
                   Fill in your details and gym information to get started
                 </p>
