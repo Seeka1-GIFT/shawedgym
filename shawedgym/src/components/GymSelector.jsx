@@ -13,7 +13,10 @@ const GymSelector = () => {
   const [formData, setFormData] = useState({
     name: '',
     owner_name: '',
-    owner_email: ''
+    owner_email: '',
+    phone: '',
+    address: '',
+    subscription_plan: 'basic'
   });
 
   const handleCreateGym = async (e) => {
@@ -21,7 +24,7 @@ const GymSelector = () => {
     try {
       await createGym(formData);
       setShowCreateModal(false);
-      setFormData({ name: '', owner_name: '', owner_email: '' });
+      setFormData({ name: '', owner_name: '', owner_email: '', phone: '', address: '', subscription_plan: 'basic' });
     } catch (error) {
       // Error is handled in context
     }
@@ -33,7 +36,7 @@ const GymSelector = () => {
       await updateGym(editingGym.id, formData);
       setShowEditModal(false);
       setEditingGym(null);
-      setFormData({ name: '', owner_name: '', owner_email: '' });
+      setFormData({ name: '', owner_name: '', owner_email: '', phone: '', address: '', subscription_plan: 'basic' });
     } catch (error) {
       // Error is handled in context
     }
@@ -54,7 +57,10 @@ const GymSelector = () => {
     setFormData({
       name: gym.name,
       owner_name: gym.owner_name,
-      owner_email: gym.owner_email
+      owner_email: gym.owner_email,
+      phone: gym.phone || '',
+      address: gym.address || '',
+      subscription_plan: gym.subscription_plan || 'basic'
     });
     setShowEditModal(true);
   };
@@ -211,6 +217,47 @@ const GymSelector = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Address
+                  </label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter gym address"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Subscription Plan
+                  </label>
+                  <select
+                    value={formData.subscription_plan}
+                    onChange={(e) => setFormData({ ...formData, subscription_plan: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="basic">Basic Plan</option>
+                    <option value="premium">Premium Plan</option>
+                    <option value="enterprise">Enterprise Plan</option>
+                  </select>
+                </div>
+
                 <div className="flex items-center justify-end space-x-3 pt-4">
                   <button
                     type="button"
@@ -289,6 +336,47 @@ const GymSelector = () => {
                     placeholder="Enter owner email"
                     required
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Address
+                  </label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                    placeholder="Enter gym address"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Subscription Plan
+                  </label>
+                  <select
+                    value={formData.subscription_plan}
+                    onChange={(e) => setFormData({ ...formData, subscription_plan: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                  >
+                    <option value="basic">Basic Plan</option>
+                    <option value="premium">Premium Plan</option>
+                    <option value="enterprise">Enterprise Plan</option>
+                  </select>
                 </div>
 
                 <div className="flex items-center justify-end space-x-3 pt-4">

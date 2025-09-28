@@ -85,15 +85,15 @@ const createGym = async (req, res) => {
   try {
     const { 
       name, 
-      ownerEmail, 
-      ownerName, 
+      owner_email, 
+      owner_name, 
       phone, 
       address, 
-      subscriptionPlan = 'basic' 
+      subscription_plan = 'basic' 
     } = req.body;
 
     // Validation
-    if (!name || !ownerEmail || !ownerName) {
+    if (!name || !owner_email || !owner_name) {
       return res.status(400).json({
         error: 'Validation Error',
         message: 'Name, owner email, and owner name are required'
@@ -101,7 +101,7 @@ const createGym = async (req, res) => {
     }
 
     // Check if email already exists
-    const existingGym = await pool.query('SELECT id FROM gyms WHERE owner_email = $1', [ownerEmail]);
+    const existingGym = await pool.query('SELECT id FROM gyms WHERE owner_email = $1', [owner_email]);
     if (existingGym.rows.length > 0) {
       return res.status(400).json({
         error: 'Validation Error',
@@ -110,7 +110,7 @@ const createGym = async (req, res) => {
     }
 
     // Get plan details
-    const planResult = await pool.query('SELECT * FROM subscription_plans WHERE name = $1', [subscriptionPlan]);
+    const planResult = await pool.query('SELECT * FROM subscription_plans WHERE name = $1', [subscription_plan]);
     if (planResult.rows.length === 0) {
       return res.status(400).json({
         error: 'Validation Error',
@@ -125,7 +125,7 @@ const createGym = async (req, res) => {
        (name, owner_email, owner_name, phone, address, subscription_plan, max_members) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) 
        RETURNING *`,
-      [name, ownerEmail, ownerName, phone, address, subscriptionPlan, plan.max_members]
+      [name, owner_email, owner_name, phone, address, subscription_plan, plan.max_members]
     );
 
     const gym = result.rows[0];
@@ -157,11 +157,11 @@ const updateGym = async (req, res) => {
     const { id } = req.params;
     const { 
       name, 
-      ownerName, 
+      owner_name, 
       phone, 
       address, 
-      subscriptionPlan,
-      subscriptionStatus 
+      subscription_plan,
+      subscription_status 
     } = req.body;
 
     // Check if gym exists
@@ -179,7 +179,7 @@ const updateGym = async (req, res) => {
            subscription_plan = $5, subscription_status = $6, updated_at = NOW()
        WHERE id = $7 
        RETURNING *`,
-      [name, ownerName, phone, address, subscriptionPlan, subscriptionStatus, id]
+      [name, owner_name, phone, address, subscription_plan, subscription_status, id]
     );
 
     res.json({
