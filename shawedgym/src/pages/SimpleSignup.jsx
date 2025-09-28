@@ -141,10 +141,10 @@ const SimpleSignup = () => {
               <User className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Create Your Gym Business
+              Create Your Account
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Start your own gym management system with individual data isolation
+              Join ShawedGym and start managing your fitness business
             </p>
           </div>
 
@@ -371,8 +371,8 @@ const SimpleSignup = () => {
                 </>
               ) : (
                 <>
-                  <Building className="w-5 h-5 mr-2" />
-                  Create Gym Business
+                  <User className="w-5 h-5 mr-2" />
+                  Create Account
                 </>
               )}
             </button>
