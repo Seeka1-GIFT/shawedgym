@@ -63,16 +63,16 @@ const SimpleSignup = () => {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // Gym Info Validation
-    if (!formData.gym_name.trim()) {
-      newErrors.gym_name = 'Gym name is required';
-    }
-    if (!formData.gym_phone.trim()) {
-      newErrors.gym_phone = 'Phone number is required';
-    }
-    if (!formData.gym_address.trim()) {
-      newErrors.gym_address = 'Gym address is required';
-    }
+    // Gym Info Validation (optional for now)
+    // if (!formData.gym_name.trim()) {
+    //   newErrors.gym_name = 'Gym name is required';
+    // }
+    // if (!formData.gym_phone.trim()) {
+    //   newErrors.gym_phone = 'Phone number is required';
+    // }
+    // if (!formData.gym_address.trim()) {
+    //   newErrors.gym_address = 'Gym address is required';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -89,17 +89,13 @@ const SimpleSignup = () => {
     setLoading(true);
     
     try {
-      // Register user and create individual gym
-      const response = await apiService.registerGymOwner({
-        first_name: formData.first_name,
-        last_name: formData.last_name,
+      // Register user as admin (fallback to simple registration)
+      const response = await apiService.register({
+        firstName: formData.first_name,
+        lastName: formData.last_name,
         email: formData.email,
         password: formData.password,
-        role: 'admin',
-        gym_name: formData.gym_name,
-        gym_phone: formData.gym_phone,
-        gym_address: formData.gym_address,
-        subscription_plan: 'basic'
+        role: 'admin'
       });
 
       showSuccess('Account created successfully!');
@@ -285,7 +281,7 @@ const SimpleSignup = () => {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Gym Name *
+                    Gym Name (Optional)
                   </label>
                   <input
                     type="text"
@@ -304,7 +300,7 @@ const SimpleSignup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Phone Number *
+                    Phone Number (Optional)
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -326,7 +322,7 @@ const SimpleSignup = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Gym Address *
+                    Gym Address (Optional)
                   </label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
@@ -355,12 +351,11 @@ const SimpleSignup = () => {
                 What you get:
               </h3>
               <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                <li>• Your own individual gym business</li>
                 <li>• Complete gym management system</li>
                 <li>• Member and payment tracking</li>
                 <li>• Real-time analytics and reports</li>
                 <li>• Admin access to all features</li>
-                <li>• Data isolated from other gyms</li>
+                <li>• Easy setup and management</li>
               </ul>
             </div>
 
