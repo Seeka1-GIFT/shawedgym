@@ -128,6 +128,10 @@ export const apiService = {
     method: 'POST',
     data: userData
   }),
+  registerGymOwner: (data) => apiCall('/auth/register-gym-owner', {
+    method: 'POST',
+    data: data
+  }),
   getCurrentUser: () => apiCall('/auth/me'),
   resetPassword: (data) => apiCall('/auth/reset-password', {
     method: 'POST',

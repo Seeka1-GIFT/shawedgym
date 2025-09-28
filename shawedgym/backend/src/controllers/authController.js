@@ -198,8 +198,150 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+// Register gym owner (creates user + gym)
+const registerGymOwner = async (req, res) => {
+  try {
+    const { 
+      first_name, 
+      last_name, 
+      email, 
+      password, 
+      role = 'admin',
+      gym_name,
+      gym_phone,
+      gym_address,
+      subscription_plan = 'basic'
+    } = req.body;
+
+    // Validation
+    if (!first_name || !last_name || !email || !password || !gym_name || !gym_phone || !gym_address) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'All fields are required'
+      });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Check if user already exists
+    const existingUser = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'User already exists'
+      });
+    }
+
+    // Check if gym with same email already exists
+    const existingGym = await pool.query('SELECT id FROM gyms WHERE owner_email = $1', [email]);
+    if (existingGym.rows.length > 0) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Gym with this email already exists'
+      });
+    }
+
+    // Get subscription plan details
+    const planResult = await pool.query('SELECT * FROM subscription_plans WHERE name = $1', [subscription_plan]);
+    if (planResult.rows.length === 0) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Invalid subscription plan'
+      });
+    }
+
+    const plan = planResult.rows[0];
+
+    // Start transaction
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Create gym first
+      const gymResult = await client.query(
+        `INSERT INTO gyms 
+         (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7) 
+         RETURNING id`,
+        [gym_name, email, `${first_name} ${last_name}`, gym_phone, gym_address, plan.id, plan.member_limit]
+      );
+
+      const gymId = gymResult.rows[0].id;
+
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Create user with gym_id
+      const userResult = await client.query(
+        'INSERT INTO users (first_name, last_name, email, password, role, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING id, first_name, last_name, email, role, gym_id, created_at',
+        [first_name, last_name, email, hashedPassword, role, gymId]
+      );
+
+      const user = userResult.rows[0];
+
+      // Create subscription record
+      await client.query(
+        `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
+         VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
+        [gymId, plan.id]
+      );
+
+      await client.query('COMMIT');
+
+      // Generate token
+      const token = generateToken(user.id);
+
+      res.status(201).json({
+        success: true,
+        message: 'Gym owner registered successfully',
+        data: {
+          token,
+          gym_id: user.gym_id,
+          user: {
+            id: user.id,
+            email: user.email,
+            firstName: user.first_name,
+            lastName: user.last_name,
+            role: user.role,
+            gym_id: user.gym_id
+          },
+          gym: {
+            id: gymId,
+            name: gym_name,
+            owner_email: email,
+            owner_name: `${first_name} ${last_name}`,
+            phone: gym_phone,
+            address: gym_address,
+            subscription_plan_id: plan.id
+          }
+        }
+      });
+
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+
+  } catch (error) {
+    console.error('Register gym owner error:', error);
+    res.status(500).json({
+      error: 'Server Error',
+      message: 'Failed to register gym owner'
+    });
+  }
+};
+
 module.exports = {
   register,
+  registerGymOwner,
   login,
   getCurrentUser
 };

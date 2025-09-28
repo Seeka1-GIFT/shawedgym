@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, User, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, User, Lock, AlertCircle, Building } from 'lucide-react';
 import { apiService, authHelpers } from '../services/api';
 
 const Login = () => {
@@ -172,7 +172,7 @@ const Login = () => {
 
   
         {/* Footer */}
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-3">
           <p className="text-sm text-gray-600">
             Don't have an account?{' '}
             <Link
@@ -182,6 +182,18 @@ const Login = () => {
               Sign up here
             </Link>
           </p>
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Want to start your own gym business?
+            </p>
+            <Link
+              to="/signup"
+              className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Building className="w-4 h-4 mr-2" />
+              Create Gym Owner Account
+            </Link>
+          </div>
         </div>
       </div>
     </div>
