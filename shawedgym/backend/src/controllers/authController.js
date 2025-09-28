@@ -332,9 +332,15 @@ const registerGymOwner = async (req, res) => {
 
   } catch (error) {
     console.error('Register gym owner error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error detail:', error.detail);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       error: 'Server Error',
-      message: 'Failed to register gym owner'
+      message: 'Failed to register gym owner',
+      details: error.message,
+      code: error.code
     });
   }
 };
