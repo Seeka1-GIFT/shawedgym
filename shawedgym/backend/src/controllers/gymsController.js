@@ -92,8 +92,13 @@ const createGym = async (req, res) => {
       subscription_plan = 'basic' 
     } = req.body;
 
+    // Debug logging
+    console.log('Create gym request body:', req.body);
+    console.log('Extracted fields:', { name, owner_email, owner_name });
+
     // Validation
     if (!name || !owner_email || !owner_name) {
+      console.log('Validation failed:', { name: !!name, owner_email: !!owner_email, owner_name: !!owner_name });
       return res.status(400).json({
         error: 'Validation Error',
         message: 'Name, owner email, and owner name are required'
