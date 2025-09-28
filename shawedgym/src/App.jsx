@@ -10,6 +10,7 @@ import { GymProvider } from './contexts/GymContext.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import GymOwnerSignup from './pages/GymOwnerSignup.jsx';
+import SimpleSignup from './pages/SimpleSignup.jsx';
 
 // Import all pages.  Each page corresponds to a feature area of the
 // application.  The dashboard summarises high-level metrics, while the
@@ -57,7 +58,8 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/signup" element={<GymOwnerSignup />} />
+          <Route path="/signup" element={<SimpleSignup />} />
+          <Route path="/gym-signup" element={<GymOwnerSignup />} />
           
           {/* Protected routes */}
           <Route path="/*" element={
