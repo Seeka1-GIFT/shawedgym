@@ -2,7 +2,15 @@ const pool = require('../config/database');
 
 const getAssets = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM assets ORDER BY name ASC');
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Missing gym_id',
+        message: 'User gym_id is required'
+      });
+    }
+
+    const result = await pool.query('SELECT * FROM assets WHERE gym_id = $1 ORDER BY name ASC', [gymId]);
     res.json({
       success: true,
       data: { assets: result.rows }
@@ -19,7 +27,15 @@ const getAssets = async (req, res) => {
 const getAsset = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM assets WHERE id = $1', [id]);
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Missing gym_id',
+        message: 'User gym_id is required'
+      });
+    }
+
+    const result = await pool.query('SELECT * FROM assets WHERE id = $1 AND gym_id = $2', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -44,6 +60,14 @@ const getAsset = async (req, res) => {
 const createAsset = async (req, res) => {
   try {
     const { name, type, location, status, purchase_date, purchase_price, description } = req.body;
+    const gymId = req.user?.gym_id;
+    
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Missing gym_id',
+        message: 'User gym_id is required'
+      });
+    }
 
     if (!name || !type) {
       return res.status(400).json({
@@ -53,8 +77,8 @@ const createAsset = async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO assets (name, type, location, status, purchase_date, purchase_price, description, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
-      [name, type, location, status || 'active', purchase_date, purchase_price, description]
+      'INSERT INTO assets (name, type, location, status, purchase_date, purchase_price, description, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *',
+      [name, type, location, status || 'active', purchase_date, purchase_price, description, gymId]
     );
 
     res.status(201).json({

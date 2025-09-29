@@ -44,18 +44,20 @@ const register = async (req, res) => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    // Create individual gym for ALL users (both admin and regular)
+    // Create individual gym for ALL users using transaction
     let gymId;
+    const client = await pool.connect();
     
     try {
+      await client.query('BEGIN');
       console.log('Creating new gym for user:', email);
       
       // Get the basic subscription plan ID
-      const planResult = await pool.query('SELECT id FROM subscription_plans WHERE name = $1 LIMIT 1', ['basic']);
+      const planResult = await client.query('SELECT id FROM subscription_plans WHERE name = $1 LIMIT 1', ['basic']);
       const planId = planResult.rows.length > 0 ? planResult.rows[0].id : 1;
       
       // Create new gym for user
-      const gymResult = await pool.query(
+      const gymResult = await client.query(
         `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
          VALUES ($1, $2, $3, $4, $5, $6, $7) 
          RETURNING id`,
@@ -65,14 +67,18 @@ const register = async (req, res) => {
       console.log('Created gym with ID:', gymId);
       
       // Create subscription record for the new gym
-      await pool.query(
+      await client.query(
         `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
          VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
         [gymId, planId]
       );
       console.log('Created subscription for gym:', gymId);
       
+      await client.query('COMMIT');
+      console.log('Transaction committed successfully');
+      
     } catch (gymError) {
+      await client.query('ROLLBACK');
       console.error('Gym creation error:', gymError);
       console.error('Gym error details:', gymError.message);
       console.error('Gym error code:', gymError.code);
@@ -80,6 +86,8 @@ const register = async (req, res) => {
       // Fallback: assign to gym_id = 1 if gym creation fails
       gymId = 1;
       console.log('Fallback: using gym_id = 1');
+    } finally {
+      client.release();
     }
 
     // Create user with appropriate gym_id
