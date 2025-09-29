@@ -178,8 +178,9 @@ const Assets = () => {
     return { color: 'text-green-600', status: 'Active', icon: CheckCircle };
   };
 
+  const assetCount = enhancedAssets.length || 0;
   const stats = {
-    totalAssets: enhancedAssets.length,
+    totalAssets: assetCount,
     totalValue: enhancedAssets.reduce((sum, asset) => sum + asset.currentValue, 0),
     totalDepreciation: enhancedAssets.reduce((sum, asset) => sum + asset.depreciationAmount, 0),
     maintenanceDue: enhancedAssets.filter(asset => {
@@ -187,8 +188,8 @@ const Assets = () => {
       const today = new Date();
       return nextMaintenance <= new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     }).length,
-    averageAge: (enhancedAssets.reduce((sum, asset) => sum + asset.ageInYears, 0) / enhancedAssets.length).toFixed(1),
-    utilizationRate: Math.round(enhancedAssets.reduce((sum, asset) => sum + asset.utilizationRate, 0) / enhancedAssets.length)
+    averageAge: assetCount ? (enhancedAssets.reduce((sum, asset) => sum + asset.ageInYears, 0) / assetCount).toFixed(1) : 0,
+    utilizationRate: assetCount ? Math.round(enhancedAssets.reduce((sum, asset) => sum + asset.utilizationRate, 0) / assetCount) : 0
   };
 
   const categories = [...new Set(enhancedAssets.map(asset => asset.category))];
