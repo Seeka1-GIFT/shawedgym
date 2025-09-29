@@ -4,10 +4,7 @@ const getClasses = async (req, res) => {
   try {
     const gymId = req.user?.gym_id;
     if (!gymId) {
-      return res.status(400).json({
-        error: 'Missing gym_id',
-        message: 'User gym_id is required'
-      });
+      return res.json({ success: true, data: { classes: [] } });
     }
 
     const result = await pool.query('SELECT * FROM classes WHERE gym_id = $1 ORDER BY schedule ASC', [gymId]);
@@ -29,10 +26,7 @@ const getClass = async (req, res) => {
     const { id } = req.params;
     const gymId = req.user?.gym_id;
     if (!gymId) {
-      return res.status(400).json({
-        error: 'Missing gym_id',
-        message: 'User gym_id is required'
-      });
+      return res.status(404).json({ error: 'Class Not Found', message: 'Class not found' });
     }
 
     const result = await pool.query('SELECT * FROM classes WHERE id = $1 AND gym_id = $2', [id, gymId]);
@@ -60,6 +54,7 @@ const getClass = async (req, res) => {
 const createClass = async (req, res) => {
   try {
     const { title, schedule, trainer, capacity, description } = req.body;
+    const gymId = req.user?.gym_id;
 
     if (!title || !schedule || !trainer || !capacity) {
       return res.status(400).json({
@@ -68,9 +63,13 @@ const createClass = async (req, res) => {
       });
     }
 
+    if (!gymId) {
+      return res.status(400).json({ error: 'Missing gym_id', message: 'User gym_id is required' });
+    }
+
     const result = await pool.query(
-      'INSERT INTO classes (title, schedule, trainer, capacity, enrolled, description, created_at) VALUES ($1, $2, $3, $4, 0, $5, NOW()) RETURNING *',
-      [title, schedule, trainer, capacity, description]
+      'INSERT INTO classes (title, schedule, trainer, capacity, enrolled, description, gym_id, created_at) VALUES ($1, $2, $3, $4, 0, $5, $6, NOW()) RETURNING *',
+      [title, schedule, trainer, capacity, description || '', gymId]
     );
 
     res.status(201).json({
@@ -91,10 +90,11 @@ const updateClass = async (req, res) => {
   try {
     const { id } = req.params;
     const { title, schedule, trainer, capacity, enrolled, description, status } = req.body;
+    const gymId = req.user?.gym_id;
 
     const result = await pool.query(
-      'UPDATE classes SET title = $1, schedule = $2, trainer = $3, capacity = $4, enrolled = $5, description = $6, status = $7, updated_at = NOW() WHERE id = $8 RETURNING *',
-      [title, schedule, trainer, capacity, enrolled, description, status, id]
+      'UPDATE classes SET title = $1, schedule = $2, trainer = $3, capacity = $4, enrolled = $5, description = $6, status = $7, updated_at = NOW() WHERE id = $8 AND gym_id = $9 RETURNING *',
+      [title, schedule, trainer, capacity, enrolled, description, status, id, gymId]
     );
 
     if (result.rows.length === 0) {
@@ -121,7 +121,8 @@ const updateClass = async (req, res) => {
 const deleteClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM classes WHERE id = $1 RETURNING *', [id]);
+    const gymId = req.user?.gym_id;
+    const result = await pool.query('DELETE FROM classes WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
