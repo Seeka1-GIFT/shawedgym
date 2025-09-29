@@ -2,8 +2,7 @@ const express = require('express');
 const router = express.Router();
 const assetsController = require('../controllers/assetsController');
 const authMiddleware = require('../middleware/auth');
-// Temporarily disable auth to allow frontend integration without login for assets.
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.get('/', assetsController.getAssets);
 router.get('/:id', assetsController.getAsset);
