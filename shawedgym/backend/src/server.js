@@ -81,33 +81,52 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// ✅ Dashboard stats
-app.get('/api/dashboard/stats', async (req, res) => {
+// ✅ Dashboard stats (scoped by tenant)
+const authMiddleware = require('./middleware/auth');
+app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
   try {
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ success: false, message: 'Gym ID is required' });
+    }
+    console.log('[Dashboard] gymId:', gymId, 'user:', { id: req.user.id, email: req.user.email });
+
+    // Aggregate counts filtered by gym_id
     const [membersResult, paymentsResult, classesResult] = await Promise.all([
-      pool.query("SELECT COUNT(*) as total, COUNT(CASE WHEN status='Active' THEN 1 END) as active FROM members"),
-      pool.query("SELECT COUNT(*) as total, SUM(CASE WHEN status='completed' THEN amount ELSE 0 END) as revenue FROM payments"),
-      pool.query("SELECT COUNT(*) as total FROM classes")
+      pool.query(
+        "SELECT COUNT(*) as total, COUNT(CASE WHEN status='Active' THEN 1 END) as active FROM members WHERE gym_id = $1",
+        [gymId]
+      ),
+      pool.query(
+        "SELECT COUNT(*) as total, SUM(CASE WHEN status='completed' THEN amount ELSE 0 END) as revenue, SUM(CASE WHEN status='completed' AND payment_date >= CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as monthly_revenue FROM payments WHERE gym_id = $1",
+        [gymId]
+      ),
+      pool.query("SELECT COUNT(*) as total FROM classes WHERE gym_id = $1", [gymId])
     ]);
 
-    const checkedIn = await pool.query("SELECT COUNT(*) as inside FROM attendance WHERE check_out_time IS NULL");
+    const checkedIn = await pool.query(
+      "SELECT COUNT(*) as inside FROM attendance WHERE check_out_time IS NULL AND gym_id = $1",
+      [gymId]
+    );
 
-    // Derive additional metrics from DB instead of mock numbers
+    // Additional metrics
     const [activeEquip, todays] = await Promise.all([
-      pool.query("SELECT COUNT(*)::int AS cnt FROM assets WHERE status ILIKE 'active'"),
-      pool.query("SELECT COUNT(*)::int AS cnt FROM attendance WHERE DATE(check_in_time) = CURRENT_DATE")
+      pool.query("SELECT COUNT(*)::int AS cnt FROM assets WHERE status ILIKE 'active' AND gym_id = $1", [gymId]),
+      pool.query("SELECT COUNT(*)::int AS cnt FROM attendance WHERE DATE(check_in_time) = CURRENT_DATE AND gym_id = $1", [gymId])
     ]);
 
+    const revenue = parseFloat(paymentsResult.rows[0].revenue) || 0;
     const stats = {
       totalMembers: parseInt(membersResult.rows[0].total) || 0,
       activeMembers: parseInt(membersResult.rows[0].active) || 0,
-      totalRevenue: parseFloat(paymentsResult.rows[0].revenue) || 0,
+      totalRevenue: revenue,
       totalClasses: parseInt(classesResult.rows[0].total) || 0,
       checkedInMembers: parseInt(checkedIn.rows[0].inside) || 0,
-      monthlyRevenue: Math.floor((parseFloat(paymentsResult.rows[0].revenue) || 0) * 0.3),
+      monthlyRevenue: parseFloat(paymentsResult.rows[0].monthly_revenue) || 0,
       activeEquipment: activeEquip.rows?.[0]?.cnt || 0,
       todayAttendance: todays.rows?.[0]?.cnt || 0
     };
+    console.log('[Dashboard] stats for gym', gymId, stats);
 
     res.json({ success: true, data: stats });
   } catch (error) {
