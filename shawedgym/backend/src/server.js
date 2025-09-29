@@ -135,6 +135,72 @@ app.get('/api/dashboard/stats', authMiddleware, async (req, res) => {
   }
 });
 
+// ✅ Dashboard: activity feed (latest 10) - per gym
+app.get('/api/dashboard/activity', authMiddleware, async (req, res) => {
+  try {
+    const gymId = req.user?.gym_id;
+    if (!gymId) return res.status(400).json({ success: false, message: 'Gym ID is required' });
+
+    // Compose activities from multiple modules (all scoped by gym)
+    const query = `
+      (
+        SELECT 'checkin' AS type,
+               CONCAT(m.first_name,' ',m.last_name,' checked in') AS description,
+               a.check_in_time AS created_at
+        FROM attendance a
+        JOIN members m ON m.id = a.member_id
+        WHERE a.gym_id = $1
+      )
+      UNION ALL
+      (
+        SELECT 'payment' AS type,
+               CONCAT('Payment $', p.amount, ' received') AS description,
+               p.created_at AS created_at
+        FROM payments p
+        WHERE p.gym_id = $1 AND p.status = 'completed'
+      )
+      UNION ALL
+      (
+        SELECT 'expense' AS type,
+               CONCAT('Expense: ', e.title, ' ($', e.amount, ')') AS description,
+               e.created_at AS created_at
+        FROM expenses e
+        WHERE e.gym_id = $1
+      )
+      ORDER BY created_at DESC
+      LIMIT 10`;
+
+    const { rows } = await pool.query(query, [gymId]);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Dashboard activity error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch activity' });
+  }
+});
+
+// ✅ Dashboard: membership distribution (by members.membership_type) - per gym
+app.get('/api/dashboard/membership-distribution', authMiddleware, async (req, res) => {
+  try {
+    const gymId = req.user?.gym_id;
+    if (!gymId) return res.status(400).json({ success: false, message: 'Gym ID is required' });
+
+    const { rows } = await pool.query(
+      `SELECT LOWER(COALESCE(membership_type,'unknown')) AS name,
+              COUNT(*)::int AS value
+       FROM members
+       WHERE gym_id = $1
+       GROUP BY LOWER(COALESCE(membership_type,'unknown'))
+       ORDER BY value DESC`,
+      [gymId]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    console.error('Membership distribution error:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch membership distribution' });
+  }
+});
+
 // ✅ API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/members', membersRoutes);
