@@ -436,41 +436,46 @@ const Payments = () => {
       const planFee = Number(enriched?.planFee ?? payment.amount ?? 0) || 0;
       const netAmount = Number(enriched?.total ?? payment.netAmount ?? payment.amount ?? 0) || 0;
       const date = payment.date || new Date().toISOString().split('T')[0];
-      // Default paper size (no prompts). Change to 'pos80' or 'a5' if needed.
-      const format = 'a4';
-      const pageSize = format === 'a5' ? 'A5' : format === 'pos80' ? '80mm auto' : format === 'pos57' ? '57mm auto' : 'A4';
-      const containerWidth = format === 'a5' ? '580px' : format === 'pos80' ? '72mm' : format === 'pos57' ? '54mm' : '780px';
-      const fontSize = format.startsWith('pos') ? '12px' : '14px';
-      const headingSize = format.startsWith('pos') ? '16px' : '20px';
+      // Force POS-80 layout for thermal printers
+      const format = 'pos80';
+      const pageSize = '80mm auto';
+      const containerWidth = '80mm';
+      const fontSize = '12px';
+      const headingSize = '14px';
       const html = `
         <html>
           <head>
             <title>Receipt ${payment.transactionId || ''}</title>
             <style>
               *{box-sizing:border-box}
-              @page { size: ${pageSize}; margin: 10mm; }
-              body{font-family:Arial,Helvetica,sans-serif;padding:0;color:#0f172a;background:#f9fafb}
+              @page { size: ${pageSize}; margin: 0; }
+              body{font-family:Arial,Helvetica,sans-serif;padding:0;margin:0;color:#0f172a;background:#fff}
               .paper{width:${containerWidth}; margin:0 auto;}
-              .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 6px 14px rgba(15,23,42,.06)}
-              .header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(90deg,#2563eb,#8b5cf6);color:#fff}
+              .receipt{width:${containerWidth}; font-size:${fontSize}; margin:0 auto}
+              .card{background:#fff;border:none;overflow:hidden}
+              .header{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:linear-gradient(90deg,#2563eb,#8b5cf6);color:#fff}
               .brand{font-weight:800;letter-spacing:.3px}
-              .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.15);font-size:12px}
-              .section{padding:14px 16px}
-              h2{margin:0 0 8px 0; font-size:${headingSize}; text-align:center;color:#111827}
-              .meta{margin:8px 0 4px 0; font-size:${fontSize}; display:grid; grid-template-columns: 1fr 1fr;gap:8px}
-              .meta div{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px}
+              .badge{display:inline-block;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.15);font-size:10px}
+              .section{padding:8px 10px}
+              h2{margin:0 0 6px 0; font-size:${headingSize}; text-align:center;color:#111827}
+              .meta{margin:6px 0 2px 0; font-size:${fontSize}; display:grid; grid-template-columns: 1fr 1fr;gap:6px}
+              .meta div{background:#fff;border:1px dashed #e5e7eb;border-radius:6px;padding:6px 8px}
               .meta strong{color:#111827}
-              table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:${fontSize}}
-              td{padding:10px 12px; vertical-align:top;background:#f8fafc;border:1px solid #e5e7eb}
-              tr td:first-child{border-radius:8px 0 0 8px;color:#475569}
-              tr td:last-child{border-radius:0 8px 8px 0;text-align:right;color:#111827}
+              table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:${fontSize}}
+              td{padding:6px 8px; vertical-align:top;background:#fff;border:1px dashed #e5e7eb}
+              tr td:first-child{border-radius:6px 0 0 6px;color:#475569}
+              tr td:last-child{border-radius:0 6px 6px 0;text-align:right;color:#111827}
               .total-row td{background:#ecfeff;border-color:#bae6fd}
               .total-row td:first-child{font-weight:700}
-              .footer{padding:10px 16px 16px 16px;text-align:center;color:#64748b;font-size:12px}
+              .footer{padding:8px 10px 10px 10px;text-align:center;color:#64748b;font-size:10px}
+              @media print {
+                body{margin:0;padding:0}
+                .receipt{width:80mm !important;margin:0 auto;font-size:12px}
+              }
             </style>
           </head>
           <body>
-            <div class="paper">
+            <div class="paper receipt">
               <div class="card">
                 <div class="header">
                   <div class="brand">${gymName}</div>
