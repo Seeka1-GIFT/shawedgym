@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Users, UserCheck, DollarSign, TrendingDown, Activity, Calendar, Award, Target } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { Users, UserCheck, DollarSign, TrendingDown, Activity, Calendar, Award } from 'lucide-react';
 import StatCard from '../components/StatCard.jsx';
 import { apiService } from '../services/api.js';
-import ActivityFeed from '../components/ActivityFeed.jsx';
+// Activity/Membership sections removed to avoid runtime errors
 // Removed dummy helpers to ensure DB-only data
 
 /**
@@ -77,36 +77,38 @@ const Dashboard = () => {
     );
   }
 
+  const safeNumber = (v) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0);
+
   const metrics = [
     { 
       title: 'Total Members', 
-      value: dashboardData?.totalMembers || 0, 
+      value: safeNumber(dashboardData?.totalMembers), 
       icon: Users,
       gradient: "from-blue-500 to-cyan-500"
     },
     { 
       title: 'Active Members', 
-      value: dashboardData?.activeMembers || 0, 
+      value: safeNumber(dashboardData?.activeMembers), 
       icon: UserCheck,
       gradient: "from-green-500 to-emerald-500"
     },
     { 
       title: 'Total Revenue', 
-      value: `$${dashboardData?.totalRevenue?.toLocaleString() || '0'}`, 
+      value: `$${safeNumber(dashboardData?.totalRevenue).toLocaleString()}`, 
       icon: DollarSign,
       gradient: "from-purple-500 to-pink-500"
     },
     { 
       title: 'Members in Gym', 
-      value: dashboardData?.checkedInMembers || 0, 
+      value: safeNumber(dashboardData?.checkedInMembers), 
       icon: Activity,
       gradient: "from-orange-500 to-red-500"
     },
   ];
 
   const barData = [
-    { name: 'Revenue', value: dashboardData?.totalRevenue || 0, color: '#3B82F6' },
-    { name: 'Expenses', value: dashboardData?.totalExpenses || 0, color: '#EF4444' },
+    { name: 'Revenue', value: safeNumber(dashboardData?.totalRevenue), color: '#3B82F6' },
+    { name: 'Expenses', value: safeNumber(dashboardData?.totalExpenses), color: '#EF4444' },
   ];
 
   const monthlyData = [
@@ -118,24 +120,7 @@ const Dashboard = () => {
     { month: 'Jun', revenue: 2390, expenses: 3800 },
   ];
 
-  const [membershipData, setMembershipData] = useState([
-    { name: 'premium', value: 0, color: '#8B5CF6' },
-    { name: 'standard', value: 0, color: '#3B82F6' },
-    { name: 'basic', value: 0, color: '#10B981' },
-  ]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const dist = await apiService.getMembershipDistribution();
-        const colors = { premium: '#8B5CF6', standard: '#3B82F6', basic: '#10B981', unknown: '#9CA3AF' };
-        const mapped = (dist.data || dist).map(d => ({ name: d.name, value: d.value, color: colors[d.name] || '#6B7280' }));
-        setMembershipData(mapped);
-      } catch (e) {
-        // keep defaults
-      }
-    })();
-  }, []);
+  // Membership section removed
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
@@ -232,7 +217,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Row (Membership + Activity removed by request) */}
+      {/* Bottom Row (activity + membership removed) */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Quick Stats */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6">
