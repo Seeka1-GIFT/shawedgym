@@ -52,27 +52,15 @@ const register = async (req, res) => {
       await client.query('BEGIN');
       console.log('Creating new gym for user:', email);
       
-      // Get the basic subscription plan ID
-      const planResult = await client.query('SELECT id FROM subscription_plans WHERE name = $1 LIMIT 1', ['basic']);
-      const planId = planResult.rows.length > 0 ? planResult.rows[0].id : 1;
-      
-      // Create new gym for user
+      // Create new gym for user (using only existing columns)
       const gymResult = await client.query(
-        `INSERT INTO gyms (name, owner_email, owner_name, phone, address, subscription_plan_id, max_members) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        `INSERT INTO gyms (name, owner_email, owner_name) 
+         VALUES ($1, $2, $3) 
          RETURNING id`,
-        [`${firstName}'s Gym`, email, `${firstName} ${lastName}`, '', '', planId, 50]
+        [`${firstName}'s Gym`, email, `${firstName} ${lastName}`]
       );
       gymId = gymResult.rows[0].id;
       console.log('Created gym with ID:', gymId);
-      
-      // Create subscription record for the new gym
-      await client.query(
-        `INSERT INTO gym_subscriptions (gym_id, plan_id, status, end_date)
-         VALUES ($1, $2, 'active', NOW() + INTERVAL '1 month')`,
-        [gymId, planId]
-      );
-      console.log('Created subscription for gym:', gymId);
       
       await client.query('COMMIT');
       console.log('Transaction committed successfully');

@@ -2,7 +2,15 @@ const pool = require('../config/database');
 
 const getClasses = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM classes ORDER BY schedule ASC');
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Missing gym_id',
+        message: 'User gym_id is required'
+      });
+    }
+
+    const result = await pool.query('SELECT * FROM classes WHERE gym_id = $1 ORDER BY schedule ASC', [gymId]);
     res.json({
       success: true,
       data: { classes: result.rows }
@@ -19,7 +27,15 @@ const getClasses = async (req, res) => {
 const getClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('SELECT * FROM classes WHERE id = $1', [id]);
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Missing gym_id',
+        message: 'User gym_id is required'
+      });
+    }
+
+    const result = await pool.query('SELECT * FROM classes WHERE id = $1 AND gym_id = $2', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
