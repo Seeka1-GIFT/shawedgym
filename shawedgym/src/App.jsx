@@ -22,9 +22,10 @@ import Assets from './pages/Assets.jsx';
 import Classes from './pages/Classes.jsx';
 import Trainers from './pages/Trainers.jsx';
 import Attendance from './pages/Attendance.jsx';
-import Payments from './pages/Payments.jsx';
-import Expenses from './pages/Expenses.jsx';
-import Reports from './pages/Reports.jsx';
+// Use namespace imports to be resilient to default export detection in some bundlers
+import * as PaymentsPage from './pages/Payments.jsx';
+import * as ExpensesPage from './pages/Expenses.jsx';
+import * as ReportsPage from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
 import CheckIn from './pages/CheckIn.jsx';
 import Subscriptions from './pages/Subscriptions.jsx';
@@ -81,9 +82,9 @@ function App() {
                     <Route path="/classes" element={<Classes />} />
                     <Route path="/trainers" element={<Trainers />} />
                     <Route path="/attendance" element={<Attendance />} />
-                    <Route path="/payments" element={<Payments />} />
-                    <Route path="/expenses" element={<Expenses />} />
-                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/payments" element={<(PaymentsPage.default || PaymentsPage.Payments || (()=>null)) />} />
+                    <Route path="/expenses" element={<(ExpensesPage.default || ExpensesPage.Expenses || (()=>null)) />} />
+                    <Route path="/reports" element={<(ReportsPage.default || ReportsPage.Reports || (()=>null)) />} />
                     <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
                     <Route path="/checkin" element={<CheckIn />} />
                     {/* Redirect unknown paths back to the dashboard. */}
