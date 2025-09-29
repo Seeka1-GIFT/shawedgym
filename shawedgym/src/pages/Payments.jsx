@@ -449,45 +449,54 @@ const Payments = () => {
             <style>
               *{box-sizing:border-box}
               @page { size: ${pageSize}; margin: 10mm; }
-              body{font-family:Arial,Helvetica,sans-serif;padding:0;color:#111}
+              body{font-family:Arial,Helvetica,sans-serif;padding:0;color:#0f172a;background:#f9fafb}
               .paper{width:${containerWidth}; margin:0 auto;}
-              h2{margin:0 0 8px 0; font-size:${headingSize}; text-align:center}
-              .meta{margin:8px 0; font-size:${fontSize}; display:grid; grid-template-columns: 1fr 1fr;}
-              table{width:100%;border-collapse:collapse; font-size:${fontSize}}
-              td{padding:6px 4px; vertical-align:top}
-              .right{text-align:right}
-              .muted{color:#666}
-              .total{font-weight:700}
-              .sep{height:1px;background:#e5e7eb;margin:12px 0}
-              .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-              .brand{font-weight:700}
-              .box{border:1px solid #e5e7eb; border-radius:8px; padding:10px}
+              .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;box-shadow:0 6px 14px rgba(15,23,42,.06)}
+              .header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:linear-gradient(90deg,#2563eb,#8b5cf6);color:#fff}
+              .brand{font-weight:800;letter-spacing:.3px}
+              .badge{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.15);font-size:12px}
+              .section{padding:14px 16px}
+              h2{margin:0 0 8px 0; font-size:${headingSize}; text-align:center;color:#111827}
+              .meta{margin:8px 0 4px 0; font-size:${fontSize}; display:grid; grid-template-columns: 1fr 1fr;gap:8px}
+              .meta div{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:8px 10px}
+              .meta strong{color:#111827}
+              table{width:100%;border-collapse:separate;border-spacing:0 8px;font-size:${fontSize}}
+              td{padding:10px 12px; vertical-align:top;background:#f8fafc;border:1px solid #e5e7eb}
+              tr td:first-child{border-radius:8px 0 0 8px;color:#475569}
+              tr td:last-child{border-radius:0 8px 8px 0;text-align:right;color:#111827}
+              .total-row td{background:#ecfeff;border-color:#bae6fd}
+              .total-row td:first-child{font-weight:700}
+              .footer{padding:10px 16px 16px 16px;text-align:center;color:#64748b;font-size:12px}
             </style>
           </head>
           <body>
             <div class="paper">
-              <div class="header">
-                <div class="brand">${gymName}</div>
-                <div class="muted">Payment Receipt</div>
-              </div>
-              <div class="box">
-                <h2>Receipt</h2>
-                <div class="meta">
-                  <div>Receipt #: <strong>${payment.transactionId || '-'}</strong></div>
-                  <div class="right">Date: <strong>${date}</strong></div>
+              <div class="card">
+                <div class="header">
+                  <div class="brand">${gymName}</div>
+                  <div class="badge">Payment Receipt</div>
                 </div>
-                <table>
-                  <tr><td class="muted">Member</td><td class="right">${memberName}</td></tr>
-                  <tr><td class="muted">Plan</td><td class="right">${planName}</td></tr>
-                  <tr><td class="muted">Method</td><td class="right">${enriched?.method || payment.paymentMethod || payment.method || 'Cash'}</td></tr>
-                </table>
-                <div class="sep"></div>
-                <table>
-                  <tr><td>RG Fee</td><td class="right">$${rgFee.toLocaleString()}</td></tr>
-                  <tr><td>Plan Fee</td><td class="right">$${planFee.toLocaleString()}</td></tr>
-                  <tr><td class="total">Net Amount</td><td class="right total">$${netAmount.toLocaleString()}</td></tr>
-                </table>
-                <p class="muted" style="text-align:center;margin-top:10px">Thanks for your payment.</p>
+                <div class="section">
+                  <div class="meta">
+                    <div>Receipt #: <strong>${payment.transactionId || '-'}</strong></div>
+                    <div style="text-align:right">Date: <strong>${date}</strong></div>
+                  </div>
+                </div>
+                <div class="section" style="padding-top:0">
+                  <table>
+                    <tr><td>Member</td><td>${memberName}</td></tr>
+                    <tr><td>Plan</td><td>${planName}</td></tr>
+                    <tr><td>Method</td><td>${enriched?.method || payment.paymentMethod || payment.method || 'Cash'}</td></tr>
+                  </table>
+                </div>
+                <div class="section" style="padding-top:0">
+                  <table>
+                    <tr><td>RG Fee</td><td>$${rgFee.toLocaleString()}</td></tr>
+                    <tr><td>Plan Fee</td><td>$${planFee.toLocaleString()}</td></tr>
+                    <tr class="total-row"><td>Net Amount</td><td>$${netAmount.toLocaleString()}</td></tr>
+                  </table>
+                </div>
+                <div class="footer">Thanks for your payment.</div>
               </div>
             </div>
           </body>
