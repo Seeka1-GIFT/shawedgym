@@ -113,8 +113,8 @@ const getPayment = async (req, res) => {
         COALESCE(pl.name, 'Unknown Plan') AS plan_name,
         COALESCE(g.name, 'ShawedGym') AS gym_name,
         COALESCE(p.rg_fee, 0) AS rg_fee,
-        COALESCE(p.plan_fee, p.amount) AS plan_fee,
-        COALESCE(p.total, p.amount) AS total,
+        COALESCE(p.plan_fee, pl.price, p.amount) AS plan_fee,
+        COALESCE(p.total, (COALESCE(p.plan_fee, pl.price, 0) + COALESCE(p.rg_fee, 0)), p.amount) AS total,
         p.method,
         p.created_at
       FROM payments p
