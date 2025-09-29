@@ -94,7 +94,7 @@ const Plans = () => {
   const stats = {
     totalPlans: enhancedPlans.length,
     totalSubscribers: enhancedPlans.reduce((sum, plan) => sum + plan.subscribers, 0),
-    averagePrice: Math.round(enhancedPlans.reduce((sum, plan) => sum + plan.price, 0) / enhancedPlans.length),
+    averagePrice: enhancedPlans.length > 0 ? Math.round(enhancedPlans.reduce((sum, plan) => sum + (Number(plan.price) || 0), 0) / enhancedPlans.length) : 0,
     mostPopularPlan: enhancedPlans.find(plan => plan.mostPopular)?.name || 'Premium'
   };
 
@@ -201,15 +201,7 @@ const Plans = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Price</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">${stats.averagePrice}</p>
-            </div>
-            <DollarSign className="w-8 h-8 text-green-500" />
-          </div>
-        </div>
+        {/* Removed Average Price card as requested */}
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
