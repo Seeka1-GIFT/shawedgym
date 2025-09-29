@@ -76,9 +76,14 @@ const createAsset = async (req, res) => {
       });
     }
 
+    // Normalize date to YYYY-MM-DD for Postgres
+    const dateObj = purchase_date ? new Date(purchase_date) : new Date();
+    const pgDate = isNaN(dateObj) ? new Date() : dateObj;
+    const dateStr = pgDate.toISOString().slice(0, 10);
+
     const result = await pool.query(
       'INSERT INTO assets (name, type, location, status, purchase_date, purchase_price, description, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *',
-      [name, type, location, status || 'active', purchase_date, purchase_price, description, gymId]
+      [name, type, location, status || 'active', dateStr, Number(purchase_price) || 0, description, gymId]
     );
 
     res.status(201).json({
@@ -104,9 +109,12 @@ const updateAsset = async (req, res) => {
       return res.status(400).json({ error: 'Missing gym_id', message: 'User gym_id is required' });
     }
 
+    const updDateObj = purchase_date ? new Date(purchase_date) : null;
+    const updDateStr = updDateObj ? (isNaN(updDateObj) ? null : updDateObj.toISOString().slice(0,10)) : null;
+
     const result = await pool.query(
-      'UPDATE assets SET name = $1, type = $2, location = $3, status = $4, purchase_date = $5, purchase_price = $6, description = $7, updated_at = NOW() WHERE id = $8 AND gym_id = $9 RETURNING *',
-      [name, type, location, status, purchase_date, purchase_price, description, id, gymId]
+      'UPDATE assets SET name = $1, type = $2, location = $3, status = $4, purchase_date = COALESCE($5, purchase_date), purchase_price = $6, description = $7, updated_at = NOW() WHERE id = $8 AND gym_id = $9 RETURNING *',
+      [name, type, location, status, updDateStr, Number(purchase_price) || 0, description, id, gymId]
     );
 
     if (result.rows.length === 0) {
