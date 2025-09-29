@@ -93,7 +93,7 @@ const getPayments = async (req, res) => {
   }
 };
 
-// Get payment by ID
+// Get payment by ID (joined with member, plan, gym)
 const getPayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -107,9 +107,20 @@ const getPayment = async (req, res) => {
     }
     
     const result = await pool.query(`
-      SELECT p.*, m.first_name, m.last_name, m.email 
-      FROM payments p 
-      LEFT JOIN members m ON p.member_id = m.id 
+      SELECT 
+        p.id AS payment_id,
+        COALESCE((m.first_name || ' ' || m.last_name), 'Unknown Member') AS member_name,
+        COALESCE(pl.name, 'Unknown Plan') AS plan_name,
+        COALESCE(g.name, 'ShawedGym') AS gym_name,
+        COALESCE(p.rg_fee, 0) AS rg_fee,
+        COALESCE(p.plan_fee, p.amount) AS plan_fee,
+        COALESCE(p.total, p.amount) AS total,
+        p.method,
+        p.created_at
+      FROM payments p
+      LEFT JOIN members m ON p.member_id = m.id AND m.gym_id = $2
+      LEFT JOIN plans pl ON p.plan_id = pl.id AND pl.gym_id = $2
+      LEFT JOIN gyms g ON p.gym_id = g.id
       WHERE p.id = $1 AND p.gym_id = $2
     `, [id, gymId]);
     
@@ -120,9 +131,22 @@ const getPayment = async (req, res) => {
       });
     }
 
+    const row = result.rows[0];
     res.json({
       success: true,
-      data: { payment: result.rows[0] }
+      data: {
+        payment: {
+          paymentId: row.payment_id,
+          memberName: row.member_name,
+          planName: row.plan_name,
+          gymName: row.gym_name,
+          rgFee: Number(row.rg_fee) || 0,
+          planFee: Number(row.plan_fee) || 0,
+          total: Number(row.total) || 0,
+          method: row.method,
+          createdAt: row.created_at
+        }
+      }
     });
   } catch (error) {
     console.error('Get payment error:', error);
