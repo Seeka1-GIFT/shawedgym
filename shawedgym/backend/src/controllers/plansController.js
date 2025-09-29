@@ -3,7 +3,11 @@ const pool = require('../config/database');
 // Get all plans
 const getPlans = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM plans ORDER BY price ASC');
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
+    const result = await pool.query('SELECT * FROM plans WHERE gym_id = $1 ORDER BY price ASC', [gymId]);
 
     res.json({
       success: true,
@@ -22,8 +26,12 @@ const getPlans = async (req, res) => {
 const getPlan = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
     
-    const result = await pool.query('SELECT * FROM plans WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM plans WHERE id = $1 AND gym_id = $2', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -49,6 +57,10 @@ const getPlan = async (req, res) => {
 const createPlan = async (req, res) => {
   try {
     const { name, price, duration, features, description } = req.body;
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
     if (!name || !price || !duration) {
       return res.status(400).json({
@@ -58,8 +70,8 @@ const createPlan = async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO plans (name, price, duration, features, description, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
-      [name, price, duration, JSON.stringify(features), description]
+      'INSERT INTO plans (name, price, duration, features, description, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
+      [name, price, duration, JSON.stringify(features || []), description, gymId]
     );
 
     res.status(201).json({
@@ -81,10 +93,14 @@ const updatePlan = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price, duration, features, description, status } = req.body;
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
     const result = await pool.query(
-      'UPDATE plans SET name = $1, price = $2, duration = $3, features = $4, description = $5, status = $6, updated_at = NOW() WHERE id = $7 RETURNING *',
-      [name, price, duration, JSON.stringify(features), description, status, id]
+      'UPDATE plans SET name = $1, price = $2, duration = $3, features = $4, description = $5, status = $6, updated_at = NOW() WHERE id = $7 AND gym_id = $8 RETURNING *',
+      [name, price, duration, JSON.stringify(features || []), description, status, id, gymId]
     );
 
     if (result.rows.length === 0) {
@@ -112,8 +128,12 @@ const updatePlan = async (req, res) => {
 const deletePlan = async (req, res) => {
   try {
     const { id } = req.params;
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
-    const result = await pool.query('DELETE FROM plans WHERE id = $1 RETURNING *', [id]);
+    const result = await pool.query('DELETE FROM plans WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({

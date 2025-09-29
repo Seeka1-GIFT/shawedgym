@@ -3,9 +3,7 @@ const router = express.Router();
 const plansController = require('../controllers/plansController');
 const authMiddleware = require('../middleware/auth');
 
-// NOTE: Temporarily disabling global auth for plans to allow frontend integration without login.
-// If you want to protect these routes, re-enable the line below or apply per-route.
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.get('/', plansController.getPlans);
 router.get('/:id', plansController.getPlan);
