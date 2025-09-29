@@ -99,10 +99,14 @@ const updateAsset = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, type, location, status, purchase_date, purchase_price, description } = req.body;
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Missing gym_id', message: 'User gym_id is required' });
+    }
 
     const result = await pool.query(
-      'UPDATE assets SET name = $1, type = $2, location = $3, status = $4, purchase_date = $5, purchase_price = $6, description = $7, updated_at = NOW() WHERE id = $8 RETURNING *',
-      [name, type, location, status, purchase_date, purchase_price, description, id]
+      'UPDATE assets SET name = $1, type = $2, location = $3, status = $4, purchase_date = $5, purchase_price = $6, description = $7, updated_at = NOW() WHERE id = $8 AND gym_id = $9 RETURNING *',
+      [name, type, location, status, purchase_date, purchase_price, description, id, gymId]
     );
 
     if (result.rows.length === 0) {
@@ -129,7 +133,11 @@ const updateAsset = async (req, res) => {
 const deleteAsset = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM assets WHERE id = $1 RETURNING *', [id]);
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({ error: 'Missing gym_id', message: 'User gym_id is required' });
+    }
+    const result = await pool.query('DELETE FROM assets WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
