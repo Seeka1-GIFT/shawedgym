@@ -424,6 +424,8 @@ const Payments = () => {
     try {
       const memberName = getMemberName(payment.memberId);
       const planName = getPlanName(payment.planId);
+      const user = authHelpers.getUser();
+      const gymName = user?.gym_name || user?.gymName || 'ShawedGym';
       const date = payment.date || new Date().toISOString().split('T')[0];
       // Default paper size (no prompts). Change to 'pos80' or 'a5' if needed.
       const format = 'a4';
@@ -456,7 +458,7 @@ const Payments = () => {
           <body>
             <div class="paper">
               <div class="header">
-                <div class="brand">ShawedGym</div>
+                <div class="brand">${gymName}</div>
                 <div class="muted">Payment Receipt</div>
               </div>
               <div class="box">
@@ -472,8 +474,9 @@ const Payments = () => {
                 </table>
                 <div class="sep"></div>
                 <table>
-                  <tr><td>Amount</td><td class="right">$${payment.amount}</td></tr>
-                  <tr><td class="total">Net Amount</td><td class="right total">$${payment.netAmount}</td></tr>
+                  <tr><td>RG Fee</td><td class="right">$${Number(payment.registrationFee || 0).toLocaleString()}</td></tr>
+                  <tr><td>Plan Fee</td><td class="right">$${Number(payment.amount || 0).toLocaleString()}</td></tr>
+                  <tr><td class="total">Net Amount</td><td class="right total">$${Number(payment.netAmount || payment.amount || 0).toLocaleString()}</td></tr>
                 </table>
                 <p class="muted" style="text-align:center;margin-top:10px">Thanks for your payment.</p>
               </div>
