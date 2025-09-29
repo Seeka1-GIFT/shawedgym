@@ -95,12 +95,15 @@ const Attendance = () => {
   });
 
   // Calculate statistics
+  const totalRecords = enhancedAttendanceData.length || 0;
+  const totalPresent = enhancedAttendanceData.filter(r => r.status === 'present').length || 0;
+  const totalDuration = enhancedAttendanceData.reduce((sum, r) => sum + (Number(r.duration) || 0), 0);
   const stats = {
-    totalRecords: enhancedAttendanceData.length,
-    presentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'present').length,
-    absentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'absent').length,
-    attendanceRate: Math.round((enhancedAttendanceData.filter(r => r.status === 'present').length / enhancedAttendanceData.length) * 100),
-    averageDuration: Math.round(enhancedAttendanceData.reduce((sum, r) => sum + r.duration, 0) / enhancedAttendanceData.length),
+    totalRecords,
+    presentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'present').length || 0,
+    absentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'absent').length || 0,
+    attendanceRate: totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0,
+    averageDuration: totalRecords > 0 ? Math.round(totalDuration / totalRecords) : 0,
     uniqueMembers: new Set(enhancedAttendanceData.map(r => r.memberId)).size
   };
 
