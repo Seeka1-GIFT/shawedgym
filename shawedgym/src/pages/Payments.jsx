@@ -431,10 +431,10 @@ const Payments = () => {
       // Prefer enriched names; fall back to normalized ids from the list (_memberId/_planId)
       const memberName = enriched?.memberName || getMemberName(payment._memberId);
       const planName = enriched?.planName || getPlanName(payment._planId);
-      const gymName = enriched?.gymName || (authHelpers.getUser()?.gym_name || 'ShawedGym');
+      const gymName = enriched?.gymName || (authHelpers.getUser()?.gym_name || '');
       const rgFee = Number(enriched?.rgFee ?? payment.registrationFee ?? 0) || 0;
-      const planFee = Number(enriched?.planFee ?? payment.amount ?? 0) || 0;
-      const netAmount = Number(enriched?.total ?? payment.netAmount ?? payment.amount ?? 0) || 0;
+      const planFee = Number(enriched?.planFee ?? (payment.amount && rgFee ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
+      const netAmount = Number(enriched?.total ?? enriched?.netAmount ?? (planFee + rgFee)) || 0;
       const date = payment.date || new Date().toISOString().split('T')[0];
       // Force POS-80 layout for thermal printers
       const format = 'pos80';
