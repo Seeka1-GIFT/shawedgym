@@ -118,11 +118,24 @@ const Dashboard = () => {
     { month: 'Jun', revenue: 2390, expenses: 3800 },
   ];
 
-  const membershipData = [
-    { name: 'Premium', value: 45, color: '#8B5CF6' },
-    { name: 'Standard', value: 30, color: '#3B82F6' },
-    { name: 'Basic', value: 25, color: '#10B981' },
-  ];
+  const [membershipData, setMembershipData] = useState([
+    { name: 'premium', value: 0, color: '#8B5CF6' },
+    { name: 'standard', value: 0, color: '#3B82F6' },
+    { name: 'basic', value: 0, color: '#10B981' },
+  ]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const dist = await apiService.getMembershipDistribution();
+        const colors = { premium: '#8B5CF6', standard: '#3B82F6', basic: '#10B981', unknown: '#9CA3AF' };
+        const mapped = (dist.data || dist).map(d => ({ name: d.name, value: d.value, color: colors[d.name] || '#6B7280' }));
+        setMembershipData(mapped);
+      } catch (e) {
+        // keep defaults
+      }
+    })();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
@@ -219,42 +232,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Activity Feed */}
-        <div className="lg:col-span-1">
-          <ActivityFeed limit={8} />
-        </div>
-        {/* Membership Distribution */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
-              <Target className="w-5 h-5 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Membership Plans</h3>
-          </div>
-          <div className="h-48">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={membershipData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={60}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {membershipData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
+      {/* Bottom Row (Membership + Activity removed by request) */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         {/* Quick Stats */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6">
           <div className="flex items-center space-x-3 mb-6">
