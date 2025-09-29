@@ -82,9 +82,9 @@ function App() {
                     <Route path="/classes" element={<Classes />} />
                     <Route path="/trainers" element={<Trainers />} />
                     <Route path="/attendance" element={<Attendance />} />
-                    <Route path="/payments" element={<(PaymentsPage.default || PaymentsPage.Payments || (()=>null)) />} />
-                    <Route path="/expenses" element={<(ExpensesPage.default || ExpensesPage.Expenses || (()=>null)) />} />
-                    <Route path="/reports" element={<(ReportsPage.default || ReportsPage.Reports || (()=>null)) />} />
+                    {(() => { const C = PaymentsPage.default || PaymentsPage.Payments; return <Route path="/payments" element={C ? <C /> : <></>} />; })()}
+                    {(() => { const C = ExpensesPage.default || ExpensesPage.Expenses; return <Route path="/expenses" element={C ? <C /> : <></>} />; })()}
+                    {(() => { const C = ReportsPage.default || ReportsPage.Reports; return <Route path="/reports" element={C ? <C /> : <></>} />; })()}
                     <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
                     <Route path="/checkin" element={<CheckIn />} />
                     {/* Redirect unknown paths back to the dashboard. */}
