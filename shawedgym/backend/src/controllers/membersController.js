@@ -128,7 +128,8 @@ const createMember = async (req, res) => {
       address, 
       emergencyContact,
       emergencyPhone,
-      registrationFee
+      registrationFee,
+      planId
     } = req.body;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
@@ -169,16 +170,27 @@ const createMember = async (req, res) => {
     // Create a SINGLE payment that combines Registration Fee + first Membership payment
     try {
       let plan = null;
-      if (membershipType) {
+      if (planId) {
+        // Prefer explicit plan id scoped to this gym
+        const planById = await pool.query(
+          `SELECT id, name, price FROM plans WHERE id = $1 AND gym_id = $2 LIMIT 1`,
+          [planId, gymId]
+        );
+        if (planById.rows.length > 0) plan = planById.rows[0];
+      } else if (membershipType) {
+        // Fallback: best-effort match by name within this gym
         const planResult = await pool.query(
           `SELECT id, name, price FROM plans 
-           WHERE LOWER(name) LIKE CASE 
-             WHEN LOWER($1) = 'basic' THEN '%basic%'
-             WHEN LOWER($1) = 'premium' THEN '%premium%'
-             WHEN LOWER($1) = 'vip' THEN '%vip%'
-             ELSE LOWER('%' || $1 || '%') END
+           WHERE gym_id = $2 AND (
+             LOWER(name) LIKE CASE 
+               WHEN LOWER($1) = 'basic' THEN '%basic%'
+               WHEN LOWER($1) = 'premium' THEN '%premium%'
+               WHEN LOWER($1) = 'vip' THEN '%vip%'
+               ELSE LOWER('%' || $1 || '%') 
+             END
+           )
            ORDER BY price ASC LIMIT 1`,
-          [membershipType]
+          [membershipType, gymId]
         );
         if (planResult.rows.length > 0) plan = planResult.rows[0];
       }
@@ -195,9 +207,9 @@ const createMember = async (req, res) => {
           ? (reg > 0 ? `${plan.name} Membership + Registration Fee` : `${plan.name} Membership`)
           : 'Registration fee';
         await pool.query(
-          `INSERT INTO payments (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, NOW())`,
-          [member.id, totalAmount, 'cash', desc, plan ? plan.id : null, receiptNumber]
+          `INSERT INTO payments (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, gym_id, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, $7, NOW())`,
+          [member.id, totalAmount, 'cash', desc, plan ? plan.id : null, receiptNumber, gymId]
         );
       }
     } catch (combineErr) {
