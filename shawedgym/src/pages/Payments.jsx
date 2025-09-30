@@ -406,13 +406,11 @@ const Payments = () => {
   const completedPayments = enhancedPayments.filter(p => p.status === 'completed');
   const pendingPayments = enhancedPayments.filter(p => p.status === 'pending');
   const totalRevenue = completedPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  const averageTransaction = completedPayments.length ? Math.round(totalRevenue / completedPayments.length) : 0;
   const stats = {
     totalTransactions: enhancedPayments.length,
     totalRevenue,
     pendingAmount: pendingPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
     failedTransactions: enhancedPayments.filter(p => p.status === 'failed').length,
-    averageTransaction,
     processingFees: 0
   };
 
@@ -618,7 +616,7 @@ const Payments = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
           <div className="flex items-center justify-between">
             <div>
@@ -659,15 +657,7 @@ const Payments = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Transaction</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.averageTransaction}</p>
-            </div>
-            <Target className="w-6 h-6 text-purple-500" />
-          </div>
-        </div>
+        {/* Avg. Transaction card removed per request */}
         
         {false && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
