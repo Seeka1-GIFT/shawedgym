@@ -103,7 +103,6 @@ const Attendance = () => {
     presentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'present').length || 0,
     absentToday: enhancedAttendanceData.filter(r => r.date === selectedDate && r.status === 'absent').length || 0,
     attendanceRate: totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 0,
-    averageDuration: totalRecords > 0 ? Math.round(totalDuration / totalRecords) : 0,
     uniqueMembers: new Set(enhancedAttendanceData.map(r => r.memberId)).size
   };
 
@@ -168,7 +167,7 @@ const Attendance = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
           <div className="flex items-center justify-between">
             <div>
@@ -209,15 +208,7 @@ const Attendance = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Duration</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageDuration}m</p>
-            </div>
-            <Clock className="w-6 h-6 text-orange-500" />
-          </div>
-        </div>
+        {/* Avg. Duration card removed per request */}
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">
