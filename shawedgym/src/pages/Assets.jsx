@@ -209,6 +209,28 @@ const Assets = () => {
         <p className="text-gray-600 dark:text-gray-400">Track assets, monitor depreciation, and manage maintenance schedules</p>
       </div>
 
+      {/* Key Stats: Total Assets & Current Value */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Assets</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalAssets}</p>
+            </div>
+            <Package className="w-6 h-6 text-green-500" />
+          </div>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Value</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalValue.toLocaleString()}</p>
+            </div>
+            <DollarSign className="w-6 h-6 text-blue-500" />
+          </div>
+        </div>
+      </div>
+
       {/* Add Asset Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
