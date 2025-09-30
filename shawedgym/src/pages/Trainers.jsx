@@ -174,9 +174,10 @@ const Trainers = () => {
   const stats = {
     totalTrainers: enhancedTrainers.length,
     activeTrainers: enhancedTrainers.filter(t => t.status === 'Active').length,
-    averageRating: (enhancedTrainers.reduce((sum, t) => sum + parseFloat(t.rating), 0) / enhancedTrainers.length).toFixed(1),
+    averageRating: enhancedTrainers.length > 0 
+      ? (enhancedTrainers.reduce((sum, t) => sum + parseFloat(t.rating || 0), 0) / enhancedTrainers.length).toFixed(1)
+      : 0,
     totalClients: enhancedTrainers.reduce((sum, t) => sum + t.totalClients, 0),
-    averageExperience: Math.round(enhancedTrainers.reduce((sum, t) => sum + t.experience, 0) / enhancedTrainers.length),
     monthlyRevenue: enhancedTrainers.reduce((sum, t) => sum + t.monthlyEarnings, 0)
   };
 
@@ -224,7 +225,7 @@ const Trainers = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
@@ -265,15 +266,7 @@ const Trainers = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Experience</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageExperience}y</p>
-            </div>
-            <Trophy className="w-6 h-6 text-orange-500" />
-          </div>
-        </div>
+        {/* Avg. Experience card removed per request */}
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500">
           <div className="flex items-center justify-between">
