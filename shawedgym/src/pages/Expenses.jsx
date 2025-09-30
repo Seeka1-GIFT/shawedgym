@@ -206,10 +206,7 @@ const Expenses = () => {
     totalExpenses: enhancedExpenses.length,
     totalAmount: enhancedExpenses.reduce((sum, e) => sum + e.amount, 0),
     pendingAmount: enhancedExpenses.filter(e => e.status === 'pending').reduce((sum, e) => sum + e.amount, 0),
-    rejectedExpenses: enhancedExpenses.filter(e => e.status === 'rejected').length,
-    averageExpense: enhancedExpenses.length ? Math.round(enhancedExpenses.reduce((sum, e) => sum + e.amount, 0) / enhancedExpenses.length) : 0,
-    totalBudget: 0,
-    budgetUtilization: 0
+    rejectedExpenses: enhancedExpenses.filter(e => e.status === 'rejected').length
   };
 
   // Chart data
@@ -372,7 +369,7 @@ const Expenses = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500">
           <div className="flex items-center justify-between">
             <div>
@@ -413,35 +410,11 @@ const Expenses = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Expense</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.averageExpense}</p>
-            </div>
-            <Calculator className="w-6 h-6 text-purple-500" />
-          </div>
-        </div>
+        {/* Avg. Expense card removed per request */}
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Budget</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalBudget.toLocaleString()}</p>
-            </div>
-            <Target className="w-6 h-6 text-blue-500" />
-          </div>
-        </div>
+        {/* Total Budget card removed per request */}
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Budget Used</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.budgetUtilization}%</p>
-            </div>
-            <TrendingUp className="w-6 h-6 text-green-500" />
-          </div>
-        </div>
+        {/* Budget Used card removed per request */}
       </div>
 
       {/* View Mode Toggle */}
