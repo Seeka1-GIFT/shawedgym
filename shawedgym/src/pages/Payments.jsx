@@ -445,8 +445,16 @@ const Payments = () => {
       const memberName = enriched?.memberName || getMemberName(payment._memberId);
       const planName = enriched?.planName || getPlanName(payment._planId);
       const headerGymName = gymName || enriched?.gymName || (authHelpers.getUser()?.gym_name || '');
-      const rgFee = Number(enriched?.rgFee ?? payment.registrationFee ?? 0) || 0;
-      const planFee = Number(enriched?.planFee ?? (payment.amount && rgFee ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
+      // Parse encoded description like "PLAN:20;RG:5; ..."
+      const desc = (enriched?.description || payment.description || '').toString();
+      const parseAmt = (label) => {
+        const m = desc.match(new RegExp(label + ':\\s*(\\d+(?:\\.\\d+)?)', 'i'));
+        return m ? Number(m[1]) : null;
+      };
+      let parsedPlan = parseAmt('PLAN');
+      let parsedRg = parseAmt('RG');
+      const rgFee = Number(enriched?.rgFee ?? payment.registrationFee ?? parsedRg ?? 0) || 0;
+      const planFee = Number(enriched?.planFee ?? parsedPlan ?? ((payment.amount && rgFee) ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
       const netAmount = Number(enriched?.total ?? enriched?.netAmount ?? (planFee + rgFee)) || 0;
       const date = payment.date || new Date().toISOString().split('T')[0];
       // Force POS-80 layout for thermal printers
