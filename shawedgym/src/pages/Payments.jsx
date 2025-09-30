@@ -172,6 +172,7 @@ const Payments = () => {
   const [planOptions, setPlanOptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [gymName, setGymName] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -205,8 +206,20 @@ const Payments = () => {
         setPlanOptions([]);
       }
     };
+    const loadGym = async () => {
+      try {
+        const g = await apiService.getMyGym();
+        const name = g?.data?.gym?.name || g?.data?.name || g?.name || '';
+        if (name) setGymName(name);
+      } catch (e) {
+        // Fallback to user first/last name if gym name missing
+        const fallback = currentUser?.gym_name || [currentUser?.first_name, currentUser?.last_name].filter(Boolean).join(' ');
+        if (fallback) setGymName(fallback);
+      }
+    };
     load();
     loadRefs();
+    loadGym();
   }, [showError]);
 
   const sourcePayments = backendPayments;
@@ -431,7 +444,7 @@ const Payments = () => {
       // Prefer enriched names; fall back to normalized ids from the list (_memberId/_planId)
       const memberName = enriched?.memberName || getMemberName(payment._memberId);
       const planName = enriched?.planName || getPlanName(payment._planId);
-      const gymName = enriched?.gymName || (authHelpers.getUser()?.gym_name || '');
+      const headerGymName = gymName || enriched?.gymName || (authHelpers.getUser()?.gym_name || '');
       const rgFee = Number(enriched?.rgFee ?? payment.registrationFee ?? 0) || 0;
       const planFee = Number(enriched?.planFee ?? (payment.amount && rgFee ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
       const netAmount = Number(enriched?.total ?? enriched?.netAmount ?? (planFee + rgFee)) || 0;
@@ -478,7 +491,7 @@ const Payments = () => {
             <div class="paper receipt">
               <div class="card">
                 <div class="header">
-                  <div class="brand">${gymName}</div>
+                  <div class="brand">${headerGymName || 'ShawedGym'}</div>
                   <div class="badge">Payment Receipt</div>
                 </div>
                 <div class="section">
