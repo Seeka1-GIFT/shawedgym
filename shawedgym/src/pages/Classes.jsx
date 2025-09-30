@@ -180,7 +180,9 @@ const Classes = () => {
     totalClasses: enhancedClasses.length,
     todayClasses: Math.floor(enhancedClasses.length * 0.3),
     totalEnrolled: enhancedClasses.reduce((sum, cls) => sum + cls.enrolled, 0),
-    averageRating: (enhancedClasses.reduce((sum, cls) => sum + parseFloat(cls.rating), 0) / enhancedClasses.length).toFixed(1)
+    averageRating: enhancedClasses.length > 0 
+      ? (enhancedClasses.reduce((sum, cls) => sum + parseFloat(cls.rating || 0), 0) / enhancedClasses.length).toFixed(1)
+      : 0
   };
 
   const submitCreateClass = async (e) => {
@@ -252,15 +254,7 @@ const Classes = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Rating</p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.averageRating}</p>
-            </div>
-            <Star className="w-8 h-8 text-yellow-500" />
-          </div>
-        </div>
+        {/* Avg. Rating card removed per request */}
       </div>
 
       {/* Simplified: hide extra widgets to focus on creating and listing classes */}
