@@ -266,68 +266,7 @@ const Assets = () => {
           </div>
         </div>
       )}
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Assets</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalAssets}</p>
-            </div>
-            <Package className="w-6 h-6 text-green-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Current Value</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalValue.toLocaleString()}</p>
-            </div>
-            <DollarSign className="w-6 h-6 text-blue-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Depreciation</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">${stats.totalDepreciation.toLocaleString()}</p>
-            </div>
-            <TrendingDown className="w-6 h-6 text-red-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Maintenance Due</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.maintenanceDue}</p>
-            </div>
-            <Wrench className="w-6 h-6 text-orange-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Age</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageAge}y</p>
-            </div>
-            <Calendar className="w-6 h-6 text-purple-500" />
-          </div>
-        </div>
-        
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Utilization</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.utilizationRate}%</p>
-            </div>
-            <BarChart3 className="w-6 h-6 text-yellow-500" />
-          </div>
-        </div>
-      </div>
+      {/* Stats Cards removed per request */}
 
       {/* Controls */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
