@@ -203,9 +203,10 @@ const createMember = async (req, res) => {
         const countRes = await pool.query('SELECT COUNT(*) FROM payments');
         const prefix = plan ? 'SUB' : 'REG';
         const receiptNumber = `${prefix}${String(parseInt(countRes.rows[0].count) + 1).padStart(6, '0')}`;
+        // Encode amounts in description so frontend can separate on receipt
         const desc = plan
-          ? (reg > 0 ? `${plan.name} Membership + Registration Fee` : `${plan.name} Membership`)
-          : 'Registration fee';
+          ? `PLAN:${planAmount};RG:${reg}; ${plan.name} Membership${reg > 0 ? ' + Registration Fee' : ''}`
+          : `RG:${reg}; Registration fee`;
         await pool.query(
           `INSERT INTO payments (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, gym_id, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, $7, NOW())`,
