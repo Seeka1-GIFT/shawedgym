@@ -179,10 +179,7 @@ const Classes = () => {
   const stats = {
     totalClasses: enhancedClasses.length,
     todayClasses: Math.floor(enhancedClasses.length * 0.3),
-    totalEnrolled: enhancedClasses.reduce((sum, cls) => sum + cls.enrolled, 0),
-    averageRating: enhancedClasses.length > 0 
-      ? (enhancedClasses.reduce((sum, cls) => sum + parseFloat(cls.rating || 0), 0) / enhancedClasses.length).toFixed(1)
-      : 0
+    totalEnrolled: enhancedClasses.reduce((sum, cls) => sum + cls.enrolled, 0)
   };
 
   const submitCreateClass = async (e) => {
@@ -223,7 +220,7 @@ const Classes = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
           <div className="flex items-center justify-between">
             <div>
