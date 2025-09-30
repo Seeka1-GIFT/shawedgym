@@ -112,9 +112,9 @@ const getPayment = async (req, res) => {
         COALESCE((m.first_name || ' ' || m.last_name), 'Unknown Member') AS member_name,
         COALESCE(pl.name, 'Unknown Plan') AS plan_name,
         COALESCE(g.name, 'ShawedGym') AS gym_name,
-        COALESCE(p.rg_fee, 0) AS rg_fee,
-        COALESCE(p.plan_fee, pl.price, p.amount) AS plan_fee,
-        COALESCE(p.total, (COALESCE(p.plan_fee, pl.price, 0) + COALESCE(p.rg_fee, 0)), p.amount) AS total,
+        p.amount AS amount,
+        p.description AS description,
+        COALESCE(pl.price, 0) AS plan_price,
         p.method,
         p.created_at
       FROM payments p
@@ -132,6 +132,30 @@ const getPayment = async (req, res) => {
     }
 
     const row = result.rows[0];
+    const desc = (row.description || '').toString();
+    const matchAmt = (label) => {
+      const m = desc.match(new RegExp(label + ':\\s*(\\d+(?:\\.\\d+)?)', 'i'));
+      return m ? Number(m[1]) : null;
+    };
+    const planFromDesc = matchAmt('PLAN');
+    const rgFromDesc = matchAmt('RG');
+    const totalAmount = Number(row.amount) || 0;
+    let computedPlan = planFromDesc;
+    let computedRg = rgFromDesc;
+    if (computedPlan == null && computedRg == null) {
+      // Derive from plan price when available
+      if (row.plan_price && totalAmount >= Number(row.plan_price)) {
+        computedPlan = Number(row.plan_price);
+        computedRg = Math.max(totalAmount - computedPlan, 0);
+      } else {
+        computedPlan = totalAmount;
+        computedRg = 0;
+      }
+    } else if (computedPlan == null) {
+      computedPlan = Math.max(totalAmount - (computedRg || 0), 0);
+    } else if (computedRg == null) {
+      computedRg = Math.max(totalAmount - (computedPlan || 0), 0);
+    }
     res.json({
       success: true,
       data: {
@@ -140,9 +164,9 @@ const getPayment = async (req, res) => {
           memberName: row.member_name,
           planName: row.plan_name,
           gymName: row.gym_name,
-          rgFee: Number(row.rg_fee) || 0,
-          planFee: Number(row.plan_fee) || 0,
-          total: Number(row.total) || 0,
+          rgFee: Number(computedRg) || 0,
+          planFee: Number(computedPlan) || 0,
+          total: Number(totalAmount) || 0,
           method: row.method,
           createdAt: row.created_at
         }
