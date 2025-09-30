@@ -304,39 +304,34 @@ const Members = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Members Management</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
+            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Members</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
           </div>
           {isAdmin && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Member</span>
-          </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Member</span>
+            </button>
           )}
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Total Members</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Active</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-orange-600">{stats.expiringSoon}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Expiring Soon</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-purple-600">{stats.newThisMonth}</div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">New This Month</div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'Total Members', value: stats.total, color: 'from-blue-500 to-cyan-500' },
+          { label: 'Active', value: stats.active, color: 'from-green-500 to-emerald-500' },
+          { label: 'Expiring Soon', value: stats.expiringSoon, color: 'from-orange-500 to-red-500' },
+          { label: 'New This Month', value: stats.newThisMonth, color: 'from-purple-500 to-pink-500' }
+        ].map((card) => (
+          <div key={card.label} className={`bg-white dark:bg-gray-800 p-4 rounded-xl shadow-md border border-gray-100 dark:border-gray-700`}> 
+            <div className={`inline-flex px-2 py-1 text-xs text-white rounded-full bg-gradient-to-r ${card.color}`}>{card.label}</div>
+            <div className="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">{card.value}</div>
+          </div>
+        ))}
       </div>
 
       {/* Search and Filters */}
@@ -348,7 +343,7 @@ const Members = () => {
                 placeholder="Search members..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white shadow-sm"
               />
             </div>
               <select
@@ -363,12 +358,12 @@ const Members = () => {
             </div>
 
       {/* Members List - vertical (compact) */}
-      <div className="grid grid-cols-1 gap-2">
+      <div className="grid grid-cols-1 gap-3">
         {filteredMembers.map((member) => (
-          <div key={member.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow p-3">
+          <div key={member.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-all p-4">
             <div className="flex items-center space-x-3 mb-2">
               {/* Avatar without image - initials only */}
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-xs font-semibold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-sm font-semibold shadow">
                 {(() => {
                   const name = member.name || `${member.first_name || ''} ${member.last_name || ''}`.trim();
                   const initials = name
@@ -381,7 +376,7 @@ const Members = () => {
                 })()}
               </div>
               <div>
-                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{member.name}</h3>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">{member.name}</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400">{member.membershipType}</p>
                 <p className="text-[11px] text-gray-500 dark:text-gray-400">ID: {member.id}</p>
               </div>
@@ -407,17 +402,17 @@ const Members = () => {
           </div>
             )}
             
-            <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
               <button onClick={() => toggleExpand(member.id)}
-                className="px-2.5 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors">
+                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow">
                 <Eye className={`w-4 h-4 ${expandedMemberIds.has(member.id) ? 'opacity-100' : 'opacity-90'}`} />
             </button>
               <button onClick={() => setEditingMember(member)}
-                className="px-2.5 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors">
+                className="px-3 py-1 text-xs bg-gray-600 hover:bg-gray-700 text-white rounded-md shadow">
                 <Edit className="w-4 h-4" />
             </button>
               <button onClick={() => setDeletingMember(member)}
-                className="px-2.5 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded transition-colors">
+                className="px-3 py-1 text-xs bg-red-600 hover:bg-red-700 text-white rounded-md shadow">
                 <Trash2 className="w-4 h-4" />
             </button>
           </div>
