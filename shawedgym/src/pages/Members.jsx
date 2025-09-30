@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 // Add Member Form Component
-const AddMemberForm = ({ onClose, onMemberAdded }) => {
+const AddMemberForm = ({ onClose, onMemberAdded, planOptions }) => {
   const { showSuccess, showError } = useToast();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -20,6 +20,7 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
     email: '',
     phone: '',
     membershipType: 'basic',
+    planId: '',
     dateOfBirth: '',
     address: '',
     emergencyContact: '',
@@ -31,6 +32,12 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // If selecting a plan, also set membershipType from plan name as fallback
+    if (name === 'planId') {
+      const selected = (planOptions || []).find(p => String(p.id) === String(value));
+      setFormData(prev => ({ ...prev, planId: value, membershipType: (selected?.name || prev.membershipType || 'basic').toLowerCase() }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
@@ -94,11 +101,12 @@ const AddMemberForm = ({ onClose, onMemberAdded }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Membership Type *</label>
-          <select name="membershipType" value={formData.membershipType} onChange={handleChange}
+          <select name="planId" value={formData.planId} onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required>
-            <option value="basic">Basic</option>
-            <option value="premium">Premium</option>
-            <option value="vip">VIP</option>
+            <option value="">Select a plan</option>
+            {(planOptions || []).map(plan => (
+              <option key={plan.id} value={plan.id}>{plan.name} - ${Number(plan.price || 0)}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -149,6 +157,7 @@ const Members = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [planOptions, setPlanOptions] = useState([]);
 
   // Load members from API
   useEffect(() => {
@@ -168,7 +177,18 @@ const Members = () => {
         setLoading(false);
       }
     };
+    const loadPlans = async () => {
+      try {
+        const res = await apiService.getPlans();
+        const plans = Array.isArray(res?.data) ? res.data : res?.data?.plans || [];
+        setPlanOptions(plans);
+      } catch (e) {
+        console.error('Failed to load plans:', e);
+        setPlanOptions([]);
+      }
+    };
     loadMembers();
+    loadPlans();
   }, [searchTerm, showError]);
 
   // Enhanced member data
@@ -441,7 +461,7 @@ const Members = () => {
                   <X className="w-6 h-6 text-gray-500" />
                 </button>
               </div>
-              <AddMemberForm onClose={() => setShowAddModal(false)} onMemberAdded={handleAddMember} />
+              <AddMemberForm onClose={() => setShowAddModal(false)} onMemberAdded={handleAddMember} planOptions={planOptions} />
                       </div>
                     </div>
                   </div>
