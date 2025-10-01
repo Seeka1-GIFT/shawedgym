@@ -4,16 +4,21 @@ const getAttendance = async (req, res) => {
   try {
     const { page = 1, limit = 20, memberId, startDate, endDate } = req.query;
     const offset = (page - 1) * limit;
+    const gymId = req.user?.gym_id;
+
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
     let query = `
       SELECT a.*, m.first_name, m.last_name, m.email 
       FROM attendance a 
       LEFT JOIN members m ON a.member_id = m.id 
-      WHERE 1=1
+      WHERE a.gym_id = $1
     `;
-    let countQuery = 'SELECT COUNT(*) FROM attendance a WHERE 1=1';
-    let queryParams = [];
-    let paramIndex = 1;
+    let countQuery = 'SELECT COUNT(*) FROM attendance a WHERE a.gym_id = $1';
+    let queryParams = [gymId];
+    let paramIndex = 2;
 
     if (memberId) {
       query += ` AND a.member_id = $${paramIndex}`;
@@ -63,19 +68,24 @@ const getAttendance = async (req, res) => {
 const createAttendance = async (req, res) => {
   try {
     const { memberId, checkInTime, checkOutTime } = req.body;
+    const gymId = req.user?.gym_id;
+
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
     if (!memberId) {
       return res.status(400).json({ error: 'Validation Error', message: 'Member ID is required' });
     }
 
-    const memberResult = await pool.query('SELECT id FROM members WHERE id = $1', [memberId]);
+    const memberResult = await pool.query('SELECT id FROM members WHERE id = $1 AND gym_id = $2', [memberId, gymId]);
     if (memberResult.rows.length === 0) {
       return res.status(400).json({ error: 'Validation Error', message: 'Member not found' });
     }
 
     const result = await pool.query(
-      'INSERT INTO attendance (member_id, check_in_time, check_out_time, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *',
-      [memberId, checkInTime || new Date(), checkOutTime]
+      'INSERT INTO attendance (member_id, check_in_time, check_out_time, gym_id, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *',
+      [memberId, checkInTime || new Date(), checkOutTime, gymId]
     );
 
     res.status(201).json({ success: true, message: 'Attendance recorded successfully', data: { attendance: result.rows[0] } });
@@ -89,10 +99,15 @@ const updateAttendance = async (req, res) => {
   try {
     const { id } = req.params;
     const { checkOutTime } = req.body;
+    const gymId = req.user?.gym_id;
+
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
 
     const result = await pool.query(
-      'UPDATE attendance SET check_out_time = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
-      [checkOutTime || new Date(), id]
+      'UPDATE attendance SET check_out_time = $1, updated_at = NOW() WHERE id = $2 AND gym_id = $3 RETURNING *',
+      [checkOutTime || new Date(), id, gymId]
     );
 
     if (result.rows.length === 0) {
@@ -109,7 +124,13 @@ const updateAttendance = async (req, res) => {
 const deleteAttendance = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM attendance WHERE id = $1 RETURNING *', [id]);
+    const gymId = req.user?.gym_id;
+
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
+
+    const result = await pool.query('DELETE FROM attendance WHERE id = $1 AND gym_id = $2 RETURNING *', [id, gymId]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Attendance Not Found', message: 'Attendance record not found' });
