@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { UserCheck, Clock, Users, TrendingUp, Search, QrCode, Camera, CheckCircle, LogOut, LogIn } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { UserCheck, Clock, Users, TrendingUp, Search, QrCode, Camera, CheckCircle, LogOut, LogIn, X } from 'lucide-react';
 import { apiService } from '../services/api.js';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 
 /**
  * Member Check-in/out System - Real-time member tracking and attendance
@@ -14,6 +15,11 @@ const CheckIn = () => {
     peakHour: '6:00 PM',
     averageStayTime: '1.5 hours'
   });
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [scanMessage, setScanMessage] = useState('');
+  const qrScannerRef = useRef(null);
+  const qrReaderRef = useRef(null);
 
   // Members from backend
   const [members, setMembers] = useState([]);
@@ -133,6 +139,112 @@ const CheckIn = () => {
     return currentlyInGym.some(entry => entry.memberId === memberId);
   };
 
+  // QR Code Scanner Handler
+  const handleQrScan = () => {
+    setShowQrModal(true);
+    setScanMessage('');
+  };
+
+  // Initialize QR Scanner when modal opens
+  useEffect(() => {
+    if (showQrModal && qrReaderRef.current && !qrScannerRef.current) {
+      const scanner = new Html5QrcodeScanner(
+        'qr-reader',
+        { 
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+          aspectRatio: 1.0
+        },
+        false
+      );
+
+      scanner.render(
+        async (decodedText) => {
+          // Assume QR code contains member ID or member email
+          try {
+            // Try to find member by ID or email
+            const member = members.find(
+              m => m.id.toString() === decodedText || 
+                   m.membershipId === decodedText ||
+                   m.email === decodedText
+            );
+
+            if (member) {
+              if (isCheckedIn(member.id)) {
+                setScanMessage(`${member.name} is already checked in!`);
+              } else {
+                await handleCheckIn(member);
+                setScanMessage(`✓ ${member.name} checked in successfully!`);
+                setTimeout(() => {
+                  scanner.clear();
+                  qrScannerRef.current = null;
+                  setShowQrModal(false);
+                }, 1500);
+              }
+            } else {
+              setScanMessage('Member not found. Please try again.');
+            }
+          } catch (error) {
+            console.error('QR scan error:', error);
+            setScanMessage('Error checking in member. Please try again.');
+          }
+        },
+        (errorMessage) => {
+          // Ignore scanning errors (happens continuously while scanning)
+        }
+      );
+
+      qrScannerRef.current = scanner;
+    }
+
+    return () => {
+      if (qrScannerRef.current && !showQrModal) {
+        qrScannerRef.current.clear();
+        qrScannerRef.current = null;
+      }
+    };
+  }, [showQrModal, members]);
+
+  const closeQrModal = () => {
+    if (qrScannerRef.current) {
+      qrScannerRef.current.clear();
+      qrScannerRef.current = null;
+    }
+    setShowQrModal(false);
+    setScanMessage('');
+  };
+
+  // Camera Scanner Handler (uses webcam for face/ID recognition simulation)
+  const handleCameraScan = () => {
+    setShowCameraModal(true);
+    setScanMessage('');
+  };
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // In a real implementation, this would use face recognition or OCR
+    // For now, we'll show a message and let user select from recent members
+    setScanMessage('Image uploaded. Select member from the list below:');
+  };
+
+  const handleQuickCheckIn = async (memberId) => {
+    const member = members.find(m => m.id === memberId);
+    if (member) {
+      if (isCheckedIn(member.id)) {
+        setScanMessage(`${member.name} is already checked in!`);
+      } else {
+        await handleCheckIn(member);
+        setScanMessage(`✓ ${member.name} checked in successfully!`);
+        setTimeout(() => {
+          setShowCameraModal(false);
+          setScanMessage('');
+        }, 1500);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-6">
       {/* Header */}
@@ -197,10 +309,18 @@ const CheckIn = () => {
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Member Check-In</h2>
             <div className="flex space-x-2">
-              <button className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+              <button 
+                onClick={handleQrScan}
+                className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                title="Scan QR Code"
+              >
                 <QrCode className="w-4 h-4" />
               </button>
-              <button className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+              <button 
+                onClick={handleCameraScan}
+                className="p-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+                title="Camera Scan"
+              >
                 <Camera className="w-4 h-4" />
               </button>
             </div>
@@ -293,6 +413,137 @@ const CheckIn = () => {
           )}
         </div>
       </div>
+
+      {/* QR Code Scanner Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Scan QR Code</h3>
+                <button 
+                  onClick={closeQrModal}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <div 
+                  id="qr-reader" 
+                  ref={qrReaderRef}
+                  className="w-full"
+                ></div>
+              </div>
+
+              {scanMessage && (
+                <div className={`p-3 rounded-lg text-center ${
+                  scanMessage.includes('✓') 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : scanMessage.includes('already')
+                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                }`}>
+                  {scanMessage}
+                </div>
+              )}
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-4">
+                Position the QR code within the frame to scan
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Camera Scanner Modal */}
+      {showCameraModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Camera Scan</h3>
+                <button 
+                  onClick={() => {
+                    setShowCameraModal(false);
+                    setScanMessage('');
+                  }}
+                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                  Upload Member Photo or ID
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileUpload}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+
+              {scanMessage && (
+                <div className={`p-3 rounded-lg text-center mb-4 ${
+                  scanMessage.includes('✓') 
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : scanMessage.includes('already')
+                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                }`}>
+                  {scanMessage}
+                </div>
+              )}
+
+              <div className="border-t dark:border-gray-700 pt-4">
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                  Quick Check-In
+                </h4>
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {members.slice(0, 10).map((member) => (
+                    <button
+                      key={member.id}
+                      onClick={() => handleQuickCheckIn(member.id)}
+                      disabled={isCheckedIn(member.id)}
+                      className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors ${
+                        isCheckedIn(member.id)
+                          ? 'bg-gray-100 dark:bg-gray-700 opacity-50 cursor-not-allowed'
+                          : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={member.photo}
+                          alt={member.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div className="text-left">
+                          <p className="font-medium text-gray-900 dark:text-white text-sm">
+                            {member.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {member.membershipId}
+                          </p>
+                        </div>
+                      </div>
+                      {isCheckedIn(member.id) ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <LogIn className="w-5 h-5 text-blue-500" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
