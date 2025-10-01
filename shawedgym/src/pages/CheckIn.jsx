@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { UserCheck, Clock, Users, TrendingUp, Search, QrCode, Camera, CheckCircle, LogOut, LogIn, X } from 'lucide-react';
 import { apiService } from '../services/api.js';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import QrScanner from 'qr-scanner';
 
 /**
  * Member Check-in/out System - Real-time member tracking and attendance
@@ -19,6 +19,7 @@ const CheckIn = () => {
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [scanMessage, setScanMessage] = useState('');
   const qrScannerRef = useRef(null);
+  const videoRef = useRef(null);
 
   // Members from backend
   const [members, setMembers] = useState([]);
@@ -146,65 +147,56 @@ const CheckIn = () => {
 
   // Initialize QR Scanner when modal opens
   useEffect(() => {
-    if (showQrModal && !qrScannerRef.current) {
-      // Wait for DOM element to be ready
-      setTimeout(() => {
-        const element = document.getElementById('qr-reader');
-        if (element) {
-          const scanner = new Html5QrcodeScanner(
-            'qr-reader',
-            { 
-              fps: 10,
-              qrbox: { width: 250, height: 250 },
-              aspectRatio: 1.0
-            },
-            false
-          );
+    if (showQrModal && videoRef.current && !qrScannerRef.current) {
+      const scanner = new QrScanner(
+        videoRef.current,
+        async (result) => {
+          const decodedText = result.data;
+          try {
+            // Try to find member by ID or email
+            const member = members.find(
+              m => m.id.toString() === decodedText || 
+                   m.membershipId === decodedText ||
+                   m.email === decodedText
+            );
 
-          scanner.render(
-            async (decodedText) => {
-              // Assume QR code contains member ID or member email
-              try {
-                // Try to find member by ID or email
-                const member = members.find(
-                  m => m.id.toString() === decodedText || 
-                       m.membershipId === decodedText ||
-                       m.email === decodedText
-                );
-
-                if (member) {
-                  if (isCheckedIn(member.id)) {
-                    setScanMessage(`${member.name} is already checked in!`);
-                  } else {
-                    await handleCheckIn(member);
-                    setScanMessage(`✓ ${member.name} checked in successfully!`);
-                    setTimeout(() => {
-                      scanner.clear().catch(() => {});
-                      qrScannerRef.current = null;
-                      setShowQrModal(false);
-                    }, 1500);
-                  }
-                } else {
-                  setScanMessage('Member not found. Please try again.');
-                }
-              } catch (error) {
-                console.error('QR scan error:', error);
-                setScanMessage('Error checking in member. Please try again.');
+            if (member) {
+              if (isCheckedIn(member.id)) {
+                setScanMessage(`${member.name} is already checked in!`);
+              } else {
+                await handleCheckIn(member);
+                setScanMessage(`✓ ${member.name} checked in successfully!`);
+                setTimeout(() => {
+                  scanner.stop();
+                  qrScannerRef.current = null;
+                  setShowQrModal(false);
+                }, 1500);
               }
-            },
-            (errorMessage) => {
-              // Ignore scanning errors (happens continuously while scanning)
+            } else {
+              setScanMessage('Member not found. Please try again.');
             }
-          );
-
-          qrScannerRef.current = scanner;
+          } catch (error) {
+            console.error('QR scan error:', error);
+            setScanMessage('Error checking in member. Please try again.');
+          }
+        },
+        {
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
         }
-      }, 100);
+      );
+
+      scanner.start().catch(err => {
+        console.error('QR Scanner start error:', err);
+        setScanMessage('Could not start camera. Please check permissions.');
+      });
+
+      qrScannerRef.current = scanner;
     }
 
     return () => {
-      if (qrScannerRef.current && !showQrModal) {
-        qrScannerRef.current.clear().catch(() => {});
+      if (qrScannerRef.current) {
+        qrScannerRef.current.stop();
         qrScannerRef.current = null;
       }
     };
@@ -212,7 +204,7 @@ const CheckIn = () => {
 
   const closeQrModal = () => {
     if (qrScannerRef.current) {
-      qrScannerRef.current.clear().catch(() => {});
+      qrScannerRef.current.stop();
       qrScannerRef.current = null;
     }
     setShowQrModal(false);
@@ -435,10 +427,11 @@ const CheckIn = () => {
               </div>
               
               <div className="mb-4">
-                <div 
-                  id="qr-reader"
-                  className="w-full"
-                ></div>
+                <video
+                  ref={videoRef}
+                  className="w-full rounded-lg"
+                  style={{ maxHeight: '300px' }}
+                ></video>
               </div>
 
               {scanMessage && (

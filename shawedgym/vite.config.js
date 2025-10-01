@@ -8,11 +8,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ['html5-qrcode']
-  },
-  build: {
-    commonjsOptions: {
-      include: [/html5-qrcode/, /node_modules/]
-    }
+    include: ['qr-scanner']
   }
 });
