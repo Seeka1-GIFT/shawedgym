@@ -19,7 +19,6 @@ const CheckIn = () => {
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [scanMessage, setScanMessage] = useState('');
   const qrScannerRef = useRef(null);
-  const qrReaderRef = useRef(null);
 
   // Members from backend
   const [members, setMembers] = useState([]);
@@ -147,59 +146,65 @@ const CheckIn = () => {
 
   // Initialize QR Scanner when modal opens
   useEffect(() => {
-    if (showQrModal && qrReaderRef.current && !qrScannerRef.current) {
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        { 
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0
-        },
-        false
-      );
+    if (showQrModal && !qrScannerRef.current) {
+      // Wait for DOM element to be ready
+      setTimeout(() => {
+        const element = document.getElementById('qr-reader');
+        if (element) {
+          const scanner = new Html5QrcodeScanner(
+            'qr-reader',
+            { 
+              fps: 10,
+              qrbox: { width: 250, height: 250 },
+              aspectRatio: 1.0
+            },
+            false
+          );
 
-      scanner.render(
-        async (decodedText) => {
-          // Assume QR code contains member ID or member email
-          try {
-            // Try to find member by ID or email
-            const member = members.find(
-              m => m.id.toString() === decodedText || 
-                   m.membershipId === decodedText ||
-                   m.email === decodedText
-            );
+          scanner.render(
+            async (decodedText) => {
+              // Assume QR code contains member ID or member email
+              try {
+                // Try to find member by ID or email
+                const member = members.find(
+                  m => m.id.toString() === decodedText || 
+                       m.membershipId === decodedText ||
+                       m.email === decodedText
+                );
 
-            if (member) {
-              if (isCheckedIn(member.id)) {
-                setScanMessage(`${member.name} is already checked in!`);
-              } else {
-                await handleCheckIn(member);
-                setScanMessage(`✓ ${member.name} checked in successfully!`);
-                setTimeout(() => {
-                  scanner.clear();
-                  qrScannerRef.current = null;
-                  setShowQrModal(false);
-                }, 1500);
+                if (member) {
+                  if (isCheckedIn(member.id)) {
+                    setScanMessage(`${member.name} is already checked in!`);
+                  } else {
+                    await handleCheckIn(member);
+                    setScanMessage(`✓ ${member.name} checked in successfully!`);
+                    setTimeout(() => {
+                      scanner.clear().catch(() => {});
+                      qrScannerRef.current = null;
+                      setShowQrModal(false);
+                    }, 1500);
+                  }
+                } else {
+                  setScanMessage('Member not found. Please try again.');
+                }
+              } catch (error) {
+                console.error('QR scan error:', error);
+                setScanMessage('Error checking in member. Please try again.');
               }
-            } else {
-              setScanMessage('Member not found. Please try again.');
+            },
+            (errorMessage) => {
+              // Ignore scanning errors (happens continuously while scanning)
             }
-          } catch (error) {
-            console.error('QR scan error:', error);
-            setScanMessage('Error checking in member. Please try again.');
-          }
-        },
-        (errorMessage) => {
-          // Ignore scanning errors (happens continuously while scanning)
-        }
-      );
+          );
 
-      qrScannerRef.current = scanner;
+          qrScannerRef.current = scanner;
+        }
+      }, 100);
     }
 
     return () => {
       if (qrScannerRef.current && !showQrModal) {
-        qrScannerRef.current.clear();
+        qrScannerRef.current.clear().catch(() => {});
         qrScannerRef.current = null;
       }
     };
@@ -207,7 +212,7 @@ const CheckIn = () => {
 
   const closeQrModal = () => {
     if (qrScannerRef.current) {
-      qrScannerRef.current.clear();
+      qrScannerRef.current.clear().catch(() => {});
       qrScannerRef.current = null;
     }
     setShowQrModal(false);
@@ -431,8 +436,7 @@ const CheckIn = () => {
               
               <div className="mb-4">
                 <div 
-                  id="qr-reader" 
-                  ref={qrReaderRef}
+                  id="qr-reader"
                   className="w-full"
                 ></div>
               </div>
