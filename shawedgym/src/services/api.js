@@ -13,8 +13,8 @@ const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && i
 // Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // Increase timeout to tolerate Render cold starts (free tier)
-  timeout: 45000,
+  // Reasonable timeout; handle UI fallbacks on error
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -117,6 +117,8 @@ export const apiService = {
   
   // Dashboard
   getDashboardStats: () => apiCall('/dashboard/stats'),
+  getDashboardActivity: () => apiCall('/dashboard/activity'),
+  getMembershipDistribution: () => apiCall('/dashboard/membership-distribution'),
   getRecentActivities: () => apiCall('/dashboard/recent-activities'),
   
   // Auth
@@ -155,6 +157,7 @@ export const apiService = {
 
   // Gyms
   getGyms: () => apiCall('/gyms'),
+  getMyGym: () => apiCall('/gyms/my'),
   getGym: (id) => apiCall(`/gyms/${id}`),
   createGym: (data) => apiCall('/gyms', {
     method: 'POST',

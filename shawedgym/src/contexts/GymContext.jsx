@@ -74,15 +74,34 @@ export const GymProvider = ({ children }) => {
         return;
       }
       
-      const response = await apiService.getGyms();
-      if (response.success) {
-        setGyms(response.data.gyms || []);
-        
-        // If no current gym is set and we have gyms, set the first one
-        if (!currentGym && response.data.gyms && response.data.gyms.length > 0) {
-          const firstGym = response.data.gyms[0];
-          setCurrentGym(firstGym);
-          localStorage.setItem('currentGym', JSON.stringify(firstGym));
+      // Try admin endpoint first, then fall back to user's single gym
+      try {
+        const response = await apiService.getGyms();
+        if (response.success) {
+          setGyms(response.data.gyms || []);
+          if (!currentGym && response.data.gyms && response.data.gyms.length > 0) {
+            const firstGym = response.data.gyms[0];
+            setCurrentGym(firstGym);
+            localStorage.setItem('currentGym', JSON.stringify(firstGym));
+          }
+          return; // success
+        }
+      } catch (e) {
+        // If forbidden (non-admin) or not allowed, try /gyms/my
+        if (e.status !== 401) {
+          try {
+            const my = await apiService.getMyGym();
+            if (my.success && my.data?.gym) {
+              setGyms([my.data.gym]);
+              if (!currentGym) {
+                setCurrentGym(my.data.gym);
+                localStorage.setItem('currentGym', JSON.stringify(my.data.gym));
+              }
+              return;
+            }
+          } catch (e2) {
+            // will be handled below
+          }
         }
       }
     } catch (error) {

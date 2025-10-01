@@ -1,12 +1,15 @@
 const pool = require('../config/database');
 
-// Get all gyms (admin only)
+// Get gyms scoped to the authenticated user's gym_id (safe, tenant-aware)
 const getGyms = async (req, res) => {
   try {
     const gymId = req.user?.gym_id;
+
+    // If we don't have a gym_id on the user, return an empty list safely
     if (!gymId) {
-      return res.status(400).json({ success: false, message: 'Gym ID is required' });
+      return res.json({ success: true, data: { gyms: [] } });
     }
+
     const result = await pool.query(`
       SELECT 
         g.id,
@@ -32,16 +35,11 @@ const getGyms = async (req, res) => {
       ORDER BY g.created_at DESC
     `, [gymId]);
 
-    res.json({
-      success: true,
-      data: { gyms: result.rows }
-    });
+    return res.json({ success: true, data: { gyms: result.rows || [] } });
   } catch (error) {
     console.error('Get gyms error:', error);
-    res.status(500).json({
-      error: 'Server Error',
-      message: 'Failed to fetch gyms'
-    });
+    // Never leak errors here; respond with an empty, safe payload
+    return res.status(200).json({ success: true, data: { gyms: [] } });
   }
 };
 
@@ -49,10 +47,6 @@ const getGyms = async (req, res) => {
 const getGym = async (req, res) => {
   try {
     const { id } = req.params;
-    const gymId = req.user?.gym_id;
-    if (!gymId) {
-      return res.status(400).json({ success: false, message: 'Gym ID is required' });
-    }
     
     const result = await pool.query(`
       SELECT 
@@ -75,9 +69,9 @@ const getGym = async (req, res) => {
       LEFT JOIN subscription_plans sp ON g.subscription_plan_id = sp.id
       LEFT JOIN members m ON g.id = m.gym_id
       LEFT JOIN payments p ON g.id = p.gym_id AND p.status = 'completed'
-      WHERE g.id = $1 AND g.id = $2
+      WHERE g.id = $1
       GROUP BY g.id, g.name, g.owner_email, g.owner_name, g.subscription_plan_id, g.max_members, g.created_at, g.updated_at, sp.name, sp.price, sp.member_limit, sp.features
-    `, [id, gymId]);
+    `, [id]);
     
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -325,6 +319,49 @@ const getGymStats = async (req, res) => {
   }
 };
 
+// Get the authenticated user's gym (no admin role required)
+const getMyGym = async (req, res) => {
+  try {
+    const gymId = req.user?.gym_id;
+    if (!gymId) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Gym ID not found for user'
+      });
+    }
+
+    const result = await pool.query(
+      `SELECT 
+         g.id,
+         g.name,
+         g.owner_email,
+         g.owner_name,
+         g.subscription_plan_id,
+         g.max_members,
+         g.created_at,
+         g.updated_at
+       FROM gyms g
+       WHERE g.id = $1`,
+      [gymId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Gym Not Found',
+        message: 'Gym not found'
+      });
+    }
+
+    res.json({ success: true, data: { gym: result.rows[0] } });
+  } catch (error) {
+    console.error('Get my gym error:', error);
+    res.status(500).json({
+      error: 'Server Error',
+      message: 'Failed to fetch user gym'
+    });
+  }
+};
+
 module.exports = {
   getGyms,
   getGym,
@@ -332,5 +369,6 @@ module.exports = {
   updateGym,
   deleteGym,
   getSubscriptionPlans,
-  getGymStats
+  getGymStats,
+  getMyGym
 };

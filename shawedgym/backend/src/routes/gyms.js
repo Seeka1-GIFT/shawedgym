@@ -2,13 +2,18 @@ const express = require('express');
 const router = express.Router();
 const gymsController = require('../controllers/gymsController');
 const authMiddleware = require('../middleware/auth');
+const { authAllowMissingGym } = require('../middleware/auth');
 const { authorizeRoles } = require('../middleware/authorize');
 
 // All gym routes require authentication
-router.use(authMiddleware);
+// Allow authenticated users even if they haven't been assigned a gym yet
+router.use(authAllowMissingGym);
 
-// GET /api/gyms - Get all gyms (Admin only)
-router.get('/', authorizeRoles("admin"), gymsController.getGyms);
+// GET /api/gyms - Get gyms scoped to current user (any authenticated user)
+router.get('/', gymsController.getGyms);
+
+// GET /api/gyms/my - Get authenticated user's gym (Any authenticated user)
+router.get('/my', gymsController.getMyGym);
 
 // GET /api/gyms/plans - Get subscription plans (Public)
 router.get('/plans', gymsController.getSubscriptionPlans);

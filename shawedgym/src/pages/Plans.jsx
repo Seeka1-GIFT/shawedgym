@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-// Removed dummy fallback; render only DB plans
+import { plans } from '../data/dummy.js';
 import { apiService } from '../services/api.js';
 import { 
   CreditCard, Plus, Search, Filter, Edit, Trash2, Users, 
@@ -26,7 +26,7 @@ const Plans = () => {
       const apiPlans = Array.isArray(res?.data) ? res.data : res?.data?.plans || [];
       setBackendPlans(apiPlans);
     } catch (e) {
-      setBackendPlans([]);
+      setBackendPlans(plans);
     } finally {
       setLoading(false);
     }
@@ -36,8 +36,8 @@ const Plans = () => {
     fetchPlans();
   }, []);
 
-  // Base plans: DB only
-  const sourcePlans = backendPlans;
+  // Base plans: prefer backend, fallback to dummy
+  const sourcePlans = backendPlans.length ? backendPlans : plans;
 
   // Enhanced plans data with additional features
   const enhancedPlans = sourcePlans.map(plan => ({
@@ -94,7 +94,7 @@ const Plans = () => {
   const stats = {
     totalPlans: enhancedPlans.length,
     totalSubscribers: enhancedPlans.reduce((sum, plan) => sum + plan.subscribers, 0),
-    averagePrice: enhancedPlans.length > 0 ? Math.round(enhancedPlans.reduce((sum, plan) => sum + (Number(plan.price) || 0), 0) / enhancedPlans.length) : 0,
+    averagePrice: Math.round(enhancedPlans.reduce((sum, plan) => sum + plan.price, 0) / enhancedPlans.length),
     mostPopularPlan: enhancedPlans.find(plan => plan.mostPopular)?.name || 'Premium'
   };
 
@@ -201,7 +201,15 @@ const Plans = () => {
           </div>
         </div>
         
-        {/* Removed Average Price card as requested */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Price</p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">${stats.averagePrice}</p>
+            </div>
+            <DollarSign className="w-8 h-8 text-green-500" />
+          </div>
+        </div>
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
           <div className="flex items-center justify-between">

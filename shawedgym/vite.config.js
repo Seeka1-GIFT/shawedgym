@@ -7,4 +7,12 @@ import react from '@vitejs/plugin-react';
 // API requests once a backend is introduced).
 export default defineConfig({
   plugins: [react()],
+  optimizeDeps: {
+    include: ['html5-qrcode']
+  },
+  build: {
+    commonjsOptions: {
+      include: [/html5-qrcode/, /node_modules/]
+    }
+  }
 });
