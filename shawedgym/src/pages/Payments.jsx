@@ -251,9 +251,19 @@ const Payments = () => {
     if (!m) return 'Unknown Member';
     return m.first_name ? `${m.first_name} ${m.last_name || ''}`.trim() : (m.name || 'Unknown Member');
   };
-  const getPlanName = (planId) => {
-    const name = planOptions.find((p) => p.id === planId)?.name;
-    return name && name.trim().length > 0 ? name : '-';
+  const getPlanNameById = (planId) => planOptions.find((p) => p.id === planId)?.name;
+  const resolvePlanName = (payment) => {
+    // Prefer explicit id
+    const byId = getPlanNameById(payment._planId);
+    if (byId && byId.trim()) return byId;
+    // Backend may already include plan_name
+    const apiName = payment.plan_name || payment.planName;
+    if (apiName && String(apiName).trim()) return apiName;
+    // Try to parse from description
+    const desc = String(payment.description || '').toLowerCase();
+    const fromDesc = planOptions.find(p => desc.includes(String(p.name || '').toLowerCase()));
+    if (fromDesc) return fromDesc.name;
+    return '-';
   };
   
   const getMemberPhoto = (memberId) => {
@@ -262,15 +272,18 @@ const Payments = () => {
     }?w=150&h=150&fit=crop&crop=face`;
   };
 
+  const getPaymentDate = (p) => p.payment_date || p.created_at || p.createdAt || p.date || null;
   const formatDate = (d) => {
     const raw = d || '';
     if (!raw) return '-';
     try {
       const dt = new Date(raw);
       if (isNaN(dt.getTime())) return '-';
-      return dt.toISOString().split('T')[0];
+      return dt.toLocaleDateString();
     } catch { return '-'; }
   };
+
+  const formatCurrency = (n) => `$${(Number(n) || 0).toFixed(2)}`;
 
   const filteredPayments = enhancedPayments.filter(payment => {
     const memberName = getMemberName(payment._memberId);
@@ -858,7 +871,7 @@ const Payments = () => {
               const StatusIcon = getStatusIcon(payment.status);
               const PaymentMethodIcon = getPaymentMethodIcon(payment.paymentMethod);
               return (
-                <div key={payment.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                <div key={payment.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow px-4 py-3">
                   {/* Left: avatar + name */}
                   <div className="flex items-center space-x-3 min-w-[220px]">
                     <img
@@ -873,37 +886,39 @@ const Payments = () => {
                   </div>
 
                   {/* Middle: columns */}
-                  <div className="hidden md:flex items-center flex-1">
-                    <div className="text-sm w-1/5 min-w-[140px]">
+                  <div className="hidden md:flex items-center flex-1 text-sm">
+                    <div className="w-2/12 min-w-[140px] px-4 py-2 whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Plan</div>
-                      <div className="font-medium text-gray-900 dark:text-white">{getPlanName(payment._planId)}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{resolvePlanName(payment)}</div>
                     </div>
-                    <div className="text-sm w-1/5 min-w-[120px]">
+                    <div className="w-2/12 min-w-[120px] px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Amount</div>
-                      <div className="font-bold text-green-600">${payment.amount}</div>
+                      <div className="font-bold text-green-600">{formatCurrency(payment.amount)}</div>
                     </div>
-                    <div className="text-sm w-1/5 min-w-[160px]">
+                    <div className="w-3/12 min-w-[160px] px-4 py-2 whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Method</div>
                       <div className="flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
                         <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
                         <span>{payment.paymentMethod}</span>
                       </div>
                     </div>
-                    <div className="text-sm w-1/5 min-w-[120px]">
+                    <div className="w-2/12 min-w-[120px] px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Date</div>
-                      <div className="font-medium text-gray-900 dark:text-white">{formatDate(payment.date)}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{formatDate(getPaymentDate(payment))}</div>
                     </div>
-                    <div className="text-sm w-1/5 min-w-[140px]">
+                    <div className="w-2/12 min-w-[140px] px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Status</div>
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
-                        <StatusIcon className="w-3 h-3 mr-1" />
-                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                      </span>
+                      <div className="flex items-center justify-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                          <StatusIcon className="w-3 h-3 mr-1" />
+                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Right: actions */}
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center space-x-2 ml-4 whitespace-nowrap">
                     <button 
                       onClick={() => handlePrint(payment)}
                       className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
