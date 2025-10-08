@@ -251,12 +251,25 @@ const Payments = () => {
     if (!m) return 'Unknown Member';
     return m.first_name ? `${m.first_name} ${m.last_name || ''}`.trim() : (m.name || 'Unknown Member');
   };
-  const getPlanName = (planId) => planOptions.find((p) => p.id === planId)?.name || 'Unknown Plan';
+  const getPlanName = (planId) => {
+    const name = planOptions.find((p) => p.id === planId)?.name;
+    return name && name.trim().length > 0 ? name : '-';
+  };
   
   const getMemberPhoto = (memberId) => {
     return `https://images.unsplash.com/photo-${
       memberId % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
     }?w=150&h=150&fit=crop&crop=face`;
+  };
+
+  const formatDate = (d) => {
+    const raw = d || '';
+    if (!raw) return '-';
+    try {
+      const dt = new Date(raw);
+      if (isNaN(dt.getTime())) return '-';
+      return dt.toISOString().split('T')[0];
+    } catch { return '-'; }
   };
 
   const filteredPayments = enhancedPayments.filter(payment => {
@@ -860,27 +873,27 @@ const Payments = () => {
                   </div>
 
                   {/* Middle: columns */}
-                  <div className="hidden md:flex items-center justify-between gap-8 flex-1">
-                    <div className="text-sm">
+                  <div className="hidden md:flex items-center flex-1">
+                    <div className="text-sm w-1/5 min-w-[140px]">
                       <div className="text-gray-500 dark:text-gray-400">Plan</div>
                       <div className="font-medium text-gray-900 dark:text-white">{getPlanName(payment._planId)}</div>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm w-1/5 min-w-[120px]">
                       <div className="text-gray-500 dark:text-gray-400">Amount</div>
                       <div className="font-bold text-green-600">${payment.amount}</div>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm w-1/5 min-w-[160px]">
                       <div className="text-gray-500 dark:text-gray-400">Method</div>
                       <div className="flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
                         <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
                         <span>{payment.paymentMethod}</span>
                       </div>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm w-1/5 min-w-[120px]">
                       <div className="text-gray-500 dark:text-gray-400">Date</div>
-                      <div className="font-medium text-gray-900 dark:text-white">{payment.date}</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{formatDate(payment.date)}</div>
                     </div>
-                    <div className="text-sm">
+                    <div className="text-sm w-1/5 min-w-[140px]">
                       <div className="text-gray-500 dark:text-gray-400">Status</div>
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
                         <StatusIcon className="w-3 h-3 mr-1" />
