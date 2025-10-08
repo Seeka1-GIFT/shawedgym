@@ -3,7 +3,7 @@ import { plans } from '../data/dummy.js';
 import { apiService } from '../services/api.js';
 import { 
   CreditCard, Plus, Search, Filter, Edit, Trash2, Users, 
-  Calendar, CheckCircle, Crown, Award,
+  Calendar, CheckCircle, Crown, Award, Star,
   TrendingUp, Zap, Shield, Sparkles, Target
 } from 'lucide-react';
 
