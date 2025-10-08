@@ -1,27 +1,27 @@
-// const express = require('express');
-// const router = express.Router();
-// const plansController = require('../controllers/plansController');
-// const authMiddleware = require('../middleware/auth');
-// const { authorizeRoles } = require('../middleware/authorize');
+const express = require('express');
+const router = express.Router();
+const plansController = require('../controllers/plansController');
+const authMiddleware = require('../middleware/auth');
+const { authorizeRoles } = require('../middleware/authorize');
 
-// // All plan routes require authentication
-// router.use(authMiddleware);
+// All plan routes require authentication
+router.use(authMiddleware);
 
-// // GET /api/plans - Get all plans
-// router.get('/', authorizeRoles('admin', 'user'), plansController.getPlans);
+// GET /api/plans - Get all plans
+router.get('/', authorizeRoles('admin', 'user'), plansController.getPlans);
 
-// // GET /api/plans/:id - Get plan by ID
-// router.get('/:id', authorizeRoles('admin', 'user'), plansController.getPlan);
+// GET /api/plans/:id - Get plan by ID
+router.get('/:id', authorizeRoles('admin', 'user'), plansController.getPlan);
 
-// // POST /api/plans - Create new plan
-// router.post('/', authorizeRoles('admin'), plansController.createPlan);
+// POST /api/plans - Create new plan
+router.post('/', authorizeRoles('admin'), plansController.createPlan);
 
-// // PUT /api/plans/:id - Update plan
-// router.put('/:id', authorizeRoles('admin'), plansController.updatePlan);
+// PUT /api/plans/:id - Update plan
+router.put('/:id', authorizeRoles('admin'), plansController.updatePlan);
 
-// // DELETE /api/plans/:id - Delete plan
-// router.delete('/:id', authorizeRoles('admin'), plansController.deletePlan);
+// DELETE /api/plans/:id - Delete plan
+router.delete('/:id', authorizeRoles('admin'), plansController.deletePlan);
 
-// module.exports = router;
+module.exports = router;
 
 
