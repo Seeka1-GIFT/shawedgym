@@ -140,11 +140,11 @@ const createMember = async (req, res) => {
       });
     }
 
-    // Validation (email optional)
-    if (!firstName || !lastName || !phone || !membershipType) {
+    // Validation (email, address, registrationFee optional)
+    if (!firstName || !lastName || !phone) {
       return res.status(400).json({
         error: 'Validation Error',
-        message: 'First name, last name, phone, and membership type are required'
+        message: 'First name, last name, and phone are required'
       });
     }
 
@@ -170,7 +170,7 @@ const createMember = async (req, res) => {
        (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
        RETURNING *`,
-      [firstName, lastName, normalizedEmail, phone, membershipType, dateOfBirth, normalizedAddress, emergencyContact, emergencyPhone, gymId]
+      [firstName, lastName, normalizedEmail, phone, 'Standard', dateOfBirth, normalizedAddress, emergencyContact, emergencyPhone, gymId]
     );
 
     const member = result.rows[0];
@@ -181,26 +181,10 @@ const createMember = async (req, res) => {
       if (planId) {
         // Prefer explicit plan id scoped to this gym
         const planById = await pool.query(
-          `SELECT id, name, price FROM plans WHERE id = $1 AND (gym_id = $2 OR gym_id IS NULL) LIMIT 1`,
+          `SELECT id, name, price FROM plans WHERE id = $1 AND gym_id = $2 LIMIT 1`,
           [planId, gymId]
         );
         if (planById.rows.length > 0) plan = planById.rows[0];
-      } else if (membershipType) {
-        // Fallback: best-effort match by name within this gym
-        const planResult = await pool.query(
-          `SELECT id, name, price FROM plans 
-           WHERE (gym_id = $2 OR gym_id IS NULL) AND (
-             LOWER(name) LIKE CASE 
-               WHEN LOWER($1) = 'basic' THEN '%basic%'
-               WHEN LOWER($1) = 'premium' THEN '%premium%'
-               WHEN LOWER($1) = 'vip' THEN '%vip%'
-               ELSE LOWER('%' || $1 || '%') 
-             END
-           )
-           ORDER BY price ASC LIMIT 1`,
-          [membershipType, gymId]
-        );
-        if (planResult.rows.length > 0) plan = planResult.rows[0];
       }
 
       const reg = Number(registrationFee) || 0;
