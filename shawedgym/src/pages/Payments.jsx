@@ -453,10 +453,10 @@ const Payments = () => {
   ];
 
   const paymentMethodData = [
-    { name: 'Credit Card', value: enhancedPayments.filter(p => p.paymentMethod === 'Credit Card').length, color: '#3B82F6' },
-    { name: 'Cash', value: enhancedPayments.filter(p => p.paymentMethod === 'Cash').length, color: '#10B981' },
+    { name: 'EVC-PLUS', value: enhancedPayments.filter(p => p.paymentMethod === 'EVC-PLUS').length, color: '#3B82F6' },
+    { name: 'E-DAHAB', value: enhancedPayments.filter(p => p.paymentMethod === 'E-DAHAB').length, color: '#10B981' },
     { name: 'Bank Transfer', value: enhancedPayments.filter(p => p.paymentMethod === 'Bank Transfer').length, color: '#8B5CF6' },
-    { name: 'Mobile Payment', value: enhancedPayments.filter(p => p.paymentMethod === 'Mobile Payment').length, color: '#F59E0B' }
+    { name: 'Wallet', value: enhancedPayments.filter(p => p.paymentMethod === 'Wallet').length, color: '#F59E0B' }
   ];
 
   const handlePrint = async (payment) => {
