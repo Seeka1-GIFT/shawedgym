@@ -47,7 +47,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions }) => {
     setError('');
 
     try {
-      if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+      if (!formData.firstName || !formData.lastName || !formData.phone) {
         setError('Please fill in all required fields');
         showError('Please fill in all required fields');
         setLoading(false);
@@ -90,9 +90,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions }) => {
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email *</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
           <input type="email" name="email" value={formData.email} onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" required />
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone *</label>
@@ -110,7 +110,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions }) => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Registration</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Birth</label>
           <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
         </div>
