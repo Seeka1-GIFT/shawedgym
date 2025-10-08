@@ -100,10 +100,10 @@ const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
               <select name="method" value={formData.method} onChange={handleChange} 
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white">
-                <option value="cash">Cash</option>
-                <option value="credit_card">Credit Card</option>
+                <option value="cash">EVC-PLUS</option>
+                <option value="credit_card">E-DAHAB</option>
                 <option value="bank_transfer">Bank Transfer</option>
-                <option value="mobile_payment">Mobile Payment</option>
+                <option value="mobile_payment">Wallet</option>
               </select>
             </div>
             
