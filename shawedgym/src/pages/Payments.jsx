@@ -265,6 +265,8 @@ const Payments = () => {
     if (fromDesc) return fromDesc.name;
     return '-';
   };
+  // Backwards-compatible helper used elsewhere in this component
+  const getPlanName = (planId) => (getPlanNameById(planId) || '-');
   
   const getMemberPhoto = (memberId) => {
     return `https://images.unsplash.com/photo-${
