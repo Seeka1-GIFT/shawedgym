@@ -149,7 +149,9 @@ const createMember = async (req, res) => {
     }
 
     // Normalize optional fields
-    const normalizedEmail = (email || '').trim() || null;
+    // Email: default to empty string to satisfy possible NOT NULL constraint
+    const normalizedEmail = (email || '').trim();
+    // Address: allow NULL when empty
     const normalizedAddress = (address || '').trim() || null;
 
     // Check if email already exists in this gym (only when provided)
