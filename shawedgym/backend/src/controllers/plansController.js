@@ -1,9 +1,18 @@
 const pool = require('../config/database');
 
-// Get all plans
+// Get all plans (tenant-aware). If the user has a gym_id, only return plans they created.
+// Otherwise, return an empty list so a new owner sees no default plans.
 const getPlans = async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM plans ORDER BY price ASC');
+    const gymId = req.user?.gym_id;
+    let result;
+    if (gymId) {
+      // Assume plans table has gym_id column. If it doesn't, this will return zero, which is acceptable for new users.
+      result = await pool.query('SELECT * FROM plans WHERE gym_id = $1 ORDER BY price ASC', [gymId]);
+    } else {
+      // No gym context → empty list
+      result = { rows: [] };
+    }
 
     res.json({
       success: true,
@@ -45,10 +54,11 @@ const getPlan = async (req, res) => {
   }
 };
 
-// Create new plan
+// Create new plan (associate with the creator's gym)
 const createPlan = async (req, res) => {
   try {
     const { name, price, duration, features, description } = req.body;
+    const gymId = req.user?.gym_id;
 
     if (!name || !price || !duration) {
       return res.status(400).json({
@@ -58,8 +68,8 @@ const createPlan = async (req, res) => {
     }
 
     const result = await pool.query(
-      'INSERT INTO plans (name, price, duration, features, description, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
-      [name, price, duration, JSON.stringify(features), description]
+      'INSERT INTO plans (name, price, duration, features, description, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
+      [name, price, duration, JSON.stringify(features), description || '', gymId || null]
     );
 
     res.status(201).json({

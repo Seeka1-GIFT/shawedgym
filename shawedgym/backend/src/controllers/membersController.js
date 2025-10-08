@@ -181,7 +181,7 @@ const createMember = async (req, res) => {
       if (planId) {
         // Prefer explicit plan id scoped to this gym
         const planById = await pool.query(
-          `SELECT id, name, price FROM plans WHERE id = $1 AND gym_id = $2 LIMIT 1`,
+          `SELECT id, name, price FROM plans WHERE id = $1 AND (gym_id = $2 OR gym_id IS NULL) LIMIT 1`,
           [planId, gymId]
         );
         if (planById.rows.length > 0) plan = planById.rows[0];
@@ -189,7 +189,7 @@ const createMember = async (req, res) => {
         // Fallback: best-effort match by name within this gym
         const planResult = await pool.query(
           `SELECT id, name, price FROM plans 
-           WHERE gym_id = $2 AND (
+           WHERE (gym_id = $2 OR gym_id IS NULL) AND (
              LOWER(name) LIKE CASE 
                WHEN LOWER($1) = 'basic' THEN '%basic%'
                WHEN LOWER($1) = 'premium' THEN '%premium%'
