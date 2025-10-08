@@ -225,7 +225,7 @@ const Trainers = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
@@ -246,15 +246,7 @@ const Trainers = () => {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Rating</p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.averageRating}</p>
-            </div>
-            <Star className="w-6 h-6 text-yellow-500" />
-          </div>
-        </div>
+        {/* Avg. Rating card removed per request */}
         
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
           <div className="flex items-center justify-between">
@@ -268,15 +260,7 @@ const Trainers = () => {
         
         {/* Avg. Experience card removed per request */}
         
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-red-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Monthly Revenue</p>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">${stats.monthlyRevenue.toLocaleString()}</p>
-            </div>
-            <DollarSign className="w-6 h-6 text-red-500" />
-          </div>
-        </div>
+        {/* Monthly Revenue card removed per request */}
       </div>
 
       {/* Controls */}
