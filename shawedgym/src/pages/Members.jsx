@@ -57,9 +57,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions }) => {
       // Normalize optional fields per requirements
       const normalized = {
         ...formData,
-        email: (formData.email || '').trim() || null, // allow null/empty
-        registrationFee: Number(formData.registrationFee) || 0, // default 0
-        address: (formData.address || '').trim() || null // allow null
+        email: (formData.email || '').trim() || null, // optional
+        registrationFee: Number(formData.registrationFee) || 0, // optional -> 0
+        address: (formData.address || '').trim() || null // optional
       };
 
       await onMemberAdded(normalized);

@@ -140,21 +140,27 @@ const createMember = async (req, res) => {
       });
     }
 
-    // Validation
-    if (!firstName || !lastName || !email || !phone || !membershipType) {
+    // Validation (email optional)
+    if (!firstName || !lastName || !phone || !membershipType) {
       return res.status(400).json({
         error: 'Validation Error',
-        message: 'First name, last name, email, phone, and membership type are required'
+        message: 'First name, last name, phone, and membership type are required'
       });
     }
 
-    // Check if email already exists in this gym
-    const existingMember = await pool.query('SELECT id FROM members WHERE email = $1 AND gym_id = $2', [email, gymId]);
-    if (existingMember.rows.length > 0) {
-      return res.status(400).json({
-        error: 'Validation Error',
-        message: 'Member with this email already exists'
-      });
+    // Normalize optional fields
+    const normalizedEmail = (email || '').trim() || null;
+    const normalizedAddress = (address || '').trim() || null;
+
+    // Check if email already exists in this gym (only when provided)
+    if (normalizedEmail) {
+      const existingMember = await pool.query('SELECT id FROM members WHERE email = $1 AND gym_id = $2', [normalizedEmail, gymId]);
+      if (existingMember.rows.length > 0) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'Member with this email already exists'
+        });
+      }
     }
 
     const result = await pool.query(
@@ -162,7 +168,7 @@ const createMember = async (req, res) => {
        (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
        RETURNING *`,
-      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone, gymId]
+      [firstName, lastName, normalizedEmail, phone, membershipType, dateOfBirth, normalizedAddress, emergencyContact, emergencyPhone, gymId]
     );
 
     const member = result.rows[0];
