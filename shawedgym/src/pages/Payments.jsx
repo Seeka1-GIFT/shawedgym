@@ -888,29 +888,29 @@ const Payments = () => {
                   </div>
 
                   {/* Middle: columns */}
-                  <div className="hidden md:flex items-center flex-1 text-sm">
-                    <div className="w-2/12 min-w-[140px] px-4 py-2 whitespace-nowrap">
+                  <div className="hidden md:grid grid-cols-5 items-center flex-1 text-sm">
+                    <div className="px-4 py-2 whitespace-nowrap text-center">
                       <div className="text-gray-500 dark:text-gray-400">Plan</div>
                       <div className="font-medium text-gray-900 dark:text-white">{resolvePlanName(payment)}</div>
                     </div>
-                    <div className="w-2/12 min-w-[120px] px-4 py-2 text-center whitespace-nowrap">
+                    <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Amount</div>
                       <div className="font-bold text-green-600">{formatCurrency(payment.amount)}</div>
                     </div>
-                    <div className="w-3/12 min-w-[160px] px-4 py-2 whitespace-nowrap">
+                    <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Method</div>
-                      <div className="flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
+                      <div className="inline-flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
                         <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
                         <span>{payment.paymentMethod}</span>
                       </div>
                     </div>
-                    <div className="w-2/12 min-w-[120px] px-4 py-2 text-center whitespace-nowrap">
+                    <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Date</div>
                       <div className="font-medium text-gray-900 dark:text-white">{formatDate(getPaymentDate(payment))}</div>
                     </div>
-                    <div className="w-2/12 min-w-[140px] px-4 py-2 text-center whitespace-nowrap">
+                    <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Status</div>
-                      <div className="flex items-center justify-center">
+                      <div className="inline-flex items-center justify-center">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
                           <StatusIcon className="w-3 h-3 mr-1" />
                           {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
