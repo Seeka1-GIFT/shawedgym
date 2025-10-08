@@ -839,102 +839,73 @@ const Payments = () => {
             </div>
           </div>
 
-          {/* Payment Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Horizontal Transaction List */}
+          <div className="space-y-4">
             {filteredPayments.map((payment) => {
               const StatusIcon = getStatusIcon(payment.status);
               const PaymentMethodIcon = getPaymentMethodIcon(payment.paymentMethod);
-              
               return (
-                <div key={payment.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="p-6">
-                    {/* Payment Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <img
-                          src={getMemberPhoto(payment._memberId)}
-                          alt={getMemberName(payment._memberId)}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            {getMemberName(payment._memberId)}
-                          </h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{payment.transactionId}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <StatusIcon className={`w-5 h-5 ${
-                          payment.status === 'completed' ? 'text-green-500' :
-                          payment.status === 'pending' ? 'text-yellow-500' : 'text-red-500'
-                        }`} />
+                <div key={payment.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow p-4">
+                  {/* Left: avatar + name */}
+                  <div className="flex items-center space-x-3 min-w-[220px]">
+                    <img
+                      src={getMemberPhoto(payment._memberId)}
+                      alt={getMemberName(payment._memberId)}
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <div className="font-semibold text-gray-900 dark:text-white leading-tight">{getMemberName(payment._memberId)}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">{payment.transactionId}</div>
+                    </div>
+                  </div>
+
+                  {/* Middle: columns */}
+                  <div className="hidden md:flex items-center justify-between gap-8 flex-1">
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">Plan</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{getPlanName(payment._planId)}</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">Amount</div>
+                      <div className="font-bold text-green-600">${payment.amount}</div>
+                    </div>
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">Method</div>
+                      <div className="flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
+                        <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
+                        <span>{payment.paymentMethod}</span>
                       </div>
                     </div>
-
-                    {/* Payment Details */}
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Plan:</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{getPlanName(payment._planId)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Amount:</span>
-                        <span className="text-lg font-bold text-green-600">${payment.amount}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Method:</span>
-                        <div className="flex items-center space-x-1">
-                          <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium text-gray-900 dark:text-white">{payment.paymentMethod}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Date:</span>
-                        <span className="font-medium text-gray-900 dark:text-white">{payment.date}</span>
-                      </div>
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">Date</div>
+                      <div className="font-medium text-gray-900 dark:text-white">{payment.date}</div>
                     </div>
-
-                    {/* Status Badge */}
-                    <div className="mb-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
+                    <div className="text-sm">
+                      <div className="text-gray-500 dark:text-gray-400">Status</div>
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(payment.status)}`}>
                         <StatusIcon className="w-3 h-3 mr-1" />
                         {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
                       </span>
                     </div>
+                  </div>
 
-                    {/* Financial Breakdown */}
-                    {payment.status === 'completed' && (
-                      <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div className="flex justify-between text-sm mb-1">
-                          <span className="text-gray-600 dark:text-gray-400">Gross Amount:</span>
-                          <span className="text-gray-900 dark:text-white">${payment.amount}</span>
-                        </div>
-                      {/* Processing fee removed per request */}
-                        <div className="flex justify-between text-sm font-medium border-t border-gray-200 dark:border-gray-600 pt-1">
-                          <span className="text-gray-900 dark:text-white">Net Amount:</span>
-                          <span className="text-green-600">${payment.netAmount}</span>
-                        </div>
-                      </div>
+                  {/* Right: actions */}
+                  <div className="flex items-center space-x-2 ml-4">
+                    <button 
+                      onClick={() => handlePrint(payment)}
+                      className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      <span className="hidden sm:inline">Print</span>
+                    </button>
+                    <button className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    {payment.status === 'failed' && (
+                      <button className="p-2 border border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors">
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
                     )}
-
-                    {/* Actions */}
-                    <div className="flex space-x-2">
-                      <button 
-                        onClick={() => handlePrint(payment)}
-                        className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-                      >
-                        <Printer className="w-4 h-4" />
-                        <span>Print</span>
-                      </button>
-                      <button className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      {payment.status === 'failed' && (
-                        <button className="p-2 border border-green-300 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors">
-                          <RefreshCw className="w-4 h-4" />
-                  </button>
-                      )}
-                    </div>
                   </div>
                 </div>
               );
