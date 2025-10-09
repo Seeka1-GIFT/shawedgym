@@ -172,7 +172,7 @@ const createMember = async (req, res) => {
        (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
        RETURNING *`,
-      [firstName, lastName, normalizedEmail, phone, 'Standard', normalizedDob, normalizedAddress, emergencyContact, emergencyPhone, gymId]
+      [firstName, lastName, normalizedEmail, phone, 'Standard', normalizedDob, normalizedAddress, null, null, gymId]
     );
 
     const member = result.rows[0];
