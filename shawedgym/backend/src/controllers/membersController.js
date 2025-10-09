@@ -153,6 +153,8 @@ const createMember = async (req, res) => {
     const normalizedEmail = (email || '').trim();
     // Address: allow NULL when empty
     const normalizedAddress = (address || '').trim() || null;
+    // Date of birth: ensure NULL when empty/invalid
+    const normalizedDob = dateOfBirth ? new Date(dateOfBirth) : null;
 
     // Check if email already exists in this gym (only when provided)
     if (normalizedEmail) {
@@ -170,7 +172,7 @@ const createMember = async (req, res) => {
        (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
        RETURNING *`,
-      [firstName, lastName, normalizedEmail, phone, 'Standard', dateOfBirth, normalizedAddress, emergencyContact, emergencyPhone, gymId]
+      [firstName, lastName, normalizedEmail, phone, 'Standard', normalizedDob, normalizedAddress, emergencyContact, emergencyPhone, gymId]
     );
 
     const member = result.rows[0];
@@ -216,6 +218,12 @@ const createMember = async (req, res) => {
     });
   } catch (error) {
     console.error('Create member error:', error);
+    console.error('Create member error details:', {
+      message: error.message,
+      code: error.code,
+      detail: error.detail,
+      table: error.table
+    });
     res.status(500).json({
       error: 'Server Error',
       message: 'Failed to create member'
