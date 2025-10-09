@@ -131,6 +131,11 @@ const createMember = async (req, res) => {
       registrationFee,
       planId
     } = req.body;
+    // Support both registrationFee and registration_fee; default to 0 when empty
+    const registrationFeeRaw = req.body.registration_fee ?? registrationFee;
+    const registrationFeeValue = (registrationFeeRaw !== undefined && registrationFeeRaw !== null && `${registrationFeeRaw}`.trim() !== '')
+      ? parseFloat(registrationFeeRaw)
+      : 0;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
     if (!gymId) {
@@ -189,7 +194,7 @@ const createMember = async (req, res) => {
         if (planById.rows.length > 0) plan = planById.rows[0];
       }
 
-      const reg = Number(registrationFee) || 0;
+      const reg = Number(registrationFeeValue) || 0;
       const planAmount = plan ? Number(plan.price) : 0;
       const totalAmount = reg + planAmount;
 
