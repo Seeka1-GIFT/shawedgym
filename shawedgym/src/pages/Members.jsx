@@ -4,7 +4,7 @@ import { apiService, authHelpers } from '../services/api.js';
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
-import AddMemberForm from '../components/AddMemberForm.jsx';
+import AddMemberForm from '../components/AddMemberForm';
 import { 
   Users, Plus, Search, Filter, Download, Mail, Phone, 
   Calendar, CreditCard, AlertTriangle, CheckCircle, 
@@ -24,7 +24,8 @@ const Members = () => {
   const [deletingMember, setDeletingMember] = useState(null);
   const [expandedMemberIds, setExpandedMemberIds] = useState(new Set());
   const [planOptions, setPlanOptions] = useState([]);
-  const isAdmin = authHelpers.isAdmin();
+  const currentUser = authHelpers.getUser();
+  const isAdmin = currentUser?.role === 'admin';
 
   // Load members and plans
   useEffect(() => {
