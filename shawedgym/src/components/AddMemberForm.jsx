@@ -5,13 +5,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    email: '', // Optional
     phone: '+252-61-123-4567',
     planId: '', // Required
     dateOfBirth: '',
-    address: '', // Optional
-    emergencyContact: '',
-    emergencyPhone: '',
     registrationFee: '' // Optional
   });
 
@@ -52,9 +48,6 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     }
 
     // Optional field validation (only if provided)
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
     if (formData.registrationFee && isNaN(Number(formData.registrationFee))) {
       newErrors.registrationFee = 'Registration fee must be a number';
     }
@@ -80,11 +73,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         phone: formData.phone.trim(),
         planId: formData.planId,
         dateOfBirth: formData.dateOfBirth || null,
-        emergencyContact: formData.emergencyContact.trim() || null,
-        emergencyPhone: formData.emergencyPhone.trim() || null,
-        // Optional fields - send empty string if not provided
-        email: formData.email.trim() || '',
-        address: formData.address.trim() || '',
+        // Optional fields removed
         registrationFee: formData.registrationFee ? Number(formData.registrationFee) : 0
       };
 
@@ -153,25 +142,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           )}
         </div>
 
-        {/* Email - Optional */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Email
-          </label>
-          <input 
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white ${
-              errors.email ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-            }`}
-            placeholder="Enter email address"
-          />
-          {errors.email && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
-          )}
-        </div>
+        
 
         {/* Phone - Required */}
         <div>
@@ -252,50 +223,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           )}
         </div>
 
-        {/* Address - Optional */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Address
-          </label>
-          <textarea 
-            name="address"
-            value={formData.address}
-            onChange={handleInputChange}
-            rows="2"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Enter full address"
-          />
-        </div>
-
-        {/* Emergency Contact */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Emergency Contact
-          </label>
-          <input 
-            name="emergencyContact"
-            type="text"
-            value={formData.emergencyContact}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Emergency contact name"
-          />
-        </div>
-
-        {/* Emergency Phone */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Emergency Phone
-          </label>
-          <input 
-            name="emergencyPhone"
-            type="tel"
-            value={formData.emergencyPhone}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="Emergency phone number"
-          />
-        </div>
+        
       </div>
 
       {/* Submit Error */}
