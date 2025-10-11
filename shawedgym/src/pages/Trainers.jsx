@@ -309,7 +309,11 @@ const Trainers = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setViewMode(viewMode === 'cards' ? 'table' : 'cards')}
-              className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+              className={`px-3 py-2 rounded-lg transition-colors ${
+                viewMode === 'cards' 
+                  ? 'bg-blue-500 hover:bg-blue-600 text-white' 
+                  : 'bg-gray-500 hover:bg-gray-600 text-white'
+              }`}
             >
               {viewMode === 'cards' ? 'Table View' : 'Card View'}
             </button>
