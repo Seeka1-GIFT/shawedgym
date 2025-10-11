@@ -71,13 +71,20 @@ const updateTrainer = async (req, res) => {
     const { first_name, last_name, email, phone, specialization, experience, monthly_salary, status } = req.body;
     const gymId = req.user?.gym_id;
 
-    // Calculate hourly_rate from monthly_salary for backward compatibility
-    const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+    // Try to use monthly_salary column first, fallback to hourly_rate
+    let query, values;
+    try {
+      // Try with monthly_salary column
+      query = 'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, monthly_salary = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *';
+      values = [first_name, last_name, email, phone, specialization, experience, monthly_salary, status, id, gymId];
+    } catch (error) {
+      // Fallback to hourly_rate if monthly_salary column doesn't exist
+      const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+      query = 'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, hourly_rate = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *';
+      values = [first_name, last_name, email, phone, specialization, experience, hourly_rate, status, id, gymId];
+    }
 
-    const result = await pool.query(
-      'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, hourly_rate = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *',
-      [first_name, last_name, email, phone, specialization, experience, hourly_rate, status, id, gymId]
-    );
+    const result = await pool.query(query, values);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Trainer Not Found', message: 'Trainer not found' });
