@@ -43,9 +43,12 @@ const createTrainer = async (req, res) => {
       return res.status(400).json({ error: 'Validation Error', message: 'First name, last name, and email are required' });
     }
 
+    // Calculate hourly_rate from monthly_salary for backward compatibility
+    const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+
     const result = await pool.query(
-      'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, monthly_salary, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *',
-      [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, Number(monthly_salary) || 0, 'active', gymId]
+      'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, hourly_rate, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *',
+      [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, hourly_rate, 'active', gymId]
     );
 
     res.status(201).json({ success: true, message: 'Trainer created successfully', data: { trainer: result.rows[0] } });
@@ -61,9 +64,12 @@ const updateTrainer = async (req, res) => {
     const { first_name, last_name, email, phone, specialization, experience, monthly_salary, status } = req.body;
     const gymId = req.user?.gym_id;
 
+    // Calculate hourly_rate from monthly_salary for backward compatibility
+    const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+
     const result = await pool.query(
-      'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, monthly_salary = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *',
-      [first_name, last_name, email, phone, specialization, experience, monthly_salary, status, id, gymId]
+      'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, hourly_rate = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *',
+      [first_name, last_name, email, phone, specialization, experience, hourly_rate, status, id, gymId]
     );
 
     if (result.rows.length === 0) {
