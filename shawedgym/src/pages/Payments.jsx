@@ -490,6 +490,45 @@ const Payments = () => {
     { name: 'Wallet', value: enhancedPayments.filter(p => p.paymentMethod === 'Wallet').length, color: '#F59E0B' }
   ];
 
+  // Export functionality
+  const handleExport = () => {
+    try {
+      // Prepare CSV data
+      const csvHeaders = ['Member Name', 'Plan', 'Amount', 'Method', 'Date', 'Status', 'Transaction ID'];
+      const csvData = filteredPayments.map(payment => [
+        getMemberName(payment._memberId),
+        resolvePlanName(payment),
+        `$${Number(payment.amount).toFixed(2)}`,
+        payment.paymentMethod || payment.method || 'Unknown',
+        formatDate(getPaymentDate(payment)),
+        payment.status,
+        payment.transactionId || payment.id
+      ]);
+
+      // Create CSV content
+      const csvContent = [
+        csvHeaders.join(','),
+        ...csvData.map(row => row.map(field => `"${field}"`).join(','))
+      ].join('\n');
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `payments_export_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      showSuccess('Payments exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      showError('Failed to export payments. Please try again.');
+    }
+  };
+
   const handlePrint = async (payment) => {
     try {
       // Fetch enriched payment by id to ensure correct receipt data
@@ -752,7 +791,10 @@ const Payments = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button 
+              onClick={handleExport}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
