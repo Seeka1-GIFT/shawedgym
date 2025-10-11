@@ -45,8 +45,7 @@ const Trainers = () => {
     specialty: t.specialty || t.specialization || 'Strength',
     status: (t.status ? (t.status.charAt(0).toUpperCase() + t.status.slice(1)) : 'Active'),
     experience: typeof t.experience === 'number' ? t.experience : Number(t.experience) || 0,
-    monthlySalary: t.monthly_salary !== undefined && t.monthly_salary !== null ? Number(t.monthly_salary) : (t.monthlySalary ? Number(t.monthlySalary) : 0),
-    hourlyRate: t.hourly_rate !== undefined && t.hourly_rate !== null ? Number(t.hourly_rate) : (t.hourlyRate ? Number(t.hourlyRate) : 0),
+    monthlySalary: t.monthly_salary !== undefined && t.monthly_salary !== null ? Number(t.monthly_salary) : 0,
     bio: t.bio || '',
     // Defaults to avoid undefined during render
     specializations: t.specializations || [],
@@ -437,7 +436,7 @@ const Trainers = () => {
                   <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">${Number(trainer.monthlySalary || trainer.hourlyRate * 160).toFixed(2)}/month</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">${Number(trainer.monthlySalary).toFixed(2)}/month</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Next Available</p>
@@ -596,7 +595,15 @@ const Trainers = () => {
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Monthly Salary ($)</label>
-                    <input name="monthly_salary" type="number" defaultValue={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    <input 
+                      name="monthly_salary" 
+                      type="number" 
+                      min="0" 
+                      step="0.01"
+                      defaultValue={2000} 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" 
+                      placeholder="Enter monthly salary"
+                    />
                   </div>
                 </div>
                 <div className="flex space-x-3 pt-2">
@@ -701,10 +708,11 @@ const Trainers = () => {
                     <input
                       name="monthlySalary"
                       type="number"
-                      step="1"
                       min="0"
+                      step="0.01"
                       defaultValue={editingTrainer.monthlySalary || editingTrainer.hourlyRate * 160}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="Enter monthly salary"
                     />
                   </div>
                 </div>
@@ -745,7 +753,7 @@ const Trainers = () => {
                           phone: data.get('phone') || editingTrainer.phone,
                           specialization: data.get('specialty') || editingTrainer.specialty,
                           experience: Number(data.get('experience')) || editingTrainer.experience || 0,
-                          monthly_salary: Number(data.get('monthlySalary')),
+                          monthly_salary: Number(data.get('monthlySalary')) || 0,
                           status: (data.get('status') || editingTrainer.status || 'Active').toString().toLowerCase(),
                           bio: data.get('bio') || editingTrainer.bio || ''
                         };
