@@ -364,54 +364,56 @@ const Trainers = () => {
                   {/* Bio */}
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{trainer.bio}</p>
 
-                  {/* Key Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-blue-600">{trainer.totalClients}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Clients</p>
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.totalClients}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Clients</div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-green-600">{trainer.activeClasses}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Classes</p>
+                    <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.activeClasses}</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Classes</div>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-purple-600">{trainer.experience}y</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Experience</p>
+                    <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.experience}y</div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">Experience</div>
                     </div>
                   </div>
 
-                  {/* Contact Info */}
+                  {/* Contact Information */}
                   <div className="space-y-2 mb-4">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-300">{trainer.phone}</span>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <Phone className="w-4 h-4 mr-2" />
+                      <span className="truncate">{trainer.phone}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-300 truncate">{trainer.email}</span>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <Mail className="w-4 h-4 mr-2" />
+                      <span className="truncate">{trainer.email}</span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-600 dark:text-gray-300">{trainer.availability}</span>
+                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                      <Clock className="w-4 h-4 mr-2" />
+                      <span className="truncate">{trainer.availability}</span>
                     </div>
                   </div>
 
                   {/* Specializations */}
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">Specializations:</p>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Specializations:</p>
                     <div className="flex flex-wrap gap-1">
-                      {trainer.specializations.map((spec, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 text-xs rounded-full"
-                        >
+                      {trainer.specializations.slice(0, 2).map((spec, index) => (
+                        <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">
                           {spec}
                         </span>
                       ))}
+                      {trainer.specializations.length > 2 && (
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                          +{trainer.specializations.length - 2}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Performance Metrics */}
+                  {/* Client Retention */}
                   <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg">
                     <div className="flex items-center justify-between text-sm mb-2">
                       <span className="text-gray-600 dark:text-gray-400">Client Retention</span>
@@ -425,7 +427,7 @@ const Trainers = () => {
                     </div>
                   </div>
 
-                  {/* Pricing & Availability */}
+                  {/* Monthly Salary & Availability */}
                   <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
@@ -437,7 +439,7 @@ const Trainers = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  {/* Action Buttons */}
                   <div className="flex space-x-2">
                     <button type="button" className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
                       <Eye className="w-4 h-4" />
