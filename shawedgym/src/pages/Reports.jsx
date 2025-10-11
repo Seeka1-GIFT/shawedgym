@@ -38,6 +38,122 @@ const Reports = () => {
   const [members, setMembers] = useState([]);
   const [plans, setPlans] = useState([]);
 
+  // Export PDF functionality
+  const handleExportPDF = () => {
+    try {
+      // Create a comprehensive report HTML
+      const reportHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>ShawedGym Analytics Report</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+            .kpi-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; }
+            .kpi-title { font-size: 14px; color: #666; margin-bottom: 5px; }
+            .kpi-value { font-size: 24px; font-weight: bold; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+            .date-range { text-align: right; color: #666; margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>ShawedGym Analytics Report</h1>
+            <p>Comprehensive business intelligence and performance analytics</p>
+          </div>
+          
+          <div class="date-range">
+            Report Period: ${startDate} to ${endDate}
+          </div>
+          
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <div class="kpi-title">Total Revenue</div>
+              <div class="kpi-value">$${kpis.totalRevenue.toLocaleString()}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Total Expenses</div>
+              <div class="kpi-value">$${kpis.totalExpenses.toLocaleString()}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Net Profit</div>
+              <div class="kpi-value">$${kpis.netProfit.toLocaleString()}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Profit Margin</div>
+              <div class="kpi-value">${kpis.profitMargin}%</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Active Members</div>
+              <div class="kpi-value">${kpis.activeMembers}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-title">Growth Rate</div>
+              <div class="kpi-value">${kpis.monthlyGrowthRate}%</div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Report Generated</div>
+            <p>Generated on: ${new Date().toLocaleString()}</p>
+            <p>Report Type: ${reportType.charAt(0).toUpperCase() + reportType.slice(1)}</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Create and download PDF
+      const blob = new Blob([reportHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `shawedgym_report_${new Date().toISOString().split('T')[0]}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      alert('Report exported successfully!');
+    } catch (error) {
+      console.error('Export PDF failed:', error);
+      alert('Failed to export report. Please try again.');
+    }
+  };
+
+  // Print functionality
+  const handlePrint = () => {
+    try {
+      window.print();
+    } catch (error) {
+      console.error('Print failed:', error);
+      alert('Failed to print. Please try again.');
+    }
+  };
+
+  // Share functionality
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'ShawedGym Analytics Report',
+          text: `Analytics report for ${startDate} to ${endDate}`,
+          url: window.location.href
+        });
+      } else {
+        // Fallback: copy to clipboard
+        const reportText = `ShawedGym Analytics Report\nPeriod: ${startDate} to ${endDate}\nTotal Revenue: $${kpis.totalRevenue.toLocaleString()}\nNet Profit: $${kpis.netProfit.toLocaleString()}\nActive Members: ${kpis.activeMembers}`;
+        await navigator.clipboard.writeText(reportText);
+        alert('Report summary copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      alert('Failed to share report. Please try again.');
+    }
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -196,15 +312,24 @@ const Reports = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <button className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               <Download className="w-4 h-4" />
               <span>Export PDF</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button 
+              onClick={handlePrint}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               <Printer className="w-4 h-4" />
               <span>Print</span>
             </button>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            <button 
+              onClick={handleShare}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+            >
               <Share className="w-4 h-4" />
               <span>Share</span>
             </button>
