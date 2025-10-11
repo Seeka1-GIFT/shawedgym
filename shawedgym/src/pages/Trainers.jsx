@@ -437,7 +437,7 @@ const Trainers = () => {
                   <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">${trainer.monthlySalary || trainer.hourlyRate * 160}/month</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">${Number(trainer.monthlySalary || trainer.hourlyRate * 160).toFixed(2)}/month</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Next Available</p>
