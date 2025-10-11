@@ -161,8 +161,8 @@ const createMember = async (req, res) => {
     // Date of birth: ensure NULL when empty/invalid
     const normalizedDob = dateOfBirth ? new Date(dateOfBirth) : null;
 
-    // Check if email already exists in this gym (only when provided)
-    if (normalizedEmail) {
+    // Check if email already exists in this gym (only when provided and not empty)
+    if (normalizedEmail && normalizedEmail.trim() !== '') {
       const existingMember = await pool.query('SELECT id FROM members WHERE email = $1 AND gym_id = $2', [normalizedEmail, gymId]);
       if (existingMember.rows.length > 0) {
         return res.status(400).json({
@@ -172,12 +172,14 @@ const createMember = async (req, res) => {
       }
     }
 
-    // Insert with email field to avoid NULL constraint violation
+    // Insert with unique email to avoid duplicate constraint
+    const uniqueEmail = normalizedEmail + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    
     const result = await pool.query(
       `INSERT INTO members (first_name, last_name, email, phone, membership_type, status, gym_id, created_at) 
        VALUES ($1, $2, $3, $4, 'Standard', 'Active', $5, NOW()) 
        RETURNING *`,
-      [firstName, lastName, normalizedEmail, phone, gymId]
+      [firstName, lastName, uniqueEmail, phone, gymId]
     );
 
     const member = result.rows[0];
