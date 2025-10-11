@@ -154,8 +154,8 @@ const createMember = async (req, res) => {
     }
 
     // Normalize optional fields
-    // Email: store NULL when empty to avoid unique conflicts on empty string
-    const normalizedEmail = (email && email.trim()) ? email.trim() : null;
+    // Email: store empty string when empty to satisfy NOT NULL constraint
+    const normalizedEmail = (email && email.trim()) ? email.trim() : '';
     // Address: allow NULL when empty
     const normalizedAddress = (address || '').trim() || null;
     // Date of birth: ensure NULL when empty/invalid
