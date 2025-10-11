@@ -308,16 +308,6 @@ const Trainers = () => {
           
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => setViewMode(viewMode === 'cards' ? 'table' : 'cards')}
-              className={`px-3 py-2 rounded-lg transition-colors ${
-                viewMode === 'cards' 
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white' 
-                  : 'bg-gray-500 hover:bg-gray-600 text-white'
-              }`}
-            >
-              {viewMode === 'cards' ? 'Table View' : 'Card View'}
-            </button>
-            <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
@@ -328,9 +318,8 @@ const Trainers = () => {
         </div>
       </div>
 
-      {/* Trainers Display */}
-      {viewMode === 'cards' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Trainers Display - Card View Only */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTrainers.map((trainer) => {
             const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
             const experienceLevel = getExperienceLevel(trainer.experience);
@@ -470,99 +459,6 @@ const Trainers = () => {
             );
           })}
         </div>
-      ) : (
-        /* Horizontal List View */
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <div className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                <div className="col-span-3 text-left">Trainer</div>
-                <div className="col-span-2 text-left">Specialty</div>
-                <div className="col-span-2 text-center">Experience</div>
-                <div className="col-span-2 text-center">Monthly Salary</div>
-                <div className="col-span-2 text-center">Status</div>
-                <div className="col-span-1 text-center">Actions</div>
-              </div>
-
-              {/* Table Body */}
-              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredTrainers.map((trainer) => {
-                  const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
-                  const experienceLevel = getExperienceLevel(trainer.experience);
-                  
-                  return (
-                    <div key={trainer.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow px-4 py-3">
-                      {/* Left: avatar + name */}
-                      <div className="flex items-center space-x-3 min-w-[220px]">
-                        <img
-                          src={trainer.photo}
-                          alt={trainer.name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <div className="font-semibold text-gray-900 dark:text-white leading-tight">{trainer.name}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">{trainer.email}</div>
-                        </div>
-                      </div>
-
-                      {/* Middle: columns */}
-                      <div className="hidden md:grid grid-cols-5 items-center flex-1 text-sm">
-                        <div className="px-4 py-2 whitespace-nowrap text-left">
-                          <div className="text-gray-500 dark:text-gray-400">Specialty</div>
-                          <div className="inline-flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
-                            <SpecialtyIcon className="w-4 h-4 text-blue-500" />
-                            <span>{trainer.specialty}</span>
-                          </div>
-                        </div>
-                        <div className="px-4 py-2 text-center whitespace-nowrap">
-                          <div className="text-gray-500 dark:text-gray-400">Experience</div>
-                          <div className="font-medium text-gray-900 dark:text-white text-center">{trainer.experience}y</div>
-                        </div>
-                        <div className="px-4 py-2 text-center whitespace-nowrap">
-                          <div className="text-gray-500 dark:text-gray-400">Monthly Salary</div>
-                          <div className="font-bold text-green-600 text-center">${Number(trainer.monthlySalary).toFixed(2)}</div>
-                        </div>
-                        <div className="px-4 py-2 text-center whitespace-nowrap">
-                          <div className="text-gray-500 dark:text-gray-400">Status</div>
-                          <div className="inline-flex items-center justify-center">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(trainer.status)}`}>
-                              {trainer.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="px-4 py-2 text-center whitespace-nowrap">
-                          <div className="text-gray-500 dark:text-gray-400">Clients</div>
-                          <div className="font-medium text-gray-900 dark:text-white text-center">{trainer.totalClients}</div>
-                        </div>
-                      </div>
-
-                      {/* Right: actions */}
-                      <div className="flex items-center justify-center space-x-2 ml-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleEditTrainer(trainer)}
-                          className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
-                        >
-                          <Edit className="w-4 h-4" />
-                          <span className="hidden sm:inline">Edit</span>
-                        </button>
-                        <button className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTrainer(trainer)}
-                          className="p-2 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Add Trainer Modal */}
       {showAddModal && (
