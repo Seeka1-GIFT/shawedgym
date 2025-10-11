@@ -889,7 +889,7 @@ const Payments = () => {
 
                   {/* Middle: columns */}
                   <div className="hidden md:grid grid-cols-5 items-center flex-1 text-sm">
-                    <div className="px-4 py-2 whitespace-nowrap text-center">
+                    <div className="px-4 py-2 whitespace-nowrap text-left">
                       <div className="text-gray-500 dark:text-gray-400">Plan</div>
                       <div className="font-medium text-gray-900 dark:text-white">{resolvePlanName(payment)}</div>
                     </div>
@@ -897,7 +897,7 @@ const Payments = () => {
                       <div className="text-gray-500 dark:text-gray-400">Amount</div>
                       <div className="font-bold text-green-600">{formatCurrency(payment.amount)}</div>
                     </div>
-                    <div className="px-4 py-2 text-center whitespace-nowrap">
+                    <div className="px-4 py-2 text-left whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Method</div>
                       <div className="inline-flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
                         <PaymentMethodIcon className="w-4 h-4 text-gray-400" />
