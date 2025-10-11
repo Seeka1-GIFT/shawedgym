@@ -43,13 +43,20 @@ const createTrainer = async (req, res) => {
       return res.status(400).json({ error: 'Validation Error', message: 'First name, last name, and email are required' });
     }
 
-    // Calculate hourly_rate from monthly_salary for backward compatibility
-    const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+    // Try to use monthly_salary column first, fallback to hourly_rate
+    let query, values;
+    try {
+      // Try with monthly_salary column
+      query = 'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, monthly_salary, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *';
+      values = [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, Number(monthly_salary) || 0, 'active', gymId];
+    } catch (error) {
+      // Fallback to hourly_rate if monthly_salary column doesn't exist
+      const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
+      query = 'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, hourly_rate, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *';
+      values = [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, hourly_rate, 'active', gymId];
+    }
 
-    const result = await pool.query(
-      'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, hourly_rate, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *',
-      [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, hourly_rate, 'active', gymId]
-    );
+    const result = await pool.query(query, values);
 
     res.status(201).json({ success: true, message: 'Trainer created successfully', data: { trainer: result.rows[0] } });
   } catch (error) {
