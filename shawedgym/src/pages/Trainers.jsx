@@ -467,147 +467,94 @@ const Trainers = () => {
           })}
         </div>
       ) : (
-        /* Horizontal Cards View */
+        /* Horizontal List View */
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <div className="flex space-x-6 p-6 min-w-max">
-              {filteredTrainers.map((trainer) => {
-                const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
-                const experienceLevel = getExperienceLevel(trainer.experience);
-                
-                return (
-                  <div key={trainer.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden min-w-[320px] max-w-[320px] flex-shrink-0">
-                    {/* Trainer Header */}
-                    <div className="relative p-6 bg-gradient-to-br from-blue-500 to-purple-600">
-                      <div className="flex items-center space-x-4">
-                        <div className="relative">
-                          <img
-                            src={trainer.photo}
-                            alt={trainer.name}
-                            className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
-                          />
-                          <div className="absolute -bottom-2 -right-2 p-1 bg-white rounded-full shadow-lg">
-                            <SpecialtyIcon className="w-3 h-3 text-blue-500" />
+            <div className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 dark:bg-gray-700 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="col-span-3 text-left">Trainer</div>
+                <div className="col-span-2 text-left">Specialty</div>
+                <div className="col-span-2 text-center">Experience</div>
+                <div className="col-span-2 text-center">Monthly Salary</div>
+                <div className="col-span-2 text-center">Status</div>
+                <div className="col-span-1 text-center">Actions</div>
+              </div>
+
+              {/* Table Body */}
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {filteredTrainers.map((trainer) => {
+                  const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
+                  const experienceLevel = getExperienceLevel(trainer.experience);
+                  
+                  return (
+                    <div key={trainer.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow px-4 py-3">
+                      {/* Left: avatar + name */}
+                      <div className="flex items-center space-x-3 min-w-[220px]">
+                        <img
+                          src={trainer.photo}
+                          alt={trainer.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                        <div>
+                          <div className="font-semibold text-gray-900 dark:text-white leading-tight">{trainer.name}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{trainer.email}</div>
+                        </div>
+                      </div>
+
+                      {/* Middle: columns */}
+                      <div className="hidden md:grid grid-cols-5 items-center flex-1 text-sm">
+                        <div className="px-4 py-2 whitespace-nowrap text-left">
+                          <div className="text-gray-500 dark:text-gray-400">Specialty</div>
+                          <div className="inline-flex items-center space-x-1 font-medium text-gray-900 dark:text-white">
+                            <SpecialtyIcon className="w-4 h-4 text-blue-500" />
+                            <span>{trainer.specialty}</span>
                           </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-white mb-1">{trainer.name}</h3>
-                          <p className="text-blue-100 text-sm mb-2">{trainer.specialty}</p>
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trainer.status)}`}>
+                        <div className="px-4 py-2 text-center whitespace-nowrap">
+                          <div className="text-gray-500 dark:text-gray-400">Experience</div>
+                          <div className="font-medium text-gray-900 dark:text-white text-center">{trainer.experience}y</div>
+                        </div>
+                        <div className="px-4 py-2 text-center whitespace-nowrap">
+                          <div className="text-gray-500 dark:text-gray-400">Monthly Salary</div>
+                          <div className="font-bold text-green-600 text-center">${Number(trainer.monthlySalary).toFixed(2)}</div>
+                        </div>
+                        <div className="px-4 py-2 text-center whitespace-nowrap">
+                          <div className="text-gray-500 dark:text-gray-400">Status</div>
+                          <div className="inline-flex items-center justify-center">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(trainer.status)}`}>
                               {trainer.status}
                             </span>
-                            <span className={`text-xs font-medium ${experienceLevel.color}`}>
-                              {experienceLevel.level}
-                            </span>
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Trainer Content */}
-                    <div className="p-6">
-                      {/* Bio */}
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
-                        {trainer.bio}
-                      </p>
-
-                      {/* Key Metrics */}
-                      <div className="grid grid-cols-3 gap-3 mb-4">
-                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.totalClients}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">Clients</div>
-                        </div>
-                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.activeClasses}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">Classes</div>
-                        </div>
-                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.experience}y</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400">Experience</div>
+                        <div className="px-4 py-2 text-center whitespace-nowrap">
+                          <div className="text-gray-500 dark:text-gray-400">Clients</div>
+                          <div className="font-medium text-gray-900 dark:text-white text-center">{trainer.totalClients}</div>
                         </div>
                       </div>
 
-                      {/* Contact Info */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <Phone className="w-4 h-4 mr-2" />
-                          <span className="truncate">{trainer.phone}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <Mail className="w-4 h-4 mr-2" />
-                          <span className="truncate">{trainer.email}</span>
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                          <Clock className="w-4 h-4 mr-2" />
-                          <span className="truncate">{trainer.availability}</span>
-                        </div>
-                      </div>
-
-                      {/* Specializations */}
-                      <div className="mb-4">
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Specializations:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {trainer.specializations.slice(0, 2).map((spec, index) => (
-                            <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">
-                              {spec}
-                            </span>
-                          ))}
-                          {trainer.specializations.length > 2 && (
-                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
-                              +{trainer.specializations.length - 2}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Client Retention */}
-                      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600 dark:text-gray-400">Client Retention</span>
-                          <span className="font-bold text-green-600">{trainer.clientRetentionRate}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${trainer.clientRetentionRate}%` }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* Monthly Salary & Availability */}
-                      <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                        <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
-                          <p className="text-lg font-bold text-gray-900 dark:text-white">${Number(trainer.monthlySalary).toFixed(2)}/month</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600 dark:text-gray-400">Next Available</p>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{trainer.nextAvailable}</p>
-                        </div>
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex space-x-2">
-                        <button type="button" className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
-                          <Eye className="w-4 h-4" />
-                          <span>View</span>
-                        </button>
-                        <button type="button"
+                      {/* Right: actions */}
+                      <div className="flex items-center justify-center space-x-2 ml-4 whitespace-nowrap">
+                        <button
                           onClick={() => handleEditTrainer(trainer)}
-                          className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                          className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
+                        >
                           <Edit className="w-4 h-4" />
+                          <span className="hidden sm:inline">Edit</span>
                         </button>
-                        <button type="button"
+                        <button className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <button 
                           onClick={() => handleDeleteTrainer(trainer)}
                           className="p-2 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
