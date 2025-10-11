@@ -467,93 +467,148 @@ const Trainers = () => {
           })}
         </div>
       ) : (
-        /* Table View */
+        /* Horizontal Cards View */
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-700">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Trainer</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Specialty</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Performance</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contact</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredTrainers.map((trainer) => {
-                  const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
-                  const experienceLevel = getExperienceLevel(trainer.experience);
-                  
-                  return (
-                    <tr key={trainer.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
+            <div className="flex space-x-6 p-6 min-w-max">
+              {filteredTrainers.map((trainer) => {
+                const SpecialtyIcon = getSpecialtyIcon(trainer.specialty);
+                const experienceLevel = getExperienceLevel(trainer.experience);
+                
+                return (
+                  <div key={trainer.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden min-w-[320px] max-w-[320px] flex-shrink-0">
+                    {/* Trainer Header */}
+                    <div className="relative p-6 bg-gradient-to-br from-blue-500 to-purple-600">
+                      <div className="flex items-center space-x-4">
+                        <div className="relative">
                           <img
                             src={trainer.photo}
                             alt={trainer.name}
-                            className="w-12 h-12 rounded-full object-cover mr-4"
+                            className="w-16 h-16 rounded-full object-cover border-4 border-white shadow-lg"
                           />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900 dark:text-white">{trainer.name}</div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trainer.status)}`}>
-                                {trainer.status}
-                              </span>
-                              <span className={`text-xs font-medium ${experienceLevel.color}`}>
-                                {experienceLevel.level}
-                              </span>
-                            </div>
+                          <div className="absolute -bottom-2 -right-2 p-1 bg-white rounded-full shadow-lg">
+                            <SpecialtyIcon className="w-3 h-3 text-blue-500" />
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <SpecialtyIcon className="w-5 h-5 text-blue-500 mr-2" />
-                          <div>
-                            <div className="text-sm text-gray-900 dark:text-white">{trainer.specialty}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">{trainer.experience} years exp.</div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-bold text-white mb-1">{trainer.name}</h3>
+                          <p className="text-blue-100 text-sm mb-2">{trainer.specialty}</p>
+                          <div className="flex items-center space-x-2">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(trainer.status)}`}>
+                              {trainer.status}
+                            </span>
+                            <span className={`text-xs font-medium ${experienceLevel.color}`}>
+                              {experienceLevel.level}
+                            </span>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center space-x-1 mb-1">
-                          <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{trainer.rating}</span>
+                      </div>
+                    </div>
+
+                    {/* Trainer Content */}
+                    <div className="p-6">
+                      {/* Bio */}
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                        {trainer.bio}
+                      </p>
+
+                      {/* Key Metrics */}
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.totalClients}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Clients</div>
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {trainer.totalClients} clients • {trainer.activeClasses} classes
+                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.activeClasses}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Classes</div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">{trainer.phone}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">{trainer.email}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 dark:text-blue-400">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button className="text-green-600 hover:text-green-900 dark:text-green-400">
-                            <MessageCircle className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleEditTrainer(trainer)}
-                            className="text-gray-600 hover:text-gray-900 dark:text-gray-400">
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDeleteTrainer(trainer)}
-                            className="text-red-600 hover:text-red-900 dark:text-red-400">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="text-lg font-bold text-gray-900 dark:text-white">{trainer.experience}y</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">Experience</div>
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+
+                      {/* Contact Info */}
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                          <Phone className="w-4 h-4 mr-2" />
+                          <span className="truncate">{trainer.phone}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                          <Mail className="w-4 h-4 mr-2" />
+                          <span className="truncate">{trainer.email}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                          <Clock className="w-4 h-4 mr-2" />
+                          <span className="truncate">{trainer.availability}</span>
+                        </div>
+                      </div>
+
+                      {/* Specializations */}
+                      <div className="mb-4">
+                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Specializations:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {trainer.specializations.slice(0, 2).map((spec, index) => (
+                            <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                              {spec}
+                            </span>
+                          ))}
+                          {trainer.specializations.length > 2 && (
+                            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                              +{trainer.specializations.length - 2}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Client Retention */}
+                      <div className="mb-4 p-3 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg">
+                        <div className="flex items-center justify-between text-sm mb-2">
+                          <span className="text-gray-600 dark:text-gray-400">Client Retention</span>
+                          <span className="font-bold text-green-600">{trainer.clientRetentionRate}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${trainer.clientRetentionRate}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* Monthly Salary & Availability */}
+                      <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
+                          <p className="text-lg font-bold text-gray-900 dark:text-white">${Number(trainer.monthlySalary).toFixed(2)}/month</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Next Available</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{trainer.nextAvailable}</p>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex space-x-2">
+                        <button type="button" className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
+                          <Eye className="w-4 h-4" />
+                          <span>View</span>
+                        </button>
+                        <button type="button"
+                          onClick={() => handleEditTrainer(trainer)}
+                          className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button type="button"
+                          onClick={() => handleDeleteTrainer(trainer)}
+                          className="p-2 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
