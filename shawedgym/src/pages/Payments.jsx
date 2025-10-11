@@ -26,6 +26,8 @@ const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }
     status: 'completed'
   });
   const [loading, setLoading] = useState(false);
+  const [memberSearch, setMemberSearch] = useState('');
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -67,15 +69,44 @@ const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Member *</label>
-              <select name="memberId" value={formData.memberId} onChange={handleChange} 
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white" required>
-                <option value="">Select Member</option>
-                {memberOptions.map(member => (
-                  <option key={member.id} value={member.id}>
-                    {member.first_name ? `${member.first_name} ${member.last_name || ''}`.trim() : member.name || 'Unknown Member'}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={memberSearch}
+                  onChange={(e) => {
+                    setMemberSearch(e.target.value);
+                    setShowMemberDropdown(true);
+                  }}
+                  onFocus={() => setShowMemberDropdown(true)}
+                  placeholder="Search member..."
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                />
+                {showMemberDropdown && (
+                  <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {memberOptions
+                      .filter(member => {
+                        const memberName = member.first_name ? `${member.first_name} ${member.last_name || ''}`.trim() : member.name || 'Unknown Member';
+                        return memberName.toLowerCase().includes(memberSearch.toLowerCase());
+                      })
+                      .map(member => {
+                        const memberName = member.first_name ? `${member.first_name} ${member.last_name || ''}`.trim() : member.name || 'Unknown Member';
+                        return (
+                          <div
+                            key={member.id}
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, memberId: member.id }));
+                              setMemberSearch(memberName);
+                              setShowMemberDropdown(false);
+                            }}
+                            className="px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer text-gray-900 dark:text-white"
+                          >
+                            {memberName}
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+              </div>
             </div>
             
             <div>
