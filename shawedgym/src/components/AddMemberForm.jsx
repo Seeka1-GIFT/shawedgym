@@ -8,7 +8,8 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     phone: '+252-61-123-4567',
     planId: '', // Required
     dateOfBirth: '',
-    registrationFee: '' // Optional
+    registrationFee: '', // Optional
+    paymentMethod: 'cash' // Payment method
   });
 
   const [errors, setErrors] = useState({});
@@ -74,7 +75,8 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         planId: formData.planId,
         dateOfBirth: formData.dateOfBirth || null,
         // Optional fields removed
-        registrationFee: formData.registrationFee ? Number(formData.registrationFee) : 0
+        registrationFee: formData.registrationFee ? Number(formData.registrationFee) : 0,
+        paymentMethod: formData.paymentMethod || 'cash'
       };
 
       await onMemberAdded(memberData);
@@ -221,6 +223,26 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           {errors.registrationFee && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.registrationFee}</p>
           )}
+        </div>
+
+        {/* Payment Method - Optional */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Payment Method
+          </label>
+          <select 
+            name="paymentMethod"
+            value={formData.paymentMethod}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          >
+            <option value="cash">Cash</option>
+            <option value="EVC-PLUS">EVC-PLUS</option>
+            <option value="E-DAHAB">E-DAHAB</option>
+            <option value="bank_transfer">Bank Transfer</option>
+            <option value="credit_card">Credit Card</option>
+            <option value="wallet">Wallet</option>
+          </select>
         </div>
 
         
