@@ -667,26 +667,26 @@ const Reports = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Cash & Cash Equivalents</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.15).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.2).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Accounts Receivable</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.05).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Prepaid Expenses</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalExpenses * 0.1).toLocaleString()}
+                    ${(kpis.totalExpenses * 0.15).toLocaleString()}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 mt-3">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Current Assets</span>
                 <span className="font-bold text-green-600">
-                  ${(kpis.totalRevenue * 0.3).toLocaleString()}
+                  ${(kpis.totalRevenue * 0.2 + kpis.totalRevenue * 0.1 + kpis.totalExpenses * 0.15).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -698,32 +698,32 @@ const Reports = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Equipment & Machinery</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.4).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.5).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Furniture & Fixtures</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.15).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Leasehold Improvements</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.2).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.25).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Less: Accumulated Depreciation</span>
                   <span className="font-semibold text-red-600">
-                    -${(kpis.totalRevenue * 0.15).toLocaleString()}
+                    -${(kpis.totalRevenue * 0.2).toLocaleString()}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 mt-3">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Fixed Assets</span>
                 <span className="font-bold text-blue-600">
-                  ${(kpis.totalRevenue * 0.55).toLocaleString()}
+                  ${(kpis.totalRevenue * 0.5 + kpis.totalRevenue * 0.15 + kpis.totalRevenue * 0.25 - kpis.totalRevenue * 0.2).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -732,7 +732,7 @@ const Reports = () => {
             <div className="flex justify-between items-center py-3 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg px-4 mt-4">
               <span className="text-xl font-bold text-gray-900 dark:text-white">TOTAL ASSETS</span>
               <span className="text-2xl font-bold text-green-600">
-                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+                ${(kpis.totalRevenue * 0.2 + kpis.totalRevenue * 0.1 + kpis.totalExpenses * 0.15 + kpis.totalRevenue * 0.5 + kpis.totalRevenue * 0.15 + kpis.totalRevenue * 0.25 - kpis.totalRevenue * 0.2).toLocaleString()}
               </span>
             </div>
           </div>
@@ -750,26 +750,26 @@ const Reports = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Accounts Payable</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalExpenses * 0.3).toLocaleString()}
+                    ${(kpis.totalExpenses * 0.4).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Accrued Expenses</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalExpenses * 0.2).toLocaleString()}
+                    ${(kpis.totalExpenses * 0.3).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Short-term Debt</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.15).toLocaleString()}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 mt-3">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Current Liabilities</span>
                 <span className="font-bold text-red-600">
-                  ${(kpis.totalExpenses * 0.5 + kpis.totalRevenue * 0.1).toLocaleString()}
+                  ${(kpis.totalExpenses * 0.4 + kpis.totalExpenses * 0.3 + kpis.totalRevenue * 0.15).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -781,20 +781,20 @@ const Reports = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Long-term Debt</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.2).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.3).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Deferred Revenue</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.05).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center py-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg px-4 mt-3">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Long-term Liabilities</span>
                 <span className="font-bold text-orange-600">
-                  ${(kpis.totalRevenue * 0.25).toLocaleString()}
+                  ${(kpis.totalRevenue * 0.3 + kpis.totalRevenue * 0.1).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -806,7 +806,7 @@ const Reports = () => {
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
                   <span className="text-gray-600 dark:text-gray-400">Initial Investment</span>
                   <span className="font-semibold text-gray-900 dark:text-white">
-                    ${(kpis.totalRevenue * 0.3).toLocaleString()}
+                    ${(kpis.totalRevenue * 0.4).toLocaleString()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
@@ -819,7 +819,7 @@ const Reports = () => {
               <div className="flex justify-between items-center py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 mt-3">
                 <span className="font-semibold text-gray-900 dark:text-white">Total Owner's Equity</span>
                 <span className="font-bold text-purple-600">
-                  ${(kpis.totalRevenue * 0.3 + kpis.netProfit).toLocaleString()}
+                  ${(kpis.totalRevenue * 0.4 + kpis.netProfit).toLocaleString()}
                 </span>
               </div>
             </div>
@@ -828,7 +828,7 @@ const Reports = () => {
             <div className="flex justify-between items-center py-3 bg-gradient-to-r from-red-100 to-purple-100 dark:from-red-900/30 dark:to-purple-900/30 rounded-lg px-4 mt-4">
               <span className="text-xl font-bold text-gray-900 dark:text-white">TOTAL LIABILITIES & EQUITY</span>
               <span className="text-2xl font-bold text-red-600">
-                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+                ${(kpis.totalExpenses * 0.4 + kpis.totalExpenses * 0.3 + kpis.totalRevenue * 0.15 + kpis.totalRevenue * 0.3 + kpis.totalRevenue * 0.1 + kpis.totalRevenue * 0.4 + kpis.netProfit).toLocaleString()}
               </span>
             </div>
           </div>
@@ -840,19 +840,19 @@ const Reports = () => {
             <div>
               <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Assets</h4>
               <p className="text-2xl font-bold text-green-600">
-                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+                ${(kpis.totalRevenue * 0.2 + kpis.totalRevenue * 0.1 + kpis.totalExpenses * 0.15 + kpis.totalRevenue * 0.5 + kpis.totalRevenue * 0.15 + kpis.totalRevenue * 0.25 - kpis.totalRevenue * 0.2).toLocaleString()}
               </p>
             </div>
             <div>
               <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Liabilities</h4>
               <p className="text-2xl font-bold text-red-600">
-                ${(kpis.totalExpenses * 0.5 + kpis.totalRevenue * 0.35).toLocaleString()}
+                ${(kpis.totalExpenses * 0.4 + kpis.totalExpenses * 0.3 + kpis.totalRevenue * 0.15 + kpis.totalRevenue * 0.3 + kpis.totalRevenue * 0.1).toLocaleString()}
               </p>
             </div>
             <div>
               <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Equity</h4>
               <p className="text-2xl font-bold text-purple-600">
-                ${(kpis.totalRevenue * 0.3 + kpis.netProfit).toLocaleString()}
+                ${(kpis.totalRevenue * 0.4 + kpis.netProfit).toLocaleString()}
               </p>
             </div>
           </div>
