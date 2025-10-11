@@ -172,12 +172,12 @@ const createMember = async (req, res) => {
       }
     }
 
-    // Simple insert - only required fields to avoid DB issues
+    // Insert with email field to avoid NULL constraint violation
     const result = await pool.query(
-      `INSERT INTO members (first_name, last_name, phone, membership_type, status, gym_id, created_at) 
-       VALUES ($1, $2, $3, 'Standard', 'Active', $4, NOW()) 
+      `INSERT INTO members (first_name, last_name, email, phone, membership_type, status, gym_id, created_at) 
+       VALUES ($1, $2, $3, $4, 'Standard', 'Active', $5, NOW()) 
        RETURNING *`,
-      [firstName, lastName, phone, gymId]
+      [firstName, lastName, normalizedEmail, phone, gymId]
     );
 
     const member = result.rows[0];
