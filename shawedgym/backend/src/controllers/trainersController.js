@@ -43,20 +43,15 @@ const createTrainer = async (req, res) => {
       return res.status(400).json({ error: 'Validation Error', message: 'First name, last name, and email are required' });
     }
 
-    // Try to use monthly_salary column first, fallback to hourly_rate
-    let query, values;
-    try {
-      // Try with monthly_salary column
-      query = 'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, monthly_salary, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *';
-      values = [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, Number(monthly_salary) || 0, 'active', gymId];
-    } catch (error) {
-      // Fallback to hourly_rate if monthly_salary column doesn't exist
-      const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
-      query = 'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, hourly_rate, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *';
-      values = [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, hourly_rate, 'active', gymId];
+    // Validate monthly_salary is positive number
+    if (monthly_salary && (isNaN(monthly_salary) || monthly_salary < 0)) {
+      return res.status(400).json({ error: 'Validation Error', message: 'Monthly salary must be a positive number' });
     }
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+      'INSERT INTO trainers (first_name, last_name, email, phone, specialization, experience, monthly_salary, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) RETURNING *',
+      [first_name, last_name, email, phone || '', specialization || 'General', Number(experience) || 0, Number(monthly_salary) || 0, 'active', gymId]
+    );
 
     res.status(201).json({ success: true, message: 'Trainer created successfully', data: { trainer: result.rows[0] } });
   } catch (error) {
@@ -71,20 +66,15 @@ const updateTrainer = async (req, res) => {
     const { first_name, last_name, email, phone, specialization, experience, monthly_salary, status } = req.body;
     const gymId = req.user?.gym_id;
 
-    // Try to use monthly_salary column first, fallback to hourly_rate
-    let query, values;
-    try {
-      // Try with monthly_salary column
-      query = 'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, monthly_salary = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *';
-      values = [first_name, last_name, email, phone, specialization, experience, monthly_salary, status, id, gymId];
-    } catch (error) {
-      // Fallback to hourly_rate if monthly_salary column doesn't exist
-      const hourly_rate = monthly_salary ? monthly_salary / 160 : 0;
-      query = 'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, hourly_rate = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *';
-      values = [first_name, last_name, email, phone, specialization, experience, hourly_rate, status, id, gymId];
+    // Validate monthly_salary is positive number
+    if (monthly_salary && (isNaN(monthly_salary) || monthly_salary < 0)) {
+      return res.status(400).json({ error: 'Validation Error', message: 'Monthly salary must be a positive number' });
     }
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+      'UPDATE trainers SET first_name = $1, last_name = $2, email = $3, phone = $4, specialization = $5, experience = $6, monthly_salary = $7, status = $8, updated_at = NOW() WHERE id = $9 AND gym_id = $10 RETURNING *',
+      [first_name, last_name, email, phone, specialization, experience, monthly_salary, status, id, gymId]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Trainer Not Found', message: 'Trainer not found' });
