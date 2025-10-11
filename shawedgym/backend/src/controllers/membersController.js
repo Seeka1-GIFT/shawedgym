@@ -172,12 +172,12 @@ const createMember = async (req, res) => {
       }
     }
 
+    // Simple insert - only required fields to avoid DB issues
     const result = await pool.query(
-      `INSERT INTO members 
-       (first_name, last_name, email, phone, membership_type, date_of_birth, address, emergency_contact, emergency_phone, status, gym_id, created_at) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'Active', $10, NOW()) 
+      `INSERT INTO members (first_name, last_name, phone, membership_type, status, gym_id, created_at) 
+       VALUES ($1, $2, $3, 'Standard', 'Active', $4, NOW()) 
        RETURNING *`,
-      [firstName, lastName, normalizedEmail, phone, 'Standard', normalizedDob, normalizedAddress, null, null, gymId]
+      [firstName, lastName, phone, gymId]
     );
 
     const member = result.rows[0];
@@ -198,6 +198,7 @@ const createMember = async (req, res) => {
       const planAmount = plan ? Number(plan.price) : 0;
       const totalAmount = reg + planAmount;
 
+      // Only create payment if there's a fee or plan amount
       if (totalAmount > 0) {
         const countRes = await pool.query('SELECT COUNT(*) FROM payments');
         const prefix = plan ? 'SUB' : 'REG';
