@@ -129,7 +129,8 @@ const createMember = async (req, res) => {
       emergencyContact,
       emergencyPhone,
       registrationFee,
-      planId
+      planId,
+      paymentMethod
     } = req.body;
     // Support both registrationFee and registration_fee; default to 0 when empty
     const registrationFeeRaw = req.body.registration_fee ?? registrationFee;
@@ -212,7 +213,7 @@ const createMember = async (req, res) => {
         await pool.query(
           `INSERT INTO payments (member_id, amount, method, description, plan_id, receipt_number, status, payment_date, gym_id, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, 'completed', CURRENT_DATE, $7, NOW())`,
-          [member.id, totalAmount, 'cash', desc, plan ? plan.id : null, receiptNumber, gymId]
+          [member.id, totalAmount, paymentMethod || 'EVC-PLUS', desc, plan ? plan.id : null, receiptNumber, gymId]
         );
       }
     } catch (combineErr) {
