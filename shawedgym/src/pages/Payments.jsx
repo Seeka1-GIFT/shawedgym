@@ -895,7 +895,7 @@ const Payments = () => {
                     </div>
                     <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Amount</div>
-                      <div className="font-bold text-green-600">{formatCurrency(payment.amount)}</div>
+                      <div className="font-bold text-green-600 text-center">{formatCurrency(payment.amount)}</div>
                     </div>
                     <div className="px-4 py-2 text-left whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Method</div>
@@ -906,7 +906,7 @@ const Payments = () => {
                     </div>
                     <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Date</div>
-                      <div className="font-medium text-gray-900 dark:text-white">{formatDate(getPaymentDate(payment))}</div>
+                      <div className="font-medium text-gray-900 dark:text-white text-center">{formatDate(getPaymentDate(payment))}</div>
                     </div>
                     <div className="px-4 py-2 text-center whitespace-nowrap">
                       <div className="text-gray-500 dark:text-gray-400">Status</div>
@@ -920,7 +920,7 @@ const Payments = () => {
                   </div>
 
                   {/* Right: actions */}
-                  <div className="flex items-center space-x-2 ml-4 whitespace-nowrap">
+                  <div className="flex items-center justify-center space-x-2 ml-4 whitespace-nowrap">
                     <button 
                       onClick={() => handlePrint(payment)}
                       className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors flex items-center space-x-2"
