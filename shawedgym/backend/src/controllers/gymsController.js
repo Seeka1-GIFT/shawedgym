@@ -17,7 +17,6 @@ const getGyms = async (req, res) => {
         g.owner_email,
         g.owner_name,
         g.subscription_plan_id,
-        g.max_members,
         g.created_at,
         g.updated_at,
         sp.name as plan_name,
@@ -31,7 +30,7 @@ const getGyms = async (req, res) => {
       LEFT JOIN members m ON g.id = m.gym_id
       LEFT JOIN payments p ON g.id = p.gym_id AND p.status = 'completed'
       WHERE g.id = $1
-      GROUP BY g.id, g.name, g.owner_email, g.owner_name, g.subscription_plan_id, g.max_members, g.created_at, g.updated_at, sp.name, sp.price, sp.member_limit
+      GROUP BY g.id, g.name, g.owner_email, g.owner_name, g.subscription_plan_id, g.created_at, g.updated_at, sp.name, sp.price, sp.member_limit
       ORDER BY g.created_at DESC
     `, [gymId]);
 
