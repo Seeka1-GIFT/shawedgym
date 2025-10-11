@@ -45,6 +45,7 @@ const Trainers = () => {
     specialty: t.specialty || t.specialization || 'Strength',
     status: (t.status ? (t.status.charAt(0).toUpperCase() + t.status.slice(1)) : 'Active'),
     experience: typeof t.experience === 'number' ? t.experience : Number(t.experience) || 0,
+    monthlySalary: t.monthly_salary !== undefined && t.monthly_salary !== null ? Number(t.monthly_salary) : (t.monthlySalary ? Number(t.monthlySalary) : 0),
     hourlyRate: t.hourly_rate !== undefined && t.hourly_rate !== null ? Number(t.hourly_rate) : (t.hourlyRate ? Number(t.hourlyRate) : 0),
     bio: t.bio || '',
     // Defaults to avoid undefined during render
@@ -435,8 +436,8 @@ const Trainers = () => {
                   {/* Pricing & Availability */}
                   <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">Hourly Rate</p>
-                      <p className="text-lg font-bold text-gray-900 dark:text-white">${trainer.hourlyRate}/hr</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Monthly Salary</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">${trainer.monthlySalary || trainer.hourlyRate * 160}/month</p>
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">Next Available</p>
@@ -594,8 +595,8 @@ const Trainers = () => {
                     <input name="experience" type="number" defaultValue={3} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                   </div>
                   <div>
-                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Hourly Rate ($)</label>
-                    <input name="hourly_rate" type="number" defaultValue={50} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">Monthly Salary ($)</label>
+                    <input name="monthly_salary" type="number" defaultValue={2000} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
                   </div>
                 </div>
                 <div className="flex space-x-3 pt-2">
@@ -696,13 +697,13 @@ const Trainers = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Hourly Rate ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Monthly Salary ($)</label>
                     <input
-                      name="hourlyRate"
+                      name="monthlySalary"
                       type="number"
                       step="1"
                       min="0"
-                      defaultValue={editingTrainer.hourlyRate}
+                      defaultValue={editingTrainer.monthlySalary || editingTrainer.hourlyRate * 160}
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                     />
                   </div>
@@ -744,7 +745,7 @@ const Trainers = () => {
                           phone: data.get('phone') || editingTrainer.phone,
                           specialization: data.get('specialty') || editingTrainer.specialty,
                           experience: Number(data.get('experience')) || editingTrainer.experience || 0,
-                          hourly_rate: Number(data.get('hourlyRate')),
+                          monthly_salary: Number(data.get('monthlySalary')),
                           status: (data.get('status') || editingTrainer.status || 'Active').toString().toLowerCase(),
                           bio: data.get('bio') || editingTrainer.bio || ''
                         };
