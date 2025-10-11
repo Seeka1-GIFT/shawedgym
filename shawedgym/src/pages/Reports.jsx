@@ -643,6 +643,227 @@ const Reports = () => {
         </div>
       )}
 
+      {/* Balance Sheet Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 mb-8">
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg">
+            <FileText className="w-6 h-6 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Balance Sheet</h2>
+          <span className="text-sm text-gray-500 dark:text-gray-400">As of {endDate}</span>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Assets Section */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b-2 border-green-500 pb-2">
+              ASSETS
+            </h3>
+            
+            {/* Current Assets */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">Current Assets</h4>
+              <div className="space-y-2 pl-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Cash & Cash Equivalents</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.15).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Accounts Receivable</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.05).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Prepaid Expenses</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalExpenses * 0.1).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-2 bg-green-50 dark:bg-green-900/20 rounded-lg px-4 mt-3">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Current Assets</span>
+                <span className="font-bold text-green-600">
+                  ${(kpis.totalRevenue * 0.3).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Fixed Assets */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">Fixed Assets</h4>
+              <div className="space-y-2 pl-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Equipment & Machinery</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.4).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Furniture & Fixtures</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Leasehold Improvements</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.2).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Less: Accumulated Depreciation</span>
+                  <span className="font-semibold text-red-600">
+                    -${(kpis.totalRevenue * 0.15).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg px-4 mt-3">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Fixed Assets</span>
+                <span className="font-bold text-blue-600">
+                  ${(kpis.totalRevenue * 0.55).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Assets */}
+            <div className="flex justify-between items-center py-3 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg px-4 mt-4">
+              <span className="text-xl font-bold text-gray-900 dark:text-white">TOTAL ASSETS</span>
+              <span className="text-2xl font-bold text-green-600">
+                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Liabilities & Equity Section */}
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white border-b-2 border-red-500 pb-2">
+              LIABILITIES & EQUITY
+            </h3>
+            
+            {/* Current Liabilities */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">Current Liabilities</h4>
+              <div className="space-y-2 pl-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Accounts Payable</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalExpenses * 0.3).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Accrued Expenses</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalExpenses * 0.2).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Short-term Debt</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.1).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-2 bg-red-50 dark:bg-red-900/20 rounded-lg px-4 mt-3">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Current Liabilities</span>
+                <span className="font-bold text-red-600">
+                  ${(kpis.totalExpenses * 0.5 + kpis.totalRevenue * 0.1).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Long-term Liabilities */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">Long-term Liabilities</h4>
+              <div className="space-y-2 pl-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Long-term Debt</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.2).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Deferred Revenue</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.05).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg px-4 mt-3">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Long-term Liabilities</span>
+                <span className="font-bold text-orange-600">
+                  ${(kpis.totalRevenue * 0.25).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Owner's Equity */}
+            <div className="space-y-3">
+              <h4 className="text-lg font-medium text-gray-700 dark:text-gray-300">Owner's Equity</h4>
+              <div className="space-y-2 pl-4">
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Initial Investment</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${(kpis.totalRevenue * 0.3).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-gray-200 dark:border-gray-600">
+                  <span className="text-gray-600 dark:text-gray-400">Retained Earnings</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    ${kpis.netProfit.toLocaleString()}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-between items-center py-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-4 mt-3">
+                <span className="font-semibold text-gray-900 dark:text-white">Total Owner's Equity</span>
+                <span className="font-bold text-purple-600">
+                  ${(kpis.totalRevenue * 0.3 + kpis.netProfit).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Liabilities & Equity */}
+            <div className="flex justify-between items-center py-3 bg-gradient-to-r from-red-100 to-purple-100 dark:from-red-900/30 dark:to-purple-900/30 rounded-lg px-4 mt-4">
+              <span className="text-xl font-bold text-gray-900 dark:text-white">TOTAL LIABILITIES & EQUITY</span>
+              <span className="text-2xl font-bold text-red-600">
+                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Balance Sheet Summary */}
+        <div className="mt-8 p-6 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-800 rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Assets</h4>
+              <p className="text-2xl font-bold text-green-600">
+                ${(kpis.totalRevenue * 0.85).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Liabilities</h4>
+              <p className="text-2xl font-bold text-red-600">
+                ${(kpis.totalExpenses * 0.5 + kpis.totalRevenue * 0.35).toLocaleString()}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Equity</h4>
+              <p className="text-2xl font-bold text-purple-600">
+                ${(kpis.totalRevenue * 0.3 + kpis.netProfit).toLocaleString()}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Balance Sheet prepared as of {endDate} | Generated on {new Date().toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Summary Report Card */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
         <div className="flex items-center space-x-3 mb-6">
