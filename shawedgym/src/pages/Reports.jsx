@@ -643,62 +643,6 @@ const Reports = () => {
         </div>
       )}
 
-      {/* Summary Report Card */}
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8">
-        <div className="flex items-center space-x-3 mb-6">
-          <div className="p-2 bg-gradient-to-r from-gray-500 to-gray-600 rounded-lg">
-            <FileText className="w-5 h-5 text-white" />
-          </div>
-          <h3 className="text-2xl font-semibold text-gray-900 dark:text-white">Executive Summary</h3>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div>
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Key Highlights</h4>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="text-gray-700 dark:text-gray-300">Revenue increased by {kpis.monthlyGrowthRate}% this month</span>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-blue-600" />
-                <span className="text-gray-700 dark:text-gray-300">Member retention rate is {kpis.memberRetentionRate}%</span>
-              </div>
-              <div className="flex items-center space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-purple-600" />
-                <span className="text-gray-700 dark:text-gray-300">Class utilization at optimal {kpis.classUtilization}%</span>
-              </div>
-              {profit < 0 && (
-                <div className="flex items-center space-x-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <span className="text-gray-700 dark:text-gray-300">Operating at a loss - review expenses</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Recommendations</h4>
-            <div className="space-y-3">
-              <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border-l-4 border-yellow-500">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Equipment Investment:</strong> Consider upgrading cardio equipment to improve member satisfaction.
-                </p>
-              </div>
-              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-l-4 border-blue-500">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Marketing Focus:</strong> Premium plans show highest revenue potential.
-                </p>
-              </div>
-              <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border-l-4 border-green-500">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>Operational Efficiency:</strong> Peak hours (6-8 PM) could benefit from additional staff.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
