@@ -256,26 +256,46 @@ const Payments = () => {
   const sourcePayments = backendPayments;
 
   // Enhanced payments data with additional transaction details
-  const enhancedPayments = sourcePayments.map(payment => ({
-    ...payment,
-    // Normalize foreign keys from backend/dummy
-    _memberId: payment.memberId ?? payment.member_id ?? payment.memberid ?? payment.member_id_fk ?? null,
-    _planId: payment.planId ?? payment.plan_id ?? payment.planid ?? payment.plan_id_fk ?? null,
-    amount: Number(payment.amount) || 0,
-    memberPhoto: `https://images.unsplash.com/photo-${
-      ((payment.memberId ?? payment.member_id ?? 1) % 2 === 0) ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
-    }?w=150&h=150&fit=crop&crop=face`,
-    status: Math.random() > 0.1 ? 'completed' : Math.random() > 0.5 ? 'pending' : 'failed',
-    paymentMethod: ['Credit Card', 'Cash', 'Bank Transfer', 'Mobile Payment'][Math.floor(Math.random() * 4)],
-    transactionId: `TXN${String(payment.id).padStart(6, '0')}`,
-    processingFee: 0,
-    netAmount: Number(payment.amount) || 0,
-    currency: 'USD',
-    refundable: Math.random() > 0.8,
-    invoiceNumber: `INV-2024-${String(payment.id).padStart(4, '0')}`,
-    dueDate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    paymentType: payment.id % 3 === 0 ? 'Membership' : payment.id % 3 === 1 ? 'Personal Training' : 'Class Fee'
-  }));
+  const enhancedPayments = sourcePayments.map(payment => {
+    const rawMethod = payment.method ?? payment.payment_method ?? payment.paymentMethod;
+    // Normalize common variants to a consistent display label
+    const normalizedMethod = (() => {
+      const m = String(rawMethod || '').trim();
+      if (!m) return 'Unknown';
+      const lower = m.toLowerCase();
+      if (lower === 'evc-plus' || lower === 'evc' || lower === 'evcplus') return 'EVC-PLUS';
+      if (lower === 'e-dahab' || lower === 'edahab') return 'E-DAHAB';
+      if (lower === 'bank_transfer' || lower === 'bank transfer' || lower === 'transfer') return 'Bank Transfer';
+      if (lower === 'wallet') return 'Wallet';
+      if (lower === 'cash') return 'Cash';
+      if (lower === 'credit card' || lower === 'card') return 'Credit Card';
+      return m; // Keep as-is for any custom methods
+    })();
+
+    return {
+      ...payment,
+      // Normalize foreign keys from backend/dummy
+      _memberId: payment.memberId ?? payment.member_id ?? payment.memberid ?? payment.member_id_fk ?? null,
+      _planId: payment.planId ?? payment.plan_id ?? payment.planid ?? payment.plan_id_fk ?? null,
+      amount: Number(payment.amount) || 0,
+      memberPhoto: `https://images.unsplash.com/photo-${
+        ((payment.memberId ?? payment.member_id ?? 1) % 2 === 0) ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
+      }?w=150&h=150&fit=crop&crop=face`,
+      // Persist exact status from backend; no randomization
+      status: payment.status || 'completed',
+      // Persist method from backend; no randomization
+      paymentMethod: normalizedMethod,
+      transactionId: `TXN${String(payment.id).padStart(6, '0')}`,
+      processingFee: 0,
+      netAmount: Number(payment.amount) || 0,
+      currency: 'USD',
+      // Keep auxiliary fields but avoid random method/status
+      refundable: Boolean(payment.refundable),
+      invoiceNumber: `INV-2024-${String(payment.id).padStart(4, '0')}`,
+      dueDate: payment.dueDate || payment.payment_date || payment.created_at || null,
+      paymentType: payment.paymentType || (payment.id % 3 === 0 ? 'Membership' : payment.id % 3 === 1 ? 'Personal Training' : 'Class Fee')
+    };
+  });
 
   const getMemberName = (memberId) => {
     const m = memberOptions.find((mm) => mm.id === memberId);
@@ -366,6 +386,9 @@ const Payments = () => {
       case 'Bank Transfer':
         return FileText;
       case 'Mobile Payment':
+      case 'EVC-PLUS':
+      case 'E-DAHAB':
+      case 'Wallet':
         return CreditCard;
       default:
         return DollarSign;
@@ -377,7 +400,7 @@ const Payments = () => {
     setEditingPayment({
       id: payment.id,
       amount: payment.amount || 0,
-      paymentMethod: payment.paymentMethod || 'Cash',
+      paymentMethod: payment.paymentMethod || payment.method || 'EVC-PLUS',
       status: payment.status || 'completed'
     });
     setShowEditModal(true);
@@ -430,7 +453,7 @@ const Payments = () => {
       const data = new FormData(form);
       const payload = {
         amount: Number(data.get('amount')) || editingPayment.amount,
-        paymentMethod: data.get('paymentMethod') || editingPayment.paymentMethod,
+        method: data.get('paymentMethod') || editingPayment.paymentMethod,
         status: data.get('status') || editingPayment.status
       };
       await apiService.updatePayment(editingPayment.id, payload);
