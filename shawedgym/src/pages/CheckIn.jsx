@@ -9,6 +9,7 @@ import QrScanner from 'qr-scanner';
 const CheckIn = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentlyInGym, setCurrentlyInGym] = useState([]);
+  const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [todayStats, setTodayStats] = useState({
     totalCheckIns: 0,
     currentlyInside: 0,
@@ -49,6 +50,7 @@ const CheckIn = () => {
       try {
         const res = await apiService.getAttendance({ limit: 500 });
         const records = res?.data?.attendance || [];
+        setAttendanceRecords(records);
         const inside = records
           .filter((a) => !a.check_out_time)
           .map((a) => ({
@@ -79,6 +81,54 @@ const CheckIn = () => {
     loadMembers();
     loadAttendance();
   }, []);
+
+  const exportCSV = () => {
+    try {
+      const headers = ['Member ID','Name','Event','Check In','Check Out','Photo URL'];
+      const rows = attendanceRecords.map(r => [
+        r.member_id,
+        `${r.first_name || ''} ${r.last_name || ''}`.trim(),
+        r.event || 'checkin',
+        r.check_in_time || '',
+        r.check_out_time || '',
+        r.photo_url || ''
+      ]);
+      const csv = [headers.join(','), ...rows.map(x => x.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const d = new Date();
+      a.download = `attendance_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { console.error('Export CSV failed', e); }
+  };
+
+  const exportHTML = () => {
+    try {
+      const rows = attendanceRecords.map(r => `
+        <tr>
+          <td>${r.member_id}</td>
+          <td>${(r.first_name||'') + ' ' + (r.last_name||'')}</td>
+          <td>${r.event || 'checkin'}</td>
+          <td>${r.check_in_time || ''}</td>
+          <td>${r.check_out_time || ''}</td>
+          <td>${r.photo_url ? `<img src="${r.photo_url}" alt="photo" style="height:40px;border-radius:6px;"/>` : ''}</td>
+        </tr>`).join('');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Attendance Log</title>
+      <style>body{font-family:Arial;padding:16px;} table{width:100%;border-collapse:collapse} th,td{border:1px solid #e5e7eb;padding:8px;text-align:left} th{background:#f9fafb}</style>
+      </head><body><h2>Attendance Log</h2><table><thead><tr><th>Member ID</th><th>Name</th><th>Event</th><th>Check In</th><th>Check Out</th><th>Photo</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const d = new Date();
+      a.download = `attendance_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.html`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { console.error('Export HTML failed', e); }
+  };
 
   const handleCheckIn = async (member) => {
     try {
@@ -319,6 +369,20 @@ const CheckIn = () => {
                 title="Camera Scan"
               >
                 <Camera className="w-4 h-4" />
+              </button>
+              <button
+                onClick={exportCSV}
+                className="p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
+                title="Download CSV"
+              >
+                CSV
+              </button>
+              <button
+                onClick={exportHTML}
+                className="p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                title="Download HTML/PDF"
+              >
+                PDF
               </button>
             </div>
           </div>
