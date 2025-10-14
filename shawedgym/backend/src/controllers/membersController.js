@@ -244,17 +244,18 @@ const createMember = async (req, res) => {
 const updateMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-      firstName, 
-      lastName, 
-      email, 
-      phone, 
-      membershipType, 
-      dateOfBirth, 
-      address, 
+    // Accept both the simplified Edit form fields and legacy fields; only update what is provided
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      membershipType,
+      dateOfBirth,
+      address,
       emergencyContact,
       emergencyPhone,
-      status 
+      status
     } = req.body;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
@@ -274,14 +275,37 @@ const updateMember = async (req, res) => {
       });
     }
 
+    // Use COALESCE so that missing fields don't overwrite NOT NULL columns (e.g., email)
     const result = await pool.query(
-      `UPDATE members 
-       SET first_name = $1, last_name = $2, email = $3, phone = $4, membership_type = $5, 
-           date_of_birth = $6, address = $7, emergency_contact = $8, emergency_phone = $9, 
-           status = $10, updated_at = NOW()
+      `UPDATE members
+       SET 
+         first_name = COALESCE($1, first_name),
+         last_name = COALESCE($2, last_name),
+         email = COALESCE($3, email),
+         phone = COALESCE($4, phone),
+         membership_type = COALESCE($5, membership_type),
+         date_of_birth = COALESCE($6, date_of_birth),
+         address = COALESCE($7, address),
+         emergency_contact = COALESCE($8, emergency_contact),
+         emergency_phone = COALESCE($9, emergency_phone),
+         status = COALESCE($10, status),
+         updated_at = NOW()
        WHERE id = $11 AND gym_id = $12
        RETURNING *`,
-      [firstName, lastName, email, phone, membershipType, dateOfBirth, address, emergencyContact, emergencyPhone, status, id, gymId]
+      [
+        firstName ?? null,
+        lastName ?? null,
+        email ?? null,
+        phone ?? null,
+        membershipType ?? null,
+        dateOfBirth ?? null,
+        address ?? null,
+        emergencyContact ?? null,
+        emergencyPhone ?? null,
+        status ?? null,
+        id,
+        gymId
+      ]
     );
 
     res.json({
