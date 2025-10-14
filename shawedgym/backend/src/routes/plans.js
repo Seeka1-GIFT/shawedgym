@@ -8,10 +8,10 @@ const { authorizeRoles } = require('../middleware/authorize');
 router.use(authMiddleware);
 
 // GET /api/plans - Get all plans
-router.get('/', authorizeRoles('admin', 'user'), plansController.getPlans);
+router.get('/', authorizeRoles('admin', 'cashier'), plansController.getPlans);
 
 // GET /api/plans/:id - Get plan by ID
-router.get('/:id', authorizeRoles('admin', 'user'), plansController.getPlan);
+router.get('/:id', authorizeRoles('admin', 'cashier'), plansController.getPlan);
 
 // POST /api/plans - Create new plan
 router.post('/', authorizeRoles('admin'), plansController.createPlan);
