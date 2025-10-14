@@ -12,19 +12,19 @@ import { authHelpers } from '../services/api.js';
 
 // Enhanced navigation items with icons
 const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/', icon: Home },
-  { label: 'Check-In/Out', path: '/checkin', icon: Activity },
-  { label: 'Members', path: '/members', icon: Users },
-  { label: 'Plans', path: '/plans', icon: CreditCard },
-  { label: 'Subscriptions', path: '/subscriptions', icon: Target },
-  { label: 'Assets', path: '/assets', icon: Package },
-  { label: 'Classes', path: '/classes', icon: Calendar },
-  { label: 'Trainers', path: '/trainers', icon: UserCheck },
-  { label: 'Attendance', path: '/attendance', icon: ClipboardList },
-  { label: 'Payments', path: '/payments', icon: DollarSign },
-  { label: 'Expenses', path: '/expenses', icon: TrendingDown },
-  { label: 'Reports', path: '/reports', icon: FileText },
-  { label: 'Settings', path: '/settings', icon: Settings },
+  { label: 'Dashboard', path: '/', icon: Home, roles: ['admin'] },
+  { label: 'Check-In/Out', path: '/checkin', icon: Activity, roles: ['admin'] },
+  { label: 'Members', path: '/members', icon: Users, roles: ['admin', 'cashier'] },
+  { label: 'Plans', path: '/plans', icon: CreditCard, roles: ['admin'] },
+  { label: 'Subscriptions', path: '/subscriptions', icon: Target, roles: ['admin'] },
+  { label: 'Assets', path: '/assets', icon: Package, roles: ['admin'] },
+  { label: 'Classes', path: '/classes', icon: Calendar, roles: ['admin'] },
+  { label: 'Trainers', path: '/trainers', icon: UserCheck, roles: ['admin'] },
+  { label: 'Attendance', path: '/attendance', icon: ClipboardList, roles: ['admin', 'cashier'] },
+  { label: 'Payments', path: '/payments', icon: DollarSign, roles: ['admin', 'cashier'] },
+  { label: 'Expenses', path: '/expenses', icon: TrendingDown, roles: ['admin'] },
+  { label: 'Reports', path: '/reports', icon: FileText, roles: ['admin'] },
+  { label: 'Settings', path: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
 /**
@@ -109,7 +109,7 @@ const Navbar = ({ theme, setTheme }) => {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto p-4 space-y-2">
-            {NAV_ITEMS.map(({ label, path, icon: Icon }) => (
+            {NAV_ITEMS.filter(item => !item.roles || item.roles.includes(user?.role)).map(({ label, path, icon: Icon }) => (
               <NavLink
                 key={path}
                 to={path}
