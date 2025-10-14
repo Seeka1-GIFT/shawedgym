@@ -188,7 +188,16 @@ const Members = () => {
           </div>
           {(isAdmin || isCashier) && (
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={async () => {
+                try {
+                  const plansResponse = await apiService.getPlans();
+                  setPlanOptions(plansResponse?.data?.plans || plansResponse?.data || []);
+                } catch {
+                  setPlanOptions([]);
+                } finally {
+                  setShowAddModal(true);
+                }
+              }}
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
             >
               <Plus className="w-4 h-4" />
