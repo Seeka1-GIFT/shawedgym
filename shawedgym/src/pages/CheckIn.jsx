@@ -57,7 +57,7 @@ const CheckIn = () => {
             name: `${a.first_name || ''} ${a.last_name || ''}`.trim() || `MEM${String(a.member_id).padStart(3, '0')}`,
             checkInTime: a.check_in_time,
             membershipType: 'Member',
-            photo: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
+            photo: a.photo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
           }));
 
         // Stats for today
