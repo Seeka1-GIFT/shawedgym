@@ -1,5 +1,146 @@
 const pool = require('../config/database');
 
+// --- Face Device Integration Helpers ---
+let schemaEnsured = false;
+async function ensureAttendanceSchema() {
+  if (schemaEnsured) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS devices (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100),
+        vendor VARCHAR(50),
+        serial VARCHAR(100) UNIQUE,
+        secret VARCHAR(100),
+        gym_id INTEGER,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='members' AND column_name='face_id'
+        ) THEN
+          ALTER TABLE members ADD COLUMN face_id VARCHAR(100);
+        END IF;
+      END$$;
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS attendance (
+        id SERIAL PRIMARY KEY,
+        member_id INTEGER NOT NULL,
+        device_id INTEGER,
+        event VARCHAR(20) DEFAULT 'checkin',
+        check_in_time TIMESTAMP,
+        check_out_time TIMESTAMP,
+        gym_id INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    schemaEnsured = true;
+  } catch (e) {
+    console.error('ensureAttendanceSchema error:', e);
+  }
+}
+
+// Public device webhook: minimal auth using device secret header
+const deviceWebhook = async (req, res) => {
+  try {
+    await ensureAttendanceSchema();
+    const sig = req.header('x-device-secret') || req.header('x-signature');
+    const deviceSn = req.header('x-device-serial') || req.body.device_sn || req.body.deviceSn;
+    const { person_id, ts, event } = req.body;
+
+    if (!deviceSn || !sig || !person_id) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Missing device_sn, secret or person_id' });
+    }
+
+    let device = await pool.query('SELECT * FROM devices WHERE serial = $1', [deviceSn]);
+    if (device.rows.length === 0) {
+      const inserted = await pool.query('INSERT INTO devices (serial, secret) VALUES ($1, $2) RETURNING *', [deviceSn, sig]);
+      device = { rows: [inserted.rows[0]] };
+    }
+    const dev = device.rows[0];
+    if (dev.secret && dev.secret !== sig) {
+      return res.status(403).json({ error: 'Forbidden', message: 'Invalid device secret' });
+    }
+
+    let member;
+    if (dev.gym_id) {
+      member = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 AND gym_id = $2 LIMIT 1', [person_id, dev.gym_id]);
+    } else {
+      member = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 LIMIT 1', [person_id]);
+      if (member.rows.length) {
+        await pool.query('UPDATE devices SET gym_id = $1 WHERE id = $2', [member.rows[0].gym_id, dev.id]);
+      }
+    }
+    if (member.rows.length === 0) {
+      return res.json({ success: true, message: 'Unknown person_id; ignored' });
+    }
+    const m = member.rows[0];
+    const when = ts ? new Date(ts) : new Date();
+    const ev = (event || 'checkin').toLowerCase();
+    await pool.query(
+      `INSERT INTO attendance (member_id, device_id, event, check_in_time, gym_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, NOW())`,
+      [m.id, dev.id, ev, when, m.gym_id]
+    );
+    return res.json({ success: true });
+  } catch (e) {
+    console.error('deviceWebhook error:', e);
+    return res.status(500).json({ error: 'Server Error', message: 'Failed to record attendance' });
+  }
+};
+
+// Batch sync for FaceName PC service
+const syncFromService = async (req, res) => {
+  try {
+    await ensureAttendanceSchema();
+    const { device_sn, secret, records = [] } = req.body || {};
+    if (!device_sn || !records.length) {
+      return res.status(400).json({ error: 'Bad Request', message: 'device_sn and records required' });
+    }
+    let device = await pool.query('SELECT * FROM devices WHERE serial = $1', [device_sn]);
+    if (device.rows.length === 0) {
+      const inserted = await pool.query('INSERT INTO devices (serial, secret) VALUES ($1, $2) RETURNING *', [device_sn, secret || null]);
+      device = { rows: [inserted.rows[0]] };
+    }
+    const dev = device.rows[0];
+    if (dev.secret && secret && dev.secret !== secret) {
+      return res.status(403).json({ error: 'Forbidden', message: 'Invalid device secret' });
+    }
+    let inserted = 0;
+    for (const r of records) {
+      const person = String(r.person_id || '').trim();
+      if (!person) continue;
+      let m;
+      if (dev.gym_id) {
+        m = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 AND gym_id = $2 LIMIT 1', [person, dev.gym_id]);
+      } else {
+        m = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 LIMIT 1', [person]);
+        if (m.rows.length && !dev.gym_id) {
+          await pool.query('UPDATE devices SET gym_id = $1 WHERE id = $2', [m.rows[0].gym_id, dev.id]);
+        }
+      }
+      if (!m.rows.length) continue;
+      const when = r.ts ? new Date(r.ts) : new Date();
+      const ev = (r.event || 'checkin').toLowerCase();
+      await pool.query(
+        `INSERT INTO attendance (member_id, device_id, event, check_in_time, gym_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [m.rows[0].id, dev.id, ev, when, m.rows[0].gym_id]
+      );
+      inserted++;
+    }
+    return res.json({ success: true, inserted });
+  } catch (e) {
+    console.error('syncFromService error:', e);
+    return res.status(500).json({ error: 'Server Error', message: 'Failed to sync attendance' });
+  }
+};
+
 const getAttendance = async (req, res) => {
   try {
     const { page = 1, limit = 20, memberId, startDate, endDate } = req.query;
@@ -143,7 +284,14 @@ const deleteAttendance = async (req, res) => {
   }
 };
 
-module.exports = { getAttendance, createAttendance, updateAttendance, deleteAttendance };
+module.exports = {
+  getAttendance,
+  createAttendance,
+  updateAttendance,
+  deleteAttendance,
+  deviceWebhook,
+  syncFromService
+};
 
 
 
