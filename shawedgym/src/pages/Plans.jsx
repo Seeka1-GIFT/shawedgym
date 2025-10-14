@@ -226,124 +226,43 @@ const Plans = () => {
         </div>
       </div>
 
-      {/* Plans Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredPlans.map((plan) => {
-          const PlanIcon = getPlanIcon(plan.category);
-          const gradient = getPlanGradient(plan.color);
-          
-          return (
-            <div key={plan.id} className={`relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 overflow-hidden ${plan.mostPopular ? 'ring-4 ring-purple-500 ring-opacity-50' : ''}`}>
-              {/* Popular Badge */}
-              {plan.mostPopular && (
-                <div className="absolute top-4 right-4 z-10">
-                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center space-x-1">
-                    <Sparkles className="w-3 h-3" />
-                    <span>MOST POPULAR</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Discount Badge */}
-              {plan.discount > 0 && (
-                <div className="absolute top-4 left-4 z-10">
-                  <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-                    {plan.discount}% OFF
-                  </div>
-                </div>
-              )}
-
-              {/* Header with gradient background */}
-              <div className={`bg-gradient-to-br ${gradient} p-8 text-white relative overflow-hidden`}>
-                <div className="absolute inset-0 bg-black bg-opacity-10"></div>
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-4">
-                    <PlanIcon className="w-12 h-12 text-white" />
-                    <div className="text-right">
-                      <div className="text-sm opacity-80">{plan.category}</div>
-                      <div className="text-xs opacity-60">#{plan.popularityRank} Popular</div>
-                    </div>
-                  </div>
-                  <h3 className="text-3xl font-bold mb-2">{plan.name}</h3>
-                  <p className="text-white text-opacity-90 text-sm">{plan.description}</p>
-                </div>
-              </div>
-
-              <div className="p-8">
-                {/* Pricing */}
-                <div className="mb-6">
-                  <div className="flex items-baseline space-x-2">
-                    {plan.discount > 0 && (
-                      <span className="text-2xl text-gray-400 line-through">${plan.price}</span>
-                    )}
-                    <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                      ${plan.discount > 0 ? Math.round(plan.price * (1 - plan.discount / 100)) : plan.price}
-                    </span>
-                    <span className="text-gray-500 dark:text-gray-400">/{plan.duration}mo</span>
-                  </div>
-                  {plan.discount > 0 && (
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
-                      Save ${Math.round(plan.price * plan.discount / 100)} with this plan!
-                    </p>
-                  )}
-                </div>
-
-                {/* Features */}
-                <div className="mb-8">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">What's included:</h4>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center space-x-3">
-                        <div className={`p-1 bg-gradient-to-r ${gradient} rounded-full`}>
-                          <CheckCircle className="w-4 h-4 text-white" />
-                        </div>
-                        <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Stats */}
-                <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">{plan.subscribers}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Subscribers</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white">{plan.duration}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Months</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-1">
-                        <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-lg font-bold text-gray-900 dark:text-white">4.8</span>
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">Rating</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="space-y-3">
-                  <button className={`w-full py-3 px-4 bg-gradient-to-r ${gradient} hover:shadow-lg text-white font-semibold rounded-xl transition-all duration-300 transform hover:scale-105`}>
-                    Choose This Plan
-                  </button>
-                  <div className="flex space-x-2">
-                    <button onClick={() => handleEditPlan(plan)} className="flex-1 py-2 px-4 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                      <Edit className="w-4 h-4" />
-                      <span>Edit</span>
+      {/* Plans Table View */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700/50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Name</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Category</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Duration</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Subscribers</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+              {filteredPlans.map((plan) => (
+                <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{plan.name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{plan.category}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">${plan.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{plan.duration} mo</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">{plan.subscribers}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-xl truncate">{plan.description}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                    <button onClick={() => handleEditPlan(plan)} className="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg mr-2">
+                      <Edit className="w-4 h-4 mr-1" /> Edit
                     </button>
-                    <button onClick={() => handleDeletePlan(plan)} className="flex-1 py-2 px-4 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex items-center justify-center space-x-2">
-                      <Trash2 className="w-4 h-4" />
-                      <span>Delete</span>
+                    <button onClick={() => handleDeletePlan(plan)} className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                      <Trash2 className="w-4 h-4 mr-1" /> Delete
                     </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Empty State */}
