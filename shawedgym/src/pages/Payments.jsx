@@ -180,6 +180,7 @@ const Payments = () => {
   const { showSuccess, showError } = useToast();
   const currentUser = authHelpers.getUser();
   const isAdmin = currentUser?.role === 'admin';
+  const isCashier = currentUser?.role === 'cashier';
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterPlan, setFilterPlan] = useState('all');
@@ -729,7 +730,7 @@ const Payments = () => {
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-400">Track transactions, manage payments, and analyze revenue streams</p>
-        {isAdmin && (
+        {(isAdmin || isCashier) && (
           <div className="mt-4">
             <button onClick={() => setShowAddPaymentModal(true)} className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg">Add New Payment</button>
           </div>
@@ -821,7 +822,7 @@ const Payments = () => {
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
-            {isAdmin && (
+            {(isAdmin || isCashier) && (
               <button onClick={() => setShowAddPaymentModal(true)} className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 <Plus className="w-4 h-4" />
                 <span>New Payment</span>
