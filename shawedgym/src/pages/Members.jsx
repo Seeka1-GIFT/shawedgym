@@ -26,6 +26,7 @@ const Members = () => {
   const [planOptions, setPlanOptions] = useState([]);
   const currentUser = authHelpers.getUser();
   const isAdmin = currentUser?.role === 'admin';
+  const isCashier = currentUser?.role === 'cashier';
 
   // Load members and plans
   useEffect(() => {
@@ -74,9 +75,9 @@ const Members = () => {
 
   // CRUD Functions
   const handleAddMember = async (memberData) => {
-    if (!isAdmin) {
-      showError('Only administrators can create members');
-       return;
+    if (!(isAdmin || isCashier)) {
+      showError('Only administrators or cashiers can create members');
+      return;
     }
     try {
       const response = await apiService.createMember(memberData);
@@ -185,7 +186,7 @@ const Members = () => {
             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Members</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
           </div>
-          {isAdmin && (
+          {(isAdmin || isCashier) && (
             <button
               onClick={() => setShowAddModal(true)}
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg shadow-lg transition-all duration-300 transform hover:scale-105"
