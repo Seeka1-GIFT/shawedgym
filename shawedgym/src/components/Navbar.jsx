@@ -12,7 +12,7 @@ import { authHelpers } from '../services/api.js';
 
 // Enhanced navigation items with icons
 const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/', icon: Home, roles: ['admin'] },
+  { label: 'Dashboard', path: '/', icon: Home, roles: ['admin', 'cashier'] },
   { label: 'Check-In/Out', path: '/checkin', icon: Activity, roles: ['admin'] },
   { label: 'Members', path: '/members', icon: Users, roles: ['admin', 'cashier'] },
   { label: 'Plans', path: '/plans', icon: CreditCard, roles: ['admin'] },
