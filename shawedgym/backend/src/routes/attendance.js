@@ -4,6 +4,11 @@ const attendanceController = require('../controllers/attendanceController');
 const authMiddleware = require('../middleware/auth');
 const { authorizeRoles } = require('../middleware/authorize');
 
+// Public device endpoints first (no auth header; device secret verified inside controller)
+router.post('/device-webhook', attendanceController.deviceWebhook);
+router.post('/sync', attendanceController.syncFromService);
+
+// Authenticated app endpoints
 router.use(authMiddleware);
 
 router.get('/', authorizeRoles('admin', 'cashier'), attendanceController.getAttendance);
