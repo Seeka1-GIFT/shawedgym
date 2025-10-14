@@ -35,9 +35,21 @@ async function ensureAttendanceSchema() {
         event VARCHAR(20) DEFAULT 'checkin',
         check_in_time TIMESTAMP,
         check_out_time TIMESTAMP,
+        photo_url TEXT,
         gym_id INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
+    // Add photo_url column if missing (for existing installations)
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name='attendance' AND column_name='photo_url') THEN
+          ALTER TABLE attendance ADD COLUMN photo_url TEXT;
+        END IF;
+      END$$;
     `);
     schemaEnsured = true;
   } catch (e) {
@@ -51,7 +63,7 @@ const deviceWebhook = async (req, res) => {
     await ensureAttendanceSchema();
     const sig = req.header('x-device-secret') || req.header('x-signature');
     const deviceSn = req.header('x-device-serial') || req.body.device_sn || req.body.deviceSn;
-    const { person_id, ts, event } = req.body;
+    const { person_id, ts, event, photo_url } = req.body;
 
     if (!deviceSn || !sig || !person_id) {
       return res.status(400).json({ error: 'Bad Request', message: 'Missing device_sn, secret or person_id' });
@@ -83,9 +95,9 @@ const deviceWebhook = async (req, res) => {
     const when = ts ? new Date(ts) : new Date();
     const ev = (event || 'checkin').toLowerCase();
     await pool.query(
-      `INSERT INTO attendance (member_id, device_id, event, check_in_time, gym_id, created_at)
-       VALUES ($1, $2, $3, $4, $5, NOW())`,
-      [m.id, dev.id, ev, when, m.gym_id]
+      `INSERT INTO attendance (member_id, device_id, event, check_in_time, photo_url, gym_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+      [m.id, dev.id, ev, when, photo_url || null, m.gym_id]
     );
     return res.json({ success: true });
   } catch (e) {
@@ -128,9 +140,9 @@ const syncFromService = async (req, res) => {
       const when = r.ts ? new Date(r.ts) : new Date();
       const ev = (r.event || 'checkin').toLowerCase();
       await pool.query(
-        `INSERT INTO attendance (member_id, device_id, event, check_in_time, gym_id, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [m.rows[0].id, dev.id, ev, when, m.rows[0].gym_id]
+        `INSERT INTO attendance (member_id, device_id, event, check_in_time, photo_url, gym_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+        [m.rows[0].id, dev.id, ev, when, r.photo_url || null, m.rows[0].gym_id]
       );
       inserted++;
     }
