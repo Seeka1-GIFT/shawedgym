@@ -121,12 +121,9 @@ const CheckIn = () => {
       </head><body><h2>Attendance Log</h2><table><thead><tr><th>Member ID</th><th>Name</th><th>Event</th><th>Check In</th><th>Check Out</th><th>Photo</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
       const blob = new Blob([html], { type: 'text/html;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const d = new Date();
-      a.download = `attendance_${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}.html`;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const w = window.open(url, '_blank');
+      const done = () => { try { w.focus(); w.print(); } catch(e) {} setTimeout(() => { try { w.close(); URL.revokeObjectURL(url); } catch(e) {} }, 300); };
+      if (w) { w.onload = done; setTimeout(done, 800); }
     } catch (e) { console.error('Export HTML failed', e); }
   };
 
@@ -380,9 +377,9 @@ const CheckIn = () => {
               <button
                 onClick={exportHTML}
                 className="p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
-                title="Download HTML/PDF"
+                title="Print / Save as PDF"
               >
-                PDF
+                Print
               </button>
             </div>
           </div>
