@@ -125,14 +125,12 @@ const Members = () => {
       const payload = {
         firstName: data.get('firstName') || editingMember.first_name,
         lastName: data.get('lastName') || editingMember.last_name,
-        email: data.get('email') || editingMember.email,
         phone: data.get('phone') || editingMember.phone,
         membershipType: data.get('membershipType') || editingMember.membership_type,
-        dateOfBirth: data.get('dateOfBirth') || editingMember.date_of_birth,
-        address: data.get('address') || editingMember.address,
-        emergencyContact: data.get('emergencyContact') || editingMember.emergency_contact,
-        emergencyPhone: data.get('emergencyPhone') || editingMember.emergency_phone,
-        status: data.get('status') || editingMember.status
+        // Map Date of Registration field to dateOfBirth param for backward compatibility
+        dateOfBirth: data.get('dateOfBirth') || editingMember.date_of_birth
+        // registrationFee and paymentMethod are intentionally collected for UI parity
+        // but are ignored by the backend update endpoint at the moment
       };
       await apiService.updateMember(editingMember.id, payload);
       const refreshResponse = await apiService.getMembers({ search: searchTerm });
@@ -371,67 +369,105 @@ const Members = () => {
                     </div>
               <form onSubmit={handleUpdateMember} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* First Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
-                    <input name="firstName" defaultValue={editingMember.first_name}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name *</label>
+                    <input
+                      name="firstName"
+                      type="text"
+                      defaultValue={editingMember.first_name}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="Enter first name"
+                    />
                   </div>
+                  {/* Last Name */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
-                    <input name="lastName" defaultValue={editingMember.last_name}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-                    </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                    <input type="email" name="email" defaultValue={editingMember.email}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-                    </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone</label>
-                    <input name="phone" defaultValue={editingMember.phone}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name *</label>
+                    <input
+                      name="lastName"
+                      type="text"
+                      defaultValue={editingMember.last_name}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="Enter last name"
+                    />
                   </div>
+                  {/* Phone */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Membership Type</label>
-                    <select name="membershipType" defaultValue={editingMember.membership_type || 'basic'}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                      <option value="basic">Basic</option>
-                      <option value="premium">Premium</option>
-                      <option value="vip">VIP</option>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone *</label>
+                    <input
+                      name="phone"
+                      type="tel"
+                      defaultValue={editingMember.phone}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="+252-61-123-4567"
+                    />
+                  </div>
+                  {/* Membership Type */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Membership Type *</label>
+                    <select
+                      name="membershipType"
+                      defaultValue={editingMember.membership_type || ''}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="">Select a plan</option>
+                      {planOptions.map(plan => (
+                        <option key={plan.id} value={plan.name}>{plan.name}</option>
+                      ))}
                     </select>
                   </div>
+                  {/* Date of Registration */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                    <select name="status" defaultValue={editingMember.status || 'Active'}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date of Registration</label>
+                    <input
+                      name="dateOfBirth"
+                      type="date"
+                      defaultValue={editingMember.date_of_birth || ''}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  {/* Registration Fee */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Registration Fee ($)</label>
+                    <input
+                      name="registrationFee"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g. 10"
+                    />
+                  </div>
+                  {/* Payment Method */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Payment Method</label>
+                    <select
+                      name="paymentMethod"
+                      defaultValue={"EVC-PLUS"}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    >
+                      <option value="EVC-PLUS">EVC-PLUS</option>
+                      <option value="E-DAHAB">E-DAHAB</option>
+                      <option value="bank_transfer">Bank Transfer</option>
+                      <option value="wallet">Wallet</option>
                     </select>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
-                  <textarea name="address" defaultValue={editingMember.address} rows="2"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-              </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emergency Contact</label>
-                    <input name="emergencyContact" defaultValue={editingMember.emergency_contact}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-        </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emergency Phone</label>
-                    <input name="emergencyPhone" defaultValue={editingMember.emergency_phone}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-                          </div>
-                        </div>
                 <div className="flex items-center justify-end space-x-3 pt-4">
-                  <button type="button" onClick={() => setEditingMember(null)}
-                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 rounded-lg transition-colors">Cancel</button>
-                  <button type="submit"
-                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">Update Member</button>
-                        </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingMember(null)}
+                    className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                  >
+                    Update Member
+                  </button>
+                </div>
               </form>
                         </div>
           </div>
