@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar.jsx';
+import Unauthorized from './pages/Unauthorized.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import { authHelpers } from './services/api.js';
 import { ToastProvider } from './contexts/ToastContext.jsx';
@@ -87,6 +88,7 @@ function App() {
                     {(() => { const C = ReportsPage.default || ReportsPage.Reports; return <Route path="/reports" element={C ? <C /> : <></>} />; })()}
                     <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
                     <Route path="/checkin" element={<CheckIn />} />
+                    <Route path="/unauthorized" element={<Unauthorized />} />
                     {/* Redirect unknown paths back to the dashboard. */}
                     <Route path="*" element={<Navigate to="/dashboard" />} />
                   </Routes>
