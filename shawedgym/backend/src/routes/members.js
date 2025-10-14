@@ -8,19 +8,19 @@ const { authorizeRoles } = require('../middleware/authorize');
 router.use(authMiddleware);
 
 // GET /api/members - Get all members
-router.get('/', authorizeRoles('admin', 'user'), membersController.getMembers);
+router.get('/', authorizeRoles('admin', 'cashier'), membersController.getMembers);
 
 // GET /api/members/stats/dashboard - Get member statistics
-router.get('/stats/dashboard', authorizeRoles('admin', 'user'), membersController.getMemberStats);
+router.get('/stats/dashboard', authorizeRoles('admin', 'cashier'), membersController.getMemberStats);
 
 // GET /api/members/:id - Get member by ID
-router.get('/:id', authorizeRoles('admin', 'user'), membersController.getMember);
+router.get('/:id', authorizeRoles('admin', 'cashier'), membersController.getMember);
 
 // POST /api/members - Create new member
-router.post('/', authorizeRoles('admin'), membersController.createMember);
+router.post('/', authorizeRoles('admin', 'cashier'), membersController.createMember);
 
 // PUT /api/members/:id - Update member
-router.put('/:id', authorizeRoles('admin'), membersController.updateMember);
+router.put('/:id', authorizeRoles('admin', 'cashier'), membersController.updateMember);
 
 // DELETE /api/members/:id - Delete member
 router.delete('/:id', authorizeRoles('admin'), membersController.deleteMember);
