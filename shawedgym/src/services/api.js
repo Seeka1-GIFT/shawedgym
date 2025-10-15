@@ -24,6 +24,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
+    const gymId = localStorage.getItem('gym_id') || (localStorage.getItem('user') && JSON.parse(localStorage.getItem('user'))?.gym_id);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     } else {
@@ -32,6 +33,9 @@ api.interceptors.request.use(
         console.log('No auth token found, skipping request to:', config.url);
         return Promise.reject(new Error('No authentication token'));
       }
+    }
+    if (gymId) {
+      config.headers['X-Gym-Id'] = gymId;
     }
     return config;
   },
