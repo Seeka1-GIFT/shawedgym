@@ -73,15 +73,16 @@ const getExpense = async (req, res) => {
 
 const createExpense = async (req, res) => {
   try {
-    const { title, amount, category, description, expense_date, vendor } = req.body;
+    const { title, amount, category, description, expense_date, vendor, status } = req.body;
 
     if (!title || !amount || !category) {
       return res.status(400).json({ error: 'Validation Error', message: 'Title, amount, and category are required' });
     }
 
+    // Insert status as well to satisfy schemas that require it (defaults to 'approved')
     const result = await pool.query(
-      'INSERT INTO expenses (title, amount, category, description, expense_date, vendor, created_at) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *',
-      [title, amount, category, description, expense_date || new Date(), vendor]
+      'INSERT INTO expenses (title, amount, category, description, expense_date, vendor, status, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) RETURNING *',
+      [title, amount, category, description, expense_date || new Date(), vendor || null, status || 'approved']
     );
 
     res.status(201).json({ success: true, message: 'Expense created successfully', data: { expense: result.rows[0] } });
