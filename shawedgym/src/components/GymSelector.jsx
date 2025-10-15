@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Building2, ChevronDown, Plus, Settings, Trash2 } from 'lucide-react';
+import { Building2, ChevronDown, Plus, Settings } from 'lucide-react';
 import { useGym } from '../contexts/GymContext';
 import { useToast } from '../contexts/ToastContext';
 
 const GymSelector = () => {
-  const { currentGym, gyms, switchGym, createGym, updateGym, deleteGym, loading } = useGym();
+  const { currentGym, gyms, switchGym, createGym, updateGym, loading } = useGym();
   const { showSuccess, showError } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -42,15 +42,7 @@ const GymSelector = () => {
     }
   };
 
-  const handleDeleteGym = async (gym) => {
-    if (window.confirm(`Are you sure you want to delete "${gym.name}"? This action cannot be undone.`)) {
-      try {
-        await deleteGym(gym.id);
-      } catch (error) {
-        // Error is handled in context
-      }
-    }
-  };
+  // Delete action removed to prevent users from deleting gym accounts from the UI
 
   const openEditModal = (gym) => {
     setEditingGym(gym);
@@ -132,15 +124,6 @@ const GymSelector = () => {
                         className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
                       >
                         <Settings className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteGym(gym);
-                        }}
-                        className="p-1 text-gray-500 hover:text-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
