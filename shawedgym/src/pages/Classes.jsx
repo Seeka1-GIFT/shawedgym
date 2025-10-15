@@ -16,7 +16,7 @@ import RelatedData from '../components/RelatedData.jsx';
 const Classes = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards', 'table', 'calendar'
+  const [viewMode, setViewMode] = useState('table'); // 'cards', 'table', 'calendar'
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -288,39 +288,7 @@ const Classes = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'cards' 
-                    ? 'bg-white dark:bg-gray-600 text-orange-600 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                }`}
-              >
-                <Grid className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'table' 
-                    ? 'bg-white dark:bg-gray-600 text-orange-600 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                }`}
-              >
-                <List className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setViewMode('calendar')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'calendar' 
-                    ? 'bg-white dark:bg-gray-600 text-orange-600 shadow-sm' 
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-                }`}
-              >
-                <Calendar className="w-4 h-4" />
-              </button>
-            </div>
-            
+            {/* View toggle removed; default is Table View */}
                   <button
               onClick={() => setShowScheduleModal(true)}
               className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
