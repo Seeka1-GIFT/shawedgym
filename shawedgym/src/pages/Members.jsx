@@ -73,6 +73,56 @@ const Members = () => {
     return matchesSearch && matchesStatus;
   });
 
+  // Export: CSV
+  const exportMembersCSV = () => {
+    try {
+      const headers = ['ID','First Name','Last Name','Phone','Email','Membership Type','Status'];
+      const rows = filteredMembers.map(m => [
+        m.id,
+        m.first_name || '',
+        m.last_name || '',
+        m.phone || '',
+        m.email || '',
+        m.membershipType || '',
+        m.status || ''
+      ]);
+      const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g,'""')}"`).join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `members_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showSuccess('Members exported (CSV)');
+    } catch (e) { console.error('Export CSV failed', e); showError('CSV export failed'); }
+  };
+
+  // Export: PDF/HTML via print dialog
+  const exportMembersPDF = () => {
+    try {
+      const rows = filteredMembers.map(m => `
+        <tr>
+          <td>${m.id}</td>
+          <td>${m.first_name || ''}</td>
+          <td>${m.last_name || ''}</td>
+          <td>${m.phone || ''}</td>
+          <td>${m.email || ''}</td>
+          <td>${m.membershipType || ''}</td>
+          <td>${m.status || ''}</td>
+        </tr>`).join('');
+      const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Members</title>
+      <style>body{font-family:Arial;padding:16px;} h1{margin:0 0 12px} table{width:100%;border-collapse:collapse} th,td{border:1px solid #e5e7eb;padding:8px;text-align:left} th{background:#f9fafb}</style>
+      </head><body><h1>Members Export</h1><p>Date: ${new Date().toLocaleString()}</p>
+      <table><thead><tr><th>ID</th><th>First</th><th>Last</th><th>Phone</th><th>Email</th><th>Membership</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, '_blank');
+      const done = () => { try { w.print(); } catch(e) {} setTimeout(() => { try { w.close(); URL.revokeObjectURL(url); } catch(e) {} }, 400); };
+      if (w) { w.onload = done; setTimeout(done, 800); }
+    } catch (e) { console.error('Export PDF failed', e); showError('PDF export failed'); }
+  };
+
   // CRUD Functions
   const handleAddMember = async (memberData) => {
     if (!(isAdmin || isCashier)) {
@@ -186,7 +236,22 @@ const Members = () => {
             <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Members</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
           </div>
-          {(isAdmin || isCashier) && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportMembersCSV}
+              className="flex items-center space-x-2 px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg"
+            >
+              <Download className="w-4 h-4" />
+              <span>CSV</span>
+            </button>
+            <button
+              onClick={exportMembersPDF}
+              className="flex items-center space-x-2 px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+            >
+              <Download className="w-4 h-4" />
+              <span>PDF</span>
+            </button>
+            {(isAdmin || isCashier) && (
             <button
               onClick={async () => {
                 try {
@@ -204,6 +269,7 @@ const Members = () => {
               <span>Add Member</span>
             </button>
           )}
+          </div>
         </div>
       </div>
 
