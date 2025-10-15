@@ -16,7 +16,7 @@ const Assets = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterCondition, setFilterCondition] = useState('all');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const [viewMode, setViewMode] = useState('table'); // 'cards' or 'table'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingAsset, setEditingAsset] = useState(null);
@@ -335,12 +335,7 @@ const Assets = () => {
           </div>
           
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode(viewMode === 'cards' ? 'table' : 'cards')}
-              className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
-            >
-              {viewMode === 'cards' ? 'Table View' : 'Card View'}
-            </button>
+            {/* View toggle removed per request; default is Table View */}
             <button className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
               <Download className="w-4 h-4" />
               <span>Export</span>
