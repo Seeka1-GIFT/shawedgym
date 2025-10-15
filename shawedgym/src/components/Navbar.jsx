@@ -6,7 +6,7 @@ import {
   FileText, Settings, Menu, X, Sun, Moon, Dumbbell, 
   Activity, Target, LogOut 
 } from 'lucide-react';
-import NotificationSystem from './NotificationSystem.jsx';
+// NotificationSystem removed per request
 import GymSelector from './GymSelector.jsx';
 import { authHelpers } from '../services/api.js';
 
@@ -95,10 +95,7 @@ const Navbar = ({ theme, setTheme }) => {
                 </div>
               </div>
               
-              {/* Notification System */}
-              <div className="hidden md:block">
-                <NotificationSystem />
-              </div>
+              {/* Notification System removed */}
             </div>
             
             {/* Gym Selector */}
