@@ -8,10 +8,10 @@ const { authorizeRoles } = require('../middleware/authorize');
 router.use(authMiddleware);
 
 // GET /api/assets - Get all assets
-router.get('/', authorizeRoles('admin', 'user'), assetsController.getAssets);
+router.get('/', authorizeRoles('admin', 'cashier'), assetsController.getAssets);
 
 // GET /api/assets/:id - Get asset by ID
-router.get('/:id', authorizeRoles('admin', 'user'), assetsController.getAsset);
+router.get('/:id', authorizeRoles('admin', 'cashier'), assetsController.getAsset);
 
 // POST /api/assets - Create new asset
 router.post('/', authorizeRoles('admin'), assetsController.createAsset);
