@@ -18,7 +18,7 @@ const Expenses = () => {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [dateRange, setDateRange] = useState('all');
-  const [viewMode, setViewMode] = useState('overview'); // 'overview', 'detailed', 'analytics'
+  const [viewMode, setViewMode] = useState('detailed'); // 'overview', 'detailed', 'analytics'
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState(null);
@@ -551,7 +551,6 @@ const Expenses = () => {
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
-                
                 <div className="flex items-center space-x-2">
                   <Filter className="w-4 h-4 text-gray-400" />
                   <select
@@ -565,7 +564,6 @@ const Expenses = () => {
                     ))}
                   </select>
                 </div>
-
                 <div className="flex items-center space-x-2">
                   <select
                     value={filterStatus}
@@ -582,125 +580,57 @@ const Expenses = () => {
             </div>
           </div>
 
-          {/* Expense Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredExpenses.map((expense) => {
-              const CategoryIcon = getCategoryIcon(expense.category);
-              const StatusIcon = getStatusIcon(expense.status);
-              const budgetPercentage = (expense.amount / expense.budget) * 100;
-              
-              return (
-                <div key={expense.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="p-6">
-                    {/* Expense Header */}
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                          <CategoryIcon className="w-6 h-6 text-gray-600 dark:text-gray-400" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{expense.category}</h3>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{expense.receiptNumber}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <StatusIcon className={`w-5 h-5 ${
-                          expense.status === 'approved' ? 'text-green-500' :
-                          expense.status === 'pending' ? 'text-yellow-500' : 'text-red-500'
-                        }`} />
-                      </div>
-                    </div>
-
-                    {/* Expense Details */}
-                    <div className="mb-4">
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">{expense.description}</p>
-                      
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Vendor:</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{expense.vendor}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Date:</span>
-                          <span className="font-medium text-gray-900 dark:text-white">{expense.date}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600 dark:text-gray-400">Amount:</span>
-                          <span className="text-lg font-bold text-red-600">${expense.amount}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Status and Priority */}
-                    <div className="flex items-center space-x-2 mb-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(expense.status)}`}>
-                        {expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
-                      </span>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(expense.priority)}`}>
-                        {expense.priority} Priority
-                      </span>
-                      {expense.recurring && (
-                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 rounded-full text-xs font-medium">
-                          Recurring
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Budget Progress */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">Budget Utilization</span>
-                        <span className={`font-medium ${budgetPercentage > 100 ? 'text-red-600' : budgetPercentage > 80 ? 'text-yellow-600' : 'text-green-600'}`}>
-                          {budgetPercentage.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            budgetPercentage > 100 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            budgetPercentage > 80 ? 'bg-gradient-to-r from-yellow-500 to-orange-500' :
-                            'bg-gradient-to-r from-green-500 to-blue-500'
-                          }`}
-                          style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
-                        ></div>
-                      </div>
-                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        <span>${expense.amount}</span>
-                        <span>${expense.budget} budget</span>
-                      </div>
-                    </div>
-
-                    {/* Tags */}
-                    <div className="mb-4">
-                      <div className="flex flex-wrap gap-1">
-                        {expense.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-full"
-                          >
-                            {tag}
+          {/* Table View */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Vendor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {filteredExpenses.map((expense) => {
+                    const StatusIcon = getStatusIcon(expense.status);
+                    return (
+                      <tr key={expense.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">{expense.category}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{expense.description || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{expense.vendor}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{expense.date}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-red-600">${expense.amount}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(expense.status)} inline-flex items-center gap-1`}>
+                            <StatusIcon className="w-3 h-3" />
+                            {expense.status.charAt(0).toUpperCase() + expense.status.slice(1)}
                           </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2">
-                      <button onClick={() => handleShowDetails(expense)} className="flex-1 flex items-center justify-center space-x-2 py-2 px-4 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors">
-                        <Eye className="w-4 h-4" />
-                        <span>Details</span>
-                      </button>
-                      <button onClick={() => handleEditExpense(expense)} className="p-2 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDeleteExpense(expense)} className="p-2 border border-red-300 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <button onClick={() => handleShowDetails(expense)} className="text-blue-600 hover:text-blue-900 dark:text-blue-400">
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleEditExpense(expense)} className="text-gray-600 hover:text-gray-900 dark:text-gray-400">
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDeleteExpense(expense)} className="text-red-600 hover:text-red-900 dark:text-red-400">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
