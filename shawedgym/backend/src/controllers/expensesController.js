@@ -81,7 +81,10 @@ const createExpense = async (req, res) => {
 
     // Insert status as well to satisfy schemas that require it (defaults to 'approved')
     // Attach gym_id from authenticated user to satisfy NOT NULL constraint
-    const gymId = req.user?.gym_id;
+    const gymId = req.user?.gym_id || req.header('X-Gym-Id');
+    if (!gymId) {
+      return res.status(400).json({ error: 'Bad Request', message: 'Gym ID is required' });
+    }
     const result = await pool.query(
       'INSERT INTO expenses (title, amount, category, description, expense_date, vendor, status, gym_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW()) RETURNING *',
       [title, amount, category, description, expense_date || new Date(), vendor || null, status || 'approved', gymId]
