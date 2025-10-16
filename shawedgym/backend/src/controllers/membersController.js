@@ -130,7 +130,11 @@ const createMember = async (req, res) => {
       emergencyPhone,
       registrationFee,
       planId,
-      paymentMethod
+      paymentMethod,
+      // New optional fields for device integration and membership tracking
+      registered_at,
+      external_person_id,
+      photo_url
     } = req.body;
     // Support both registrationFee and registration_fee; default to 0 when empty
     const registrationFeeRaw = req.body.registration_fee ?? registrationFee;
@@ -176,11 +180,36 @@ const createMember = async (req, res) => {
     // Insert with unique email to avoid duplicate constraint
     const uniqueEmail = normalizedEmail + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
+    // Determine membership start/end
+    const startAt = registered_at ? new Date(registered_at) : new Date();
+    let expiresAt = null;
+
+    // Derive plan duration in days from plans.duration if available, default 30 days
+    try {
+      if (planId) {
+        const planRes = await pool.query('SELECT duration FROM plans WHERE id = $1 AND gym_id = $2', [planId, gymId]);
+        if (planRes.rows.length) {
+          const months = Number(planRes.rows[0].duration) || 1; // duration stored as months
+          const tmp = new Date(startAt);
+          tmp.setMonth(tmp.getMonth() + months);
+          expiresAt = tmp;
+        }
+      }
+    } catch (e) {
+      // fallback: 30 days
+      const tmp = new Date(startAt);
+      tmp.setDate(tmp.getDate() + 30);
+      expiresAt = tmp;
+    }
+
     const result = await pool.query(
-      `INSERT INTO members (first_name, last_name, email, phone, membership_type, status, gym_id, created_at) 
-       VALUES ($1, $2, $3, $4, 'Standard', 'Active', $5, NOW()) 
+      `INSERT INTO members (
+         first_name, last_name, email, phone, membership_type, status,
+         gym_id, created_at, registered_at, plan_expires_at, face_id, photo_url
+       ) 
+       VALUES ($1, $2, $3, $4, 'Standard', 'Active', $5, NOW(), $6, $7, $8, $9) 
        RETURNING *`,
-      [firstName, lastName, uniqueEmail, phone, gymId]
+      [firstName, lastName, uniqueEmail, phone, gymId, startAt, expiresAt, external_person_id || null, photo_url || null]
     );
 
     const member = result.rows[0];
@@ -255,7 +284,12 @@ const updateMember = async (req, res) => {
       address,
       emergencyContact,
       emergencyPhone,
-      status
+      status,
+      // New optional fields
+      registered_at,
+      plan_expires_at,
+      external_person_id,
+      photo_url
     } = req.body;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
@@ -289,8 +323,12 @@ const updateMember = async (req, res) => {
          emergency_contact = COALESCE($8, emergency_contact),
          emergency_phone = COALESCE($9, emergency_phone),
          status = COALESCE($10, status),
+         registered_at = COALESCE($11, registered_at),
+         plan_expires_at = COALESCE($12, plan_expires_at),
+         face_id = COALESCE($13, face_id),
+         photo_url = COALESCE($14, photo_url),
          updated_at = NOW()
-       WHERE id = $11 AND gym_id = $12
+       WHERE id = $15 AND gym_id = $16
        RETURNING *`,
       [
         firstName ?? null,
@@ -303,6 +341,10 @@ const updateMember = async (req, res) => {
         emergencyContact ?? null,
         emergencyPhone ?? null,
         status ?? null,
+        registered_at ?? null,
+        plan_expires_at ?? null,
+        external_person_id ?? null,
+        photo_url ?? null,
         id,
         gymId
       ]
