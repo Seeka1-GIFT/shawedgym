@@ -22,6 +22,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
   const [cameraStream, setCameraStream] = useState(null);
   const videoRef = React.useRef(null);
   const canvasRef = React.useRef(null);
+  const [snapshotDataUrl, setSnapshotDataUrl] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -77,7 +78,16 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     try {
       // If no photo_url provided but snapshot available, upload it
       let photoUrl = formData.photo_url;
-      if (!photoUrl && canvasRef.current && videoRef.current && videoRef.current.videoWidth) {
+      if (!photoUrl && snapshotDataUrl) {
+        const base64 = snapshotDataUrl;
+        try {
+          const uploadRes = await api.post('/uploads/base64', { imageBase64: base64 });
+          const uploadJson = uploadRes?.data;
+          if (uploadJson?.success && uploadJson?.data?.url) {
+            photoUrl = uploadJson.data.url;
+          }
+        } catch (_) {}
+      } else if (!photoUrl && canvasRef.current && videoRef.current && videoRef.current.videoWidth) {
         const canvas = canvasRef.current;
         const video = videoRef.current;
         canvas.width = video.videoWidth;
@@ -292,7 +302,14 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Photo</label>
           <div className="flex items-center gap-3">
-            <video ref={videoRef} className="w-36 h-24 bg-black rounded" autoPlay playsInline muted />
+            <video ref={videoRef} className="w-36 h-24 bg-black rounded object-cover" autoPlay playsInline muted />
+            {snapshotDataUrl ? (
+              <img src={snapshotDataUrl} alt="Snapshot" className="w-36 h-24 rounded object-cover border border-gray-200 dark:border-gray-600" />
+            ) : (
+              <div className="w-36 h-24 rounded bg-gray-100 dark:bg-gray-700 border border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center text-xs text-gray-500">
+                No snapshot
+              </div>
+            )}
             <canvas ref={canvasRef} className="hidden" />
           </div>
           <div className="flex gap-2">
@@ -311,6 +328,10 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                 canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0);
+                try {
+                  const data = canvas.toDataURL('image/jpeg', 0.9);
+                  setSnapshotDataUrl(data);
+                } catch (_) {}
               }
             }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
           </div>
