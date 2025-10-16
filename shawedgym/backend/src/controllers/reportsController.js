@@ -10,6 +10,24 @@ const getBalanceSheet = async (req, res) => {
 
     const q = async (text, params) => (await pool.query(text, params)).rows?.[0] || {};
 
+    // Detect assets table/columns and compute total dynamically
+    const detectAssets = async () => {
+      try {
+        const cols = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='assets'`);
+        const names = (cols.rows || []).map(r => r.column_name);
+        if (names.length === 0) return { v: 0 };
+        const hasGym = names.includes('gym_id');
+        const hasCurrent = names.includes('current_value');
+        const valueExpr = hasCurrent ? 'COALESCE(current_value, purchase_price)' : 'purchase_price';
+        const sql = hasGym
+          ? `SELECT COALESCE(SUM(${valueExpr}),0)::numeric AS v FROM assets WHERE gym_id=$1`
+          : `SELECT COALESCE(SUM(${valueExpr}),0)::numeric AS v FROM assets`;
+        const params = hasGym ? [gymId] : [];
+        const r = await pool.query(sql, params);
+        return r.rows?.[0] || { v: 0 };
+      } catch { return { v: 0 }; }
+    };
+
     const [cashRow, expRow, assetsRow, payablesRow, loansRow, recvRow, openingEquityRow] = await Promise.all([
       // Payments: support either payment_date or created_at
       q(`SELECT COALESCE(SUM(amount),0)::numeric AS v
@@ -28,8 +46,8 @@ const getBalanceSheet = async (req, res) => {
              OR (date IS NULL AND expense_date IS NOT NULL AND expense_date BETWEEN $2 AND $3)
              OR (date IS NULL AND expense_date IS NULL AND DATE(created_at) BETWEEN $2 AND $3)
            )`, [gymId, start, end]).catch(()=>({ v: 0 })),
-      // Assets: table may not exist; catch to zero
-      q(`SELECT COALESCE(SUM(COALESCE(current_value, purchase_price)),0)::numeric AS v FROM assets WHERE gym_id=$1`, [gymId]).catch(()=>({ v: 0 })),
+      // Assets: compute dynamically depending on schema
+      detectAssets(),
       // Payables: if paid_amount column missing, fall back to 0 by catch
       q(`SELECT COALESCE(SUM(amount - COALESCE(paid_amount,0)),0)::numeric AS v FROM expenses WHERE gym_id=$1 AND status IN ('approved','partial')`, [gymId]).catch(()=>({ v: 0 })),
       q(`SELECT COALESCE(SUM(balance),0)::numeric AS v FROM loans WHERE gym_id=$1`, [gymId]).catch(()=>({ v: 0 })),
