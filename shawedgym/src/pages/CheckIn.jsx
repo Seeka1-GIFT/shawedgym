@@ -35,7 +35,7 @@ const CheckIn = () => {
           id: m.id,
           name: `${m.first_name || ''} ${m.last_name || ''}`.trim() || m.email,
           membershipId: `MEM${String(m.id).padStart(3, '0')}`,
-          photo: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(m.first_name || 'M')}${encodeURIComponent(m.last_name || 'U')}`,
+          photo: m.photo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(m.first_name || 'M')}${encodeURIComponent(m.last_name || 'U')}`,
           membershipType: m.membership_type || 'Standard',
           status: (m.status || 'Active').toLowerCase(),
           phone: m.phone || ''
@@ -59,7 +59,7 @@ const CheckIn = () => {
             name: `${a.first_name || ''} ${a.last_name || ''}`.trim() || `MEM${String(a.member_id).padStart(3, '0')}`,
             checkInTime: a.check_in_time,
             membershipType: 'Member',
-            photo: a.photo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
+            photo: a.photo_url || a?.photo_url_member || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
           }));
 
         // Stats for today
@@ -131,13 +131,14 @@ const CheckIn = () => {
     try {
       const res = await apiService.createAttendance({ memberId: member.id });
       const att = res?.data?.attendance;
+      const mem = res?.data?.member;
       const newEntry = {
         attendanceId: att?.id,
         memberId: member.id,
         name: member.name,
         checkInTime: att?.check_in_time || new Date().toISOString(),
         membershipType: member.membershipType,
-        photo: member.photo
+        photo: mem?.photo_url || member.photo
       };
       setCurrentlyInGym((prev) => [...prev, newEntry]);
       setTodayStats((prev) => ({
@@ -146,9 +147,36 @@ const CheckIn = () => {
         currentlyInside: prev.currentlyInside + 1
       }));
     } catch (e) {
-      console.error('Check-in failed', e);
+      if (e?.response?.data?.error === 'PlanExpired') {
+        setScanMessage('Member plan expired. Access denied.');
+      } else {
+        console.error('Check-in failed', e);
+      }
     }
   };
+
+  // Auto-refresh attendance so device webhook updates appear live
+  useEffect(() => {
+    const t = setInterval(async () => {
+      try {
+        const res = await apiService.getAttendance({ limit: 100 });
+        const records = res?.data?.attendance || [];
+        setAttendanceRecords(records);
+        const inside = records
+          .filter((a) => !a.check_out_time)
+          .map((a) => ({
+            attendanceId: a.id,
+            memberId: a.member_id,
+            name: `${a.first_name || ''} ${a.last_name || ''}`.trim() || `MEM${String(a.member_id).padStart(3, '0')}`,
+            checkInTime: a.check_in_time,
+            membershipType: 'Member',
+            photo: a.photo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
+          }));
+        setCurrentlyInGym(inside);
+      } catch {}
+    }, 5000);
+    return () => clearInterval(t);
+  }, []);
 
   const handleCheckOut = async (memberId) => {
     try {
