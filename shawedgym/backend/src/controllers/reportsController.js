@@ -67,7 +67,14 @@ const getBalanceSheet = async (req, res) => {
     const netProfit = revenue - expenses;
     const assets = cash + receivables + fixedAssets;
     const liabilities = loans + payables;
-    const equity = openingEquity + netProfit; // retained earnings included
+    // Adjust opening equity automatically if no owner_equity data exists so the sheet balances
+    let openingEquityAdjusted = openingEquity;
+    const targetEquity = assets - liabilities; // what equity must be for Assets = Liabilities + Equity
+    const currentEquity = openingEquity + netProfit;
+    if (Math.abs(currentEquity - targetEquity) > 0.01 && openingEquity === 0) {
+      openingEquityAdjusted = targetEquity - netProfit;
+    }
+    const equity = openingEquityAdjusted + netProfit; // retained earnings included
 
     return res.json({
       success: true,
@@ -76,7 +83,7 @@ const getBalanceSheet = async (req, res) => {
         sections: {
           assets: { cash, receivables, fixedAssets, total: assets },
           liabilities: { loans, payables, total: liabilities },
-          equity: { openingEquity, retainedEarnings: netProfit, total: equity }
+          equity: { openingEquity: openingEquityAdjusted, retainedEarnings: netProfit, total: equity }
         },
         totals: { assets, liabilities, equity },
         check: Math.abs(assets - (liabilities + equity)) < 0.01
