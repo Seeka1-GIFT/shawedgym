@@ -1,8 +1,11 @@
 {
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/assets/(.*)", "destination": "/dist/assets/$1" },
-    { "source": "/sw.js", "destination": "/dist/sw.js" },
-    { "source": "/(.*)", "destination": "/dist/index.html" }
+    { "source": "/assets/(.*)", "destination": "/assets/$1" },
+    { "source": "/sw.js", "destination": "/sw.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
 
