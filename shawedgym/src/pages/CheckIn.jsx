@@ -19,8 +19,10 @@ const CheckIn = () => {
   const [showQrModal, setShowQrModal] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [scanMessage, setScanMessage] = useState('');
+  const [toast, setToast] = useState({ visible: false, message: '', type: 'success' });
   const qrScannerRef = useRef(null);
   const videoRef = useRef(null);
+  const insideListRef = useRef(null);
 
   // Members from backend
   const [members, setMembers] = useState([]);
@@ -141,6 +143,10 @@ const CheckIn = () => {
         photo: mem?.photo_url || member.photo
       };
       setCurrentlyInGym((prev) => [...prev, newEntry]);
+      // Toast + auto-scroll
+      setToast({ visible: true, message: `${member.name} checked in`, type: 'success' });
+      setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2500);
+      setTimeout(() => { try { if (insideListRef.current) insideListRef.current.scrollTop = 0; } catch(e) {} }, 50);
       setTodayStats((prev) => ({
         ...prev,
         totalCheckIns: prev.totalCheckIns + 1,
@@ -149,6 +155,8 @@ const CheckIn = () => {
     } catch (e) {
       if (e?.response?.data?.error === 'PlanExpired') {
         setScanMessage('Member plan expired. Access denied.');
+        setToast({ visible: true, message: 'Plan expired – access denied', type: 'error' });
+        setTimeout(() => setToast((t) => ({ ...t, visible: false })), 3000);
       } else {
         console.error('Check-in failed', e);
       }
@@ -162,6 +170,7 @@ const CheckIn = () => {
         const res = await apiService.getAttendance({ limit: 100 });
         const records = res?.data?.attendance || [];
         setAttendanceRecords(records);
+        const prevLen = currentlyInGym.length;
         const inside = records
           .filter((a) => !a.check_out_time)
           .map((a) => ({
@@ -173,6 +182,11 @@ const CheckIn = () => {
             photo: a.photo_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(a.first_name || 'M')}${encodeURIComponent(a.last_name || 'U')}`
           }));
         setCurrentlyInGym(inside);
+        if (inside.length > prevLen) {
+          setToast({ visible: true, message: 'New check-in detected', type: 'success' });
+          setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2000);
+          setTimeout(() => { try { if (insideListRef.current) insideListRef.current.scrollTop = 0; } catch(e) {} }, 50);
+        }
       } catch {}
     }, 5000);
     return () => clearInterval(t);
@@ -469,7 +483,7 @@ const CheckIn = () => {
               <p className="text-gray-500 dark:text-gray-400">No members currently checked in</p>
             </div>
           ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div ref={insideListRef} className="space-y-4 max-h-96 overflow-y-auto">
               {currentlyInGym.map((entry) => (
                 <div key={entry.memberId} className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                   <div className="flex items-center space-x-4">
@@ -499,6 +513,13 @@ const CheckIn = () => {
           )}
         </div>
       </div>
+
+      {/* Toast */}
+      {toast.visible && (
+        <div className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-green-600'}`}>
+          {toast.message}
+        </div>
+      )}
 
       {/* QR Code Scanner Modal */}
       {showQrModal && (
