@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // Removed dummy imports to ensure DB-only data
 import { apiService, authHelpers } from '../services/api.js';
 import { useToast } from '../contexts/ToastContext.jsx';
@@ -24,6 +24,9 @@ const Members = () => {
   const [deletingMember, setDeletingMember] = useState(null);
   const [expandedMemberIds, setExpandedMemberIds] = useState(new Set());
   const [planOptions, setPlanOptions] = useState([]);
+  const videoRefEdit = useRef(null);
+  const canvasRefEdit = useRef(null);
+  const [editPhotoUrl, setEditPhotoUrl] = useState('');
   const currentUser = authHelpers.getUser();
   const isAdmin = currentUser?.role === 'admin';
   const isCashier = currentUser?.role === 'cashier';
@@ -51,6 +54,13 @@ const Members = () => {
 
     loadData();
   }, [searchTerm, showError]);
+
+  // When opening edit modal, prefill current photo url
+  useEffect(() => {
+    if (editingMember && (editingMember.photo_url || editingMember.photo)) {
+      setEditPhotoUrl(editingMember.photo_url || editingMember.photo || '');
+    }
+  }, [editingMember]);
 
   // Enhanced member data (use backend photo_url/registered/expires when present)
   const enhancedMembers = members.map(member => {
@@ -179,13 +189,30 @@ const Members = () => {
     try {
       const form = e.currentTarget;
       const data = new FormData(form);
+      // Prepare photo URL from input or webcam snapshot
+      let newPhotoUrl = (data.get('photo_url') || '').trim() || editPhotoUrl;
+      if (!newPhotoUrl && canvasRefEdit.current && videoRefEdit.current && videoRefEdit.current.videoWidth) {
+        const canvas = canvasRefEdit.current;
+        const video = videoRefEdit.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        const base64 = canvas.toDataURL('image/jpeg', 0.9);
+        try {
+          const uploadRes = await apiService.api.post('/uploads/base64', { imageBase64: base64 });
+          const resJson = uploadRes?.data;
+          if (resJson?.success && resJson?.data?.url) newPhotoUrl = resJson.data.url;
+        } catch (_) {}
+      }
       const payload = {
         firstName: data.get('firstName') || editingMember.first_name,
         lastName: data.get('lastName') || editingMember.last_name,
         phone: data.get('phone') || editingMember.phone,
         membershipType: data.get('membershipType') || editingMember.membership_type,
         // Map Date of Registration field to dateOfBirth param for backward compatibility
-        dateOfBirth: data.get('dateOfBirth') || editingMember.date_of_birth
+        dateOfBirth: data.get('dateOfBirth') || editingMember.date_of_birth,
+        photo_url: newPhotoUrl || undefined
         // registrationFee and paymentMethod are intentionally collected for UI parity
         // but are ignored by the backend update endpoint at the moment
       };
@@ -516,6 +543,44 @@ const Members = () => {
                       <option value="bank_transfer">Bank Transfer</option>
                       <option value="wallet">Wallet</option>
                     </select>
+                  </div>
+                  {/* Photo (capture or URL) */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Photo</label>
+                    <div className="flex items-center gap-3 mb-2">
+                      <video ref={videoRefEdit} className="w-36 h-24 bg-black rounded" autoPlay playsInline muted />
+                      <canvas ref={canvasRefEdit} className="hidden" />
+                      {editPhotoUrl && (
+                        <img src={editPhotoUrl} alt="current" className="w-24 h-24 rounded object-cover border dark:border-gray-600" />
+                      )}
+                    </div>
+                    <div className="flex gap-2 mb-2">
+                      <button type="button" onClick={async () => {
+                        try {
+                          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                          if (videoRefEdit.current) videoRefEdit.current.srcObject = stream;
+                        } catch (_) {}
+                      }} className="px-3 py-1 rounded bg-gray-600 text-white">Open Camera</button>
+                      <button type="button" onClick={() => {
+                        if (canvasRefEdit.current && videoRefEdit.current) {
+                          const canvas = canvasRefEdit.current;
+                          const video = videoRefEdit.current;
+                          canvas.width = video.videoWidth;
+                          canvas.height = video.videoHeight;
+                          const ctx = canvas.getContext('2d');
+                          ctx.drawImage(video, 0, 0);
+                          setEditPhotoUrl(canvas.toDataURL('image/jpeg', 0.9));
+                        }
+                      }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
+                    </div>
+                    <input
+                      name="photo_url"
+                      type="url"
+                      defaultValue={editingMember.photo_url || ''}
+                      onChange={(e)=>setEditPhotoUrl(e.target.value)}
+                      placeholder="https://.../member.jpg"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    />
                   </div>
                 </div>
                 <div className="flex items-center justify-end space-x-3 pt-4">
