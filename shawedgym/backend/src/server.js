@@ -20,6 +20,7 @@ const cleanupRoutes = require('./routes/cleanup');
 const gymsRoutes = require('./routes/gyms');
 const multiTenantSetupRoutes = require('./routes/multiTenantSetup');
 const subscriptionsRoutes = require('./routes/subscriptions');
+const uploadsRoutes = require('./routes/uploads');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,6 +29,8 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
+  'https://shawedgym.com',
+  'https://www.shawedgym.com',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -38,16 +41,22 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) return callback(null, true);
     // Allow any Vercel preview/production domain
     if (origin.includes('vercel.app')) return callback(null, true);
+    // Allow shawedgym.com domain
+    if (origin.includes('shawedgym.com')) return callback(null, true);
     // Allow localhost dev variants
     if (origin.includes('localhost')) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // ✅ Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Serve uploaded files
+app.use('/uploads', express.static(require('path').join(__dirname, '..', 'uploads')));
 
 // ✅ Logs for Render deploy check
 console.log('ENV CHECK → has DATABASE_URL:', !!process.env.DATABASE_URL);
@@ -153,6 +162,7 @@ app.use('/api/cleanup', cleanupRoutes);
 app.use('/api/gyms', gymsRoutes);
 app.use('/api/multi-tenant', multiTenantSetupRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/uploads', uploadsRoutes);
 
 // ✅ 404 handler
 app.use('/api/*', (req, res) => {
