@@ -70,7 +70,7 @@ const Members = () => {
     return {
       ...member,
       name: fullName,
-      photo: member.photo_url || `https://images.unsplash.com/photo-${member.id % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'}?w=150&h=150&fit=crop&crop=face`,
+      photo: member.photo_url || '',
       membershipType: member.membership_type || 'Standard',
       registeredLabel: registered ? registered.toISOString().split('T')[0] : '-',
       expiresLabel: expires ? expires.toISOString().split('T')[0] : '-',
@@ -365,7 +365,11 @@ const Members = () => {
                 <tr key={member.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-900/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <img src={member.photo} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                      {member.photo ? (
+                        <img src={member.photo} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" onError={(e)=>{e.currentTarget.style.display='none';}} />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700" />
+                      )}
                       <div>
                         <div className="text-sm font-semibold text-gray-900 dark:text-white">{member.name || '—'}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">ID: {member.id}</div>
