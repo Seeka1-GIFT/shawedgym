@@ -1,3 +1,12 @@
+const router = require('express').Router();
+const { authorizeRoles } = require('../middleware/authorize');
+const reports = require('../controllers/reportsController');
+
+router.get('/balance-sheet', authorizeRoles('admin','cashier'), reports.getBalanceSheet);
+router.get('/balance-sheet/export', authorizeRoles('admin','cashier'), reports.exportBalanceSheet);
+
+module.exports = router;
+
 const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
