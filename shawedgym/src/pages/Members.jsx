@@ -212,6 +212,13 @@ const Members = () => {
           if (resJson?.success && resJson?.data?.url) newPhotoUrl = resJson.data.url;
         } catch (_) {}
       }
+      // If we got a relative URL like /uploads/xxx.jpg, convert to absolute so UI renders instantly
+      if (newPhotoUrl && !/^https?:\/\//i.test(newPhotoUrl)) {
+        try {
+          const base = api?.defaults?.baseURL || '';
+          newPhotoUrl = (new URL(base)).origin + newPhotoUrl;
+        } catch {}
+      }
       if (!newPhotoUrl && canvasRefEdit.current && videoRefEdit.current && videoRefEdit.current.videoWidth) {
         const canvas = canvasRefEdit.current;
         const video = videoRefEdit.current;
@@ -600,27 +607,43 @@ const Members = () => {
                         } catch (_) {}
                       }} className="px-3 py-1 rounded bg-gray-600 text-white">Open Camera</button>
                       <button type="button" onClick={async () => {
-                        if (canvasRefEdit.current && videoRefEdit.current) {
-                          const canvas = canvasRefEdit.current;
-                          const video = videoRefEdit.current;
-                          canvas.width = video.videoWidth;
-                          canvas.height = video.videoHeight;
+                        if (!canvasRefEdit.current || !videoRefEdit.current) return;
+                        const canvas = canvasRefEdit.current;
+                        const video = videoRefEdit.current;
+                        try {
+                          // Ensure camera is started if not already
+                          if (!video.srcObject || !video.videoWidth) {
+                            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                            video.srcObject = stream;
+                            await new Promise((r) => video.onloadedmetadata = () => r());
+                          }
+                        } catch (_) {}
+                        // Capture frame
+                        try {
+                          canvas.width = video.videoWidth || 640;
+                          canvas.height = video.videoHeight || 480;
                           const ctx = canvas.getContext('2d');
                           ctx.drawImage(video, 0, 0);
                           const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                          // Try upload; if fails, keep base64 for immediate preview and submit-time upload
                           try {
-                            const uploadRes = await apiService.api.post('/uploads/base64', { imageBase64: dataUrl });
-                            const resJson = uploadRes?.data;
-                            if (resJson?.success && resJson?.data?.url) {
-                              setEditPhotoUrl(resJson.data.url);
+                            const upload = await fetch((api?.defaults?.baseURL || '') + '/uploads/base64', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`, 'X-Gym-Id': localStorage.getItem('gym_id') || '' },
+                              body: JSON.stringify({ imageBase64: dataUrl })
+                            });
+                            const js = await upload.json().catch(() => ({}));
+                            if (js?.success && js?.data?.url) {
+                              setEditPhotoUrl(js.data.url);
                             } else {
                               setEditPhotoUrl(dataUrl);
                             }
-                          } catch (e) {
+                          } catch {
                             setEditPhotoUrl(dataUrl);
                           }
+                        } finally {
                           // Stop camera after snapshot
-                          try { const s = videoRefEdit.current.srcObject; if (s) s.getTracks().forEach(t => t.stop()); } catch (_) {}
+                          try { const s = video.srcObject; if (s) s.getTracks().forEach(t => t.stop()); } catch (_) {}
                         }
                       }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
                     </div>
