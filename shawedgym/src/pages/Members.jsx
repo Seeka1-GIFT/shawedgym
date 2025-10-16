@@ -353,6 +353,7 @@ const Members = () => {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Member</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Device ID</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registered</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expires</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -373,6 +374,7 @@ const Members = () => {
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.phone || '—'}</td>
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.membershipType}</td>
+                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.face_id || '—'}</td>
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.registeredLabel}</td>
                   <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.expiresLabel}</td>
                   <td className="px-4 py-3">
@@ -543,6 +545,17 @@ const Members = () => {
                       <option value="bank_transfer">Bank Transfer</option>
                       <option value="wallet">Wallet</option>
                     </select>
+                  </div>
+                  {/* Device Person ID (face_id) - editable */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Device Person ID</label>
+                    <input
+                      name="external_person_id"
+                      type="text"
+                      defaultValue={editingMember.face_id || ''}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      placeholder="e.g. 712"
+                    />
                   </div>
                   {/* Photo (capture or URL) */}
                   <div className="md:col-span-2">
