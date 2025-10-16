@@ -30,13 +30,15 @@ const Reports = () => {
   const today = new Date().toISOString().substring(0, 10);
   const [startDate, setStartDate] = useState('2024-01-01');
   const [endDate, setEndDate] = useState(today);
-  const [reportType, setReportType] = useState('financial'); // 'financial', 'membership', 'attendance', 'performance'
+  const [reportType, setReportType] = useState('financial'); // 'financial', 'membership', 'attendance', 'performance', 'balance'
   const [viewMode, setViewMode] = useState('overview'); // 'overview', 'detailed', 'export'
 
   const [payments, setPayments] = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [members, setMembers] = useState([]);
   const [plans, setPlans] = useState([]);
+  const [bsData, setBsData] = useState(null);
+  const [bsLoading, setBsLoading] = useState(false);
 
   // Export PDF functionality
   const handleExportPDF = () => {
@@ -178,6 +180,17 @@ const Reports = () => {
     load();
   }, [today]);
 
+  // Load balance sheet when that tab is active or date changes
+  useEffect(() => {
+    const loadBS = async () => {
+      if (reportType !== 'balance') return;
+      try { setBsLoading(true); const res = await apiService.getBalanceSheet({ start: startDate, end: endDate }); setBsData(res?.data || res); }
+      catch { setBsData(null); }
+      finally { setBsLoading(false); }
+    };
+    loadBS();
+  }, [reportType, startDate, endDate]);
+
   // Helper to determine if a date string lies between the selected range.
   const inRange = (dateStr) => {
     const date = new Date(dateStr);
@@ -287,6 +300,16 @@ const Reports = () => {
                 }`}
               >
                 Performance
+              </button>
+              <button
+                onClick={() => setReportType('balance')}
+                className={`px-4 py-2 rounded-md transition-colors text-sm font-medium ${
+                  reportType === 'balance' 
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 shadow-sm' 
+                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                }`}
+              >
+                Balance Sheet
               </button>
             </div>
 
@@ -639,6 +662,60 @@ const Reports = () => {
               <p className="text-3xl font-bold text-purple-600">{kpis.customerSatisfaction}/5</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">Excellent rating</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {reportType === 'balance' && (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Balance Sheet</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={async ()=>{
+                  const res = await apiService.exportBalanceSheet({ start: startDate, end: endDate, format:'csv' });
+                  const blob = new Blob([res.data], { type: 'text/csv' }); const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a'); a.href = url; a.download = `balance_sheet_${startDate}_to_${endDate}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+                }} className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"><Download className="w-4 h-4"/>CSV</button>
+                <button onClick={async ()=>{
+                  const res = await apiService.exportBalanceSheet({ start: startDate, end: endDate, format:'pdf' });
+                  const blob = new Blob([res.data], { type: 'text/html' }); const url = URL.createObjectURL(blob); const w = window.open(url,'_blank');
+                  const done = () => { try { w.focus(); w.print(); } catch{} setTimeout(()=>{ try { w.close(); URL.revokeObjectURL(url); } catch{} }, 400); };
+                  if (w) { w.onload = done; setTimeout(done, 800); }
+                }} className="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg flex items-center gap-2"><FileText className="w-4 h-4"/>PDF</button>
+              </div>
+            </div>
+            {bsLoading && <div className="text-gray-600 dark:text-gray-300">Loading...</div>}
+            {bsData && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Assets</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Cash</span><span>${(bsData.sections.assets.cash||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span>Receivables</span><span>${(bsData.sections.assets.receivables||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span>Fixed Assets</span><span>${(bsData.sections.assets.fixedAssets||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">${(bsData.sections.assets.total||0).toLocaleString()}</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Liabilities</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Loans</span><span>${(bsData.sections.liabilities.loans||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span>Payables</span><span>${(bsData.sections.liabilities.payables||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">${(bsData.sections.liabilities.total||0).toLocaleString()}</span></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-2">Equity</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between"><span>Opening Equity</span><span>${(bsData.sections.equity.openingEquity||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between"><span>Retained Earnings</span><span>${(bsData.sections.equity.retainedEarnings||0).toLocaleString()}</span></div>
+                    <div className="flex justify-between border-t pt-2"><span className="font-semibold">Total</span><span className="font-bold">${(bsData.sections.equity.total||0).toLocaleString()}</span></div>
+                  </div>
+                  <div className={`mt-3 text-sm ${bsData.check ? 'text-green-600' : 'text-red-600'}`}>{bsData.check ? 'Balanced' : 'Not Balanced'}</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
