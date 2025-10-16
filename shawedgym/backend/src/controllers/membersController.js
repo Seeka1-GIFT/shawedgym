@@ -1,5 +1,45 @@
 const pool = require('../config/database');
 
+// Ensure members table has columns required by the app
+let membersSchemaEnsured = false;
+async function ensureMembersSchema() {
+  if (membersSchemaEnsured) return;
+  try {
+    await pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='members' AND column_name='registered_at'
+        ) THEN
+          ALTER TABLE members ADD COLUMN registered_at TIMESTAMP WITH TIME ZONE;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='members' AND column_name='plan_expires_at'
+        ) THEN
+          ALTER TABLE members ADD COLUMN plan_expires_at TIMESTAMP WITH TIME ZONE;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='members' AND column_name='face_id'
+        ) THEN
+          ALTER TABLE members ADD COLUMN face_id VARCHAR(100);
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name='members' AND column_name='photo_url'
+        ) THEN
+          ALTER TABLE members ADD COLUMN photo_url TEXT;
+        END IF;
+      END$$;
+    `);
+    membersSchemaEnsured = true;
+  } catch (e) {
+    console.error('ensureMembersSchema error:', e);
+  }
+}
+
 // Get all members
 const getMembers = async (req, res) => {
   try {
@@ -118,6 +158,7 @@ const getMember = async (req, res) => {
 // Create new member
 const createMember = async (req, res) => {
   try {
+    await ensureMembersSchema();
     const { 
       firstName, 
       lastName, 
