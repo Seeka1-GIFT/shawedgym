@@ -9,7 +9,11 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     planId: '', // Required
     dateOfBirth: '',
     registrationFee: '', // Optional
-    paymentMethod: 'cash' // Payment method
+    paymentMethod: 'cash', // Payment method
+    // New fields for device integration & tracking
+    registeredAt: new Date().toISOString().slice(0,10),
+    external_person_id: '',
+    photo_url: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -76,7 +80,11 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         dateOfBirth: formData.dateOfBirth || null,
         // Optional fields removed
         registrationFee: formData.registrationFee ? Number(formData.registrationFee) : 0,
-        paymentMethod: formData.paymentMethod || 'cash'
+        paymentMethod: formData.paymentMethod || 'cash',
+        // New backend fields
+        registered_at: formData.registeredAt,
+        external_person_id: formData.external_person_id || undefined,
+        photo_url: formData.photo_url || undefined
       };
 
       await onMemberAdded(memberData);
@@ -195,9 +203,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
             Date of Registration
           </label>
           <input 
-            name="dateOfBirth"
+            name="registeredAt"
             type="date"
-            value={formData.dateOfBirth}
+            value={formData.registeredAt}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
           />
@@ -225,26 +233,54 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           )}
         </div>
 
-        {/* Payment Method - Optional */}
+            {/* Payment Method - Optional */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Payment Method
+              </label>
+              <select
+                name="paymentMethod"
+                value={formData.paymentMethod}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+              >
+                <option value="EVC-PLUS">EVC-PLUS</option>
+                <option value="E-DAHAB">E-DAHAB</option>
+                <option value="bank_transfer">Bank Transfer</option>
+                <option value="wallet">Wallet</option>
+              </select>
+            </div>
+
+        {/* External Person ID (Device Person no.) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Payment Method
+            External Person ID (Device Person no.)
           </label>
-          <select 
-            name="paymentMethod"
-            value={formData.paymentMethod}
+          <input 
+            name="external_person_id"
+            type="text"
+            value={formData.external_person_id}
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-          >
-            <option value="cash">Cash</option>
-            <option value="EVC-PLUS">EVC-PLUS</option>
-            <option value="E-DAHAB">E-DAHAB</option>
-            <option value="bank_transfer">Bank Transfer</option>
-            <option value="wallet">Wallet</option>
-          </select>
+            placeholder="e.g. 712"
+          />
         </div>
 
-        
+        {/* Photo URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Photo URL
+          </label>
+          <input 
+            name="photo_url"
+            type="url"
+            value={formData.photo_url}
+            onChange={handleInputChange}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+            placeholder="https://.../member.jpg"
+          />
+        </div>
+
       </div>
 
       {/* Submit Error */}
@@ -279,4 +315,3 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
 };
 
 export default AddMemberForm;
-
