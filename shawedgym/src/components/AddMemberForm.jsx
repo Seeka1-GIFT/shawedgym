@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { api } from '../services/api.js';
 import { X } from 'lucide-react';
 
 const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
@@ -85,12 +86,8 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         ctx.drawImage(video, 0, 0);
         const base64 = canvas.toDataURL('image/jpeg', 0.9);
         try {
-          const uploadRes = await fetch('/api/uploads/base64', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageBase64: base64 })
-          });
-          const uploadJson = await uploadRes.json();
+          const uploadRes = await api.post('/uploads/base64', { imageBase64: base64 });
+          const uploadJson = uploadRes?.data;
           if (uploadJson?.success && uploadJson?.data?.url) {
             photoUrl = uploadJson.data.url;
           }
