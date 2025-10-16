@@ -79,11 +79,18 @@ const deviceWebhook = async (req, res) => {
       return res.status(403).json({ error: 'Forbidden', message: 'Invalid device secret' });
     }
 
+    // Find member by face_id and attach gym if device not linked yet
     let member;
     if (dev.gym_id) {
-      member = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 AND gym_id = $2 LIMIT 1', [person_id, dev.gym_id]);
+      member = await pool.query(
+        'SELECT id, gym_id, plan_expires_at, photo_url, first_name, last_name FROM members WHERE face_id = $1 AND gym_id = $2 LIMIT 1',
+        [person_id, dev.gym_id]
+      );
     } else {
-      member = await pool.query('SELECT id, gym_id FROM members WHERE face_id = $1 LIMIT 1', [person_id]);
+      member = await pool.query(
+        'SELECT id, gym_id, plan_expires_at, photo_url, first_name, last_name FROM members WHERE face_id = $1 LIMIT 1',
+        [person_id]
+      );
       if (member.rows.length) {
         await pool.query('UPDATE devices SET gym_id = $1 WHERE id = $2', [member.rows[0].gym_id, dev.id]);
       }
@@ -92,14 +99,24 @@ const deviceWebhook = async (req, res) => {
       return res.json({ success: true, message: 'Unknown person_id; ignored' });
     }
     const m = member.rows[0];
+
+    // Enforce plan expiry: reject if expired
+    if (m.plan_expires_at && new Date(m.plan_expires_at).getTime() < Date.now()) {
+      return res.status(403).json({
+        success: false,
+        error: 'PlanExpired',
+        message: 'Membership plan expired',
+        data: { member_id: m.id, gym_id: m.gym_id }
+      });
+    }
     const when = ts ? new Date(ts) : new Date();
     const ev = (event || 'checkin').toLowerCase();
-    await pool.query(
+    const insert = await pool.query(
       `INSERT INTO attendance (member_id, device_id, event, check_in_time, photo_url, gym_id, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-      [m.id, dev.id, ev, when, photo_url || null, m.gym_id]
+       VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *`,
+      [m.id, dev.id, ev, when, photo_url || m.photo_url || null, m.gym_id]
     );
-    return res.json({ success: true });
+    return res.json({ success: true, data: { attendance: insert.rows[0], member: { id: m.id, first_name: m.first_name, last_name: m.last_name, photo_url: m.photo_url } } });
   } catch (e) {
     console.error('deviceWebhook error:', e);
     return res.status(500).json({ error: 'Server Error', message: 'Failed to record attendance' });
@@ -164,7 +181,7 @@ const getAttendance = async (req, res) => {
     }
 
     let query = `
-      SELECT a.*, m.first_name, m.last_name, m.email 
+      SELECT a.*, m.first_name, m.last_name, m.email, m.photo_url 
       FROM attendance a 
       LEFT JOIN members m ON a.member_id = m.id 
       WHERE a.gym_id = $1
@@ -231,17 +248,23 @@ const createAttendance = async (req, res) => {
       return res.status(400).json({ error: 'Validation Error', message: 'Member ID is required' });
     }
 
-    const memberResult = await pool.query('SELECT id FROM members WHERE id = $1 AND gym_id = $2', [memberId, gymId]);
+    const memberResult = await pool.query('SELECT id, plan_expires_at, photo_url, first_name, last_name FROM members WHERE id = $1 AND gym_id = $2', [memberId, gymId]);
     if (memberResult.rows.length === 0) {
       return res.status(400).json({ error: 'Validation Error', message: 'Member not found' });
     }
+    const mem = memberResult.rows[0];
+
+    // Enforce plan expiry for manual check-ins too
+    if (mem.plan_expires_at && new Date(mem.plan_expires_at).getTime() < Date.now()) {
+      return res.status(403).json({ error: 'PlanExpired', message: 'Membership plan expired' });
+    }
 
     const result = await pool.query(
-      'INSERT INTO attendance (member_id, check_in_time, check_out_time, gym_id, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *',
-      [memberId, checkInTime || new Date(), checkOutTime, gymId]
+      'INSERT INTO attendance (member_id, check_in_time, check_out_time, gym_id, photo_url, created_at) VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *',
+      [memberId, checkInTime || new Date(), checkOutTime, gymId, mem.photo_url || null]
     );
 
-    res.status(201).json({ success: true, message: 'Attendance recorded successfully', data: { attendance: result.rows[0] } });
+    res.status(201).json({ success: true, message: 'Attendance recorded successfully', data: { attendance: result.rows[0], member: { id: mem.id, first_name: mem.first_name, last_name: mem.last_name, photo_url: mem.photo_url } } });
   } catch (error) {
     console.error('Create attendance error:', error);
     res.status(500).json({ error: 'Server Error', message: 'Failed to record attendance' });
