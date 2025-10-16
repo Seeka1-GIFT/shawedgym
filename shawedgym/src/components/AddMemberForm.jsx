@@ -23,6 +23,18 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
   const videoRef = React.useRef(null);
   const canvasRef = React.useRef(null);
   const [snapshotDataUrl, setSnapshotDataUrl] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Stop camera when component unmounts
+  React.useEffect(() => {
+    return () => {
+      try {
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(t => t.stop());
+        }
+      } catch (_) {}
+    };
+  }, [cameraStream]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -315,12 +327,15 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           <div className="flex gap-2">
             <button type="button" onClick={async () => {
               try {
+                if (cameraStream) {
+                  try { cameraStream.getTracks().forEach(t => t.stop()); } catch (_) {}
+                }
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 setCameraStream(stream);
                 if (videoRef.current) videoRef.current.srcObject = stream;
               } catch (e) { /* ignore */ }
             }} className="px-3 py-1 rounded bg-gray-600 text-white">Open Camera</button>
-            <button type="button" onClick={() => {
+            <button type="button" onClick={async () => {
               if (canvasRef.current && videoRef.current) {
                 const canvas = canvasRef.current;
                 const video = videoRef.current;
@@ -331,13 +346,25 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                 try {
                   const data = canvas.toDataURL('image/jpeg', 0.9);
                   setSnapshotDataUrl(data);
+                  // Auto-upload and fill photo_url
+                  setUploadingPhoto(true);
+                  try {
+                    const uploadRes = await api.post('/uploads/base64', { imageBase64: data });
+                    const uploadJson = uploadRes?.data;
+                    if (uploadJson?.success && uploadJson?.data?.url) {
+                      setFormData(prev => ({ ...prev, photo_url: uploadJson.data.url }));
+                    }
+                  } catch (_) {}
+                  setUploadingPhoto(false);
+                  // Stop camera after snapshot
+                  try { if (cameraStream) cameraStream.getTracks().forEach(t => t.stop()); } catch (_) {}
                 } catch (_) {}
               }
             }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
           </div>
           <div>
             <input name="photo_url" type="url" value={formData.photo_url} onChange={handleInputChange} placeholder="https://.../member.jpg" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-            <p className="text-xs text-gray-500 mt-1">Dooro mid: webcam snapshot (preferred) ama URL toos ah.</p>
+            <p className="text-xs text-gray-500 mt-1">Dooro mid: webcam snapshot (preferred) ama URL toos ah. {uploadingPhoto ? 'Uploading photo…' : ''}</p>
           </div>
         </div>
 
