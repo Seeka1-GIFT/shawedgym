@@ -357,6 +357,18 @@ apiService.createReport = (data) => apiCall('/reports', {
   data
 });
 
+// Balance Sheet (Reports)
+apiService.getBalanceSheet = (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  return apiCall(`/reports/balance-sheet${qs ? `?${qs}` : ''}`);
+};
+apiService.exportBalanceSheet = async (params = {}) => {
+  const qs = new URLSearchParams(params).toString();
+  const url = `/reports/balance-sheet/export${qs ? `?${qs}` : ''}`;
+  const res = await api.request({ url, method: 'GET', responseType: 'blob' });
+  return res;
+};
+
 // Connection status - check backend connection
 export const getConnectionStatus = () => {
   return {
