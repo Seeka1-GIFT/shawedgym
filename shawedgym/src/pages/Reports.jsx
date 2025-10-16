@@ -184,9 +184,16 @@ const Reports = () => {
   useEffect(() => {
     const loadBS = async () => {
       if (reportType !== 'balance') return;
-      try { setBsLoading(true); const res = await apiService.getBalanceSheet({ start: startDate, end: endDate }); setBsData(res?.data || res); }
-      catch { setBsData(null); }
-      finally { setBsLoading(false); }
+      try {
+        setBsLoading(true);
+        const res = await apiService.getBalanceSheet({ start: startDate, end: endDate });
+        const d = res?.data || res;
+        // Guard against unexpected shapes
+        if (d && d.sections) setBsData(d); else setBsData(null);
+      } catch (e) {
+        console.error('Load balance sheet failed', e);
+        setBsData(null);
+      } finally { setBsLoading(false); }
     };
     loadBS();
   }, [reportType, startDate, endDate]);
