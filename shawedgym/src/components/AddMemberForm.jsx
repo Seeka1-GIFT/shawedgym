@@ -18,6 +18,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cameraStream, setCameraStream] = useState(null);
+  const videoRef = React.useRef(null);
+  const canvasRef = React.useRef(null);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -71,6 +74,28 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     setIsSubmitting(true);
 
     try {
+      // If no photo_url provided but snapshot available, upload it
+      let photoUrl = formData.photo_url;
+      if (!photoUrl && canvasRef.current && videoRef.current && videoRef.current.videoWidth) {
+        const canvas = canvasRef.current;
+        const video = videoRef.current;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        const base64 = canvas.toDataURL('image/jpeg', 0.9);
+        try {
+          const uploadRes = await fetch('/api/uploads/base64', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageBase64: base64 })
+          });
+          const uploadJson = await uploadRes.json();
+          if (uploadJson?.success && uploadJson?.data?.url) {
+            photoUrl = uploadJson.data.url;
+          }
+        } catch (_) {}
+      }
       // Prepare data for submission
       const memberData = {
         firstName: formData.firstName.trim(),
@@ -84,7 +109,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         // New backend fields
         registered_at: formData.registeredAt,
         external_person_id: formData.external_person_id || undefined,
-        photo_url: formData.photo_url || undefined
+        photo_url: photoUrl || formData.photo_url || undefined
       };
 
       await onMemberAdded(memberData);
@@ -266,19 +291,36 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           />
         </div>
 
-        {/* Photo URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Photo URL
-          </label>
-          <input 
-            name="photo_url"
-            type="url"
-            value={formData.photo_url}
-            onChange={handleInputChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-            placeholder="https://.../member.jpg"
-          />
+        {/* Photo capture */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Photo</label>
+          <div className="flex items-center gap-3">
+            <video ref={videoRef} className="w-36 h-24 bg-black rounded" autoPlay playsInline muted />
+            <canvas ref={canvasRef} className="hidden" />
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={async () => {
+              try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                setCameraStream(stream);
+                if (videoRef.current) videoRef.current.srcObject = stream;
+              } catch (e) { /* ignore */ }
+            }} className="px-3 py-1 rounded bg-gray-600 text-white">Open Camera</button>
+            <button type="button" onClick={() => {
+              if (canvasRef.current && videoRef.current) {
+                const canvas = canvasRef.current;
+                const video = videoRef.current;
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+              }
+            }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
+          </div>
+          <div>
+            <input name="photo_url" type="url" value={formData.photo_url} onChange={handleInputChange} placeholder="https://.../member.jpg" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
+            <p className="text-xs text-gray-500 mt-1">Dooro mid: webcam snapshot (preferred) ama URL toos ah.</p>
+          </div>
         </div>
 
       </div>
