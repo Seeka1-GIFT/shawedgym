@@ -191,6 +191,13 @@ const Members = () => {
       const data = new FormData(form);
       // Prepare photo URL from input or webcam snapshot
       let newPhotoUrl = (data.get('photo_url') || '').trim() || editPhotoUrl;
+      if (newPhotoUrl && newPhotoUrl.startsWith('data:image')) {
+        try {
+          const uploadRes = await apiService.api.post('/uploads/base64', { imageBase64: newPhotoUrl });
+          const resJson = uploadRes?.data;
+          if (resJson?.success && resJson?.data?.url) newPhotoUrl = resJson.data.url;
+        } catch (_) {}
+      }
       if (!newPhotoUrl && canvasRefEdit.current && videoRefEdit.current && videoRefEdit.current.videoWidth) {
         const canvas = canvasRefEdit.current;
         const video = videoRefEdit.current;
@@ -578,7 +585,7 @@ const Members = () => {
                           if (videoRefEdit.current) videoRefEdit.current.srcObject = stream;
                         } catch (_) {}
                       }} className="px-3 py-1 rounded bg-gray-600 text-white">Open Camera</button>
-                      <button type="button" onClick={() => {
+                      <button type="button" onClick={async () => {
                         if (canvasRefEdit.current && videoRefEdit.current) {
                           const canvas = canvasRefEdit.current;
                           const video = videoRefEdit.current;
@@ -586,7 +593,18 @@ const Members = () => {
                           canvas.height = video.videoHeight;
                           const ctx = canvas.getContext('2d');
                           ctx.drawImage(video, 0, 0);
-                          setEditPhotoUrl(canvas.toDataURL('image/jpeg', 0.9));
+                          const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                          try {
+                            const uploadRes = await apiService.api.post('/uploads/base64', { imageBase64: dataUrl });
+                            const resJson = uploadRes?.data;
+                            if (resJson?.success && resJson?.data?.url) {
+                              setEditPhotoUrl(resJson.data.url);
+                            } else {
+                              setEditPhotoUrl(dataUrl);
+                            }
+                          } catch (e) {
+                            setEditPhotoUrl(dataUrl);
+                          }
                         }
                       }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
                     </div>
