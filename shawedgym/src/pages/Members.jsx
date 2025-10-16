@@ -605,13 +605,15 @@ const Members = () => {
                           } catch (e) {
                             setEditPhotoUrl(dataUrl);
                           }
+                          // Stop camera after snapshot
+                          try { const s = videoRefEdit.current.srcObject; if (s) s.getTracks().forEach(t => t.stop()); } catch (_) {}
                         }
                       }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
                     </div>
                     <input
                       name="photo_url"
                       type="url"
-                      defaultValue={editingMember.photo_url || ''}
+                      value={editPhotoUrl || ''}
                       onChange={(e)=>setEditPhotoUrl(e.target.value)}
                       placeholder="https://.../member.jpg"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
