@@ -298,8 +298,9 @@ const Payments = () => {
     };
   });
 
+  const getMember = (memberId) => memberOptions.find((mm) => mm.id === memberId);
   const getMemberName = (memberId) => {
-    const m = memberOptions.find((mm) => mm.id === memberId);
+    const m = getMember(memberId);
     if (!m) return 'Unknown Member';
     return m.first_name ? `${m.first_name} ${m.last_name || ''}`.trim() : (m.name || 'Unknown Member');
   };
@@ -321,9 +322,8 @@ const Payments = () => {
   const getPlanName = (planId) => (getPlanNameById(planId) || '-');
   
   const getMemberPhoto = (memberId) => {
-    return `https://images.unsplash.com/photo-${
-      memberId % 2 === 0 ? '1507003211169-0a1dd7228f2d' : '1494790108755-2616b612b47c'
-    }?w=150&h=150&fit=crop&crop=face`;
+    const m = getMember(memberId);
+    return (m && m.photo_url) ? m.photo_url : '';
   };
 
   const getPaymentDate = (p) => p.payment_date || p.created_at || p.createdAt || p.date || null;
@@ -953,11 +953,15 @@ const Payments = () => {
                 <div key={payment.id} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl shadow px-4 py-3">
                   {/* Left: avatar + name */}
                   <div className="flex items-center space-x-3 min-w-[220px]">
-                    <img
-                      src={getMemberPhoto(payment._memberId)}
-                      alt={getMemberName(payment._memberId)}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    {getMemberPhoto(payment._memberId) ? (
+                      <img
+                        src={getMemberPhoto(payment._memberId)}
+                        alt={getMemberName(payment._memberId)}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                    )}
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white leading-tight">{getMemberName(payment._memberId)}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{payment.transactionId}</div>
