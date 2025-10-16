@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 // Removed dummy imports to ensure DB-only data
-import { apiService, authHelpers } from '../services/api.js';
+import { apiService, authHelpers, api } from '../services/api.js';
 import { useToast } from '../contexts/ToastContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LoadingSpinner from '../components/LoadingSpinner.jsx';
@@ -62,6 +62,20 @@ const Members = () => {
     }
   }, [editingMember]);
 
+  // Helper to normalize photo URLs coming from backend (may be relative like /uploads/..)
+  const backendOrigin = (() => {
+    try {
+      const base = api?.defaults?.baseURL || '';
+      return new URL(base).origin;
+    } catch {
+      return '';
+    }
+  })();
+  const toAbsoluteUrl = (url) => {
+    if (!url) return '';
+    try { return new URL(url).href; } catch { return backendOrigin ? (backendOrigin + url) : url; }
+  };
+
   // Enhanced member data (use backend photo_url/registered/expires when present)
   const enhancedMembers = members.map(member => {
     const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim();
@@ -70,7 +84,7 @@ const Members = () => {
     return {
       ...member,
       name: fullName,
-      photo: member.photo_url || '',
+      photo: toAbsoluteUrl(member.photo_url || ''),
       membershipType: member.membership_type || 'Standard',
       registeredLabel: registered ? registered.toISOString().split('T')[0] : '-',
       expiresLabel: expires ? expires.toISOString().split('T')[0] : '-',
