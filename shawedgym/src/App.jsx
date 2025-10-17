@@ -66,13 +66,12 @@ function App() {
           {/* Protected routes */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="flex">
+              <div className="flex h-screen overflow-hidden">
                 {/* Sidebar navigation.  On small screens the sidebar can be toggled via
                     the hamburger menu within the Navbar component. */}
                 <Navbar theme={theme} setTheme={setTheme} />
-                {/* Main content area.  A min-h-screen ensures that the main area
-                    stretches to full height.  Padding provides breathing room. */}
-                <main className="flex-1 min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+                {/* Main content area optimized for laptop view - fills screen without empty space */}
+                <main className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-y-auto main-content-scroll">
                   <Routes>
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
