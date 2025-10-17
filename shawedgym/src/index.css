@@ -153,4 +153,52 @@ body {
   .mobile-padding {
     padding: 1rem;
   }
-}.members-card img{display:none !important;}
+}
+
+/* Laptop view optimizations */
+@media (min-width: 1024px) {
+  .laptop-optimized {
+    max-width: 100%;
+    margin: 0;
+  }
+  
+  .laptop-sidebar {
+    width: 16rem; /* 256px - matches Shawed-POS */
+  }
+  
+  .laptop-content {
+    width: calc(100% - 16rem);
+    padding: 1rem;
+  }
+}
+
+/* Ensure full height layout */
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Hide scrollbars on main content to match Shawed-POS */
+.main-content-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e0 transparent;
+}
+
+.main-content-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.main-content-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.main-content-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 3px;
+}
+
+.main-content-scroll::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+.members-card img{display:none !important;}
