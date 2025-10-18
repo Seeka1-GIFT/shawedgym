@@ -342,21 +342,68 @@ app.post('/api/auth/login', (req, res) => {
   }
 });
 
+// Photo upload endpoint
+app.post('/api/uploads/base64', (req, res) => {
+  const { imageBase64 } = req.body;
+  
+  console.log('📸 Photo upload request received');
+  
+  try {
+    // In real implementation, save to file system or cloud storage
+    // For now, return a mock URL with timestamp
+    const photoUrl = `https://images.unsplash.com/photo-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    res.json({
+      success: true,
+      data: { 
+        url: photoUrl,
+        message: 'Photo uploaded successfully'
+      }
+    });
+  } catch (error) {
+    console.error('❌ Photo upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Upload Failed',
+      message: error.message
+    });
+  }
+});
+
 // Create/Update endpoints
 app.post('/api/members', (req, res) => {
-  const newMember = {
-    id: dummyData.members.length + 1,
-    ...req.body,
-    status: 'Active'
-  };
+  console.log('👤 Creating new member:', req.body);
   
-  dummyData.members.push(newMember);
-  
-  res.status(201).json({
-    success: true,
-    message: 'Member created successfully',
-    data: { member: newMember }
-  });
+  try {
+    // Generate unique face_id
+    const faceId = `FACE_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const newMember = {
+      id: dummyData.members.length + 1,
+      ...req.body,
+      face_id: faceId,
+      status: 'Active',
+      registered_at: new Date().toISOString(),
+      plan_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    };
+    
+    dummyData.members.push(newMember);
+    
+    console.log('✅ Member created successfully:', newMember);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Member created successfully',
+      data: { member: newMember }
+    });
+  } catch (error) {
+    console.error('❌ Member creation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Creation Failed',
+      message: error.message
+    });
+  }
 });
 
 app.post('/api/payments', (req, res) => {
