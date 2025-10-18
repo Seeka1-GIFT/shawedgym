@@ -290,12 +290,12 @@ const Members = () => {
         onDismiss={() => setError(null)}
       >
       
-      {/* Header */}
+      {/* Header - optimized for laptop */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Members</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Manage gym members and track memberships</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Members</h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Manage gym members and track memberships</p>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -349,55 +349,60 @@ const Members = () => {
         ))}
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex items-center space-x-4 mb-6">
-        <div className="flex-1 relative">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search members..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white shadow-sm"
-              />
-            </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
-            </div>
+      {/* Search and Filters - optimized for laptop */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search members..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-80 pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white shadow-sm"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
+          {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''} found
+        </div>
+      </div>
 
-      {/* Members Table - modern responsive */}
+      {/* Members Table - optimized for laptop view */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-900/40">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Member</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Phone</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Plan</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Device ID</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Registered</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Expires</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-64">Member</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-40">Phone</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Plan</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-48">Device ID</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Registered</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Expires</th>
+                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">Status</th>
+                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
               {filteredMembers.map(member => (
                 <tr key={member.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-900/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-4">
                       {(member.photo_url || member.photo) ? (
                         <img 
                           src={member.photo_url || member.photo} 
                           alt={member.name} 
-                          className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" 
+                          className="w-12 h-12 rounded-full object-cover border border-gray-200 dark:border-gray-700" 
                           onError={(e) => {
                             e.currentTarget.style.display = 'none';
                             e.currentTarget.nextSibling.style.display = 'flex';
@@ -405,29 +410,69 @@ const Members = () => {
                         />
                       ) : null}
                       <div 
-                        className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                        className="w-12 h-12 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 flex items-center justify-center"
                         style={{ display: (member.photo_url || member.photo) ? 'none' : 'flex' }}
                       >
-                        <Users className="w-5 h-5 text-gray-400" />
+                        <Users className="w-6 h-6 text-gray-400" />
                       </div>
-                      <div>
-                        <div className="text-sm font-semibold text-gray-900 dark:text-white">{member.name || '—'}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-gray-900 dark:text-white truncate">{member.name || '—'}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">ID: {member.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.phone || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.membershipType}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.face_id || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.registeredLabel}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{member.expiresLabel}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs ${member.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'}`}>{member.status || '—'}</span>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <div className="font-mono text-xs">{member.phone || '—'}</div>
                   </td>
-                  <td className="px-4 py-3 text-right space-x-2">
-                    <button onClick={() => toggleExpand(member.id)} className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-blue-600 text-white hover:bg-blue-700"><Eye className="w-4 h-4" /></button>
-                    <button onClick={() => setEditingMember(member)} className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-600 text-white hover:bg-gray-700"><Edit className="w-4 h-4" /></button>
-                    <button onClick={() => setDeletingMember(member)} className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-red-600 text-white hover:bg-red-700"><Trash2 className="w-4 h-4" /></button>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                      {member.membershipType || '—'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="font-mono text-xs truncate max-w-32" title={member.face_id || '—'}>
+                      {member.face_id || '—'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <div className="text-xs">{member.registeredLabel || '—'}</div>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                    <div className="text-xs">{member.expiresLabel || '—'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      member.status === 'Active' 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                        : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
+                    }`}>
+                      {member.status || '—'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end space-x-1">
+                      <button 
+                        onClick={() => toggleExpand(member.id)} 
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setEditingMember(member)} 
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-gray-600 text-white hover:bg-gray-700 transition-colors"
+                        title="Edit Member"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setDeletingMember(member)} 
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors"
+                        title="Delete Member"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
