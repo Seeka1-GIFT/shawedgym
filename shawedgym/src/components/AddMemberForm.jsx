@@ -138,9 +138,11 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         // New backend fields
         registered_at: formData.registeredAt,
         external_person_id: formData.external_person_id || undefined,
-        photo_url: photoUrl || formData.photo_url || undefined,
+        photo_url: photoUrl || formData.photo_url || snapshotDataUrl || undefined,
         face_id: faceId // Auto-generated face ID for recognition
       };
+      
+      console.log('📸 Submitting member with photo_url:', memberData.photo_url);
 
       await onMemberAdded(memberData);
     } catch (error) {
@@ -359,6 +361,8 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                 try {
                   const data = canvas.toDataURL('image/jpeg', 0.9);
                   setSnapshotDataUrl(data);
+                  console.log('📸 Snapshot taken, uploading...');
+                  
                   // Auto-upload and fill photo_url
                   setUploadingPhoto(true);
                   try {
@@ -366,12 +370,17 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                     const uploadJson = uploadRes?.data;
                     if (uploadJson?.success && uploadJson?.data?.url) {
                       setFormData(prev => ({ ...prev, photo_url: uploadJson.data.url }));
+                      console.log('✅ Photo uploaded successfully:', uploadJson.data.url);
                     }
-                  } catch (_) {}
+                  } catch (error) {
+                    console.error('❌ Photo upload failed:', error);
+                  }
                   setUploadingPhoto(false);
                   // Stop camera after snapshot
                   try { if (cameraStream) cameraStream.getTracks().forEach(t => t.stop()); } catch (_) {}
-                } catch (_) {}
+                } catch (error) {
+                  console.error('❌ Snapshot failed:', error);
+                }
               }
             }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
           </div>
