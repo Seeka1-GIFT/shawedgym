@@ -393,11 +393,23 @@ const Members = () => {
                 <tr key={member.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-900/30 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {member.photo ? (
-                        <img src={member.photo} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" onError={(e)=>{e.currentTarget.style.display='none';}} />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700" />
-                      )}
+                      {(member.photo_url || member.photo) ? (
+                        <img 
+                          src={member.photo_url || member.photo} 
+                          alt={member.name} 
+                          className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-700" 
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 flex items-center justify-center"
+                        style={{ display: (member.photo_url || member.photo) ? 'none' : 'flex' }}
+                      >
+                        <Users className="w-5 h-5 text-gray-400" />
+                      </div>
                       <div>
                         <div className="text-sm font-semibold text-gray-900 dark:text-white">{member.name || '—'}</div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">ID: {member.id}</div>
