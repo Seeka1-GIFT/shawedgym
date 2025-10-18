@@ -400,6 +400,291 @@ app.post('/api/members/:id/checkin', (req, res) => {
   });
 });
 
+// ===== DEVICE INTEGRATION ENDPOINTS =====
+
+// Device face recognition endpoint
+app.post('/api/device/face-recognition', (req, res) => {
+  const { face_image, device_id, face_id } = req.body;
+  
+  console.log('🔍 Face recognition request:', { device_id, face_id: face_id ? 'provided' : 'not provided' });
+  
+  try {
+    // Mock face recognition - simulate finding a member
+    const members = dummyData.members || [];
+    let recognizedMember = null;
+    
+    // If face_id is provided, look for that specific member
+    if (face_id) {
+      recognizedMember = members.find(m => m.face_id === face_id);
+    } else {
+      // Mock random recognition (in real system, this would use AI/ML)
+      recognizedMember = members[Math.floor(Math.random() * members.length)];
+    }
+    
+    if (recognizedMember) {
+      // Check membership status (mock)
+      const isActive = recognizedMember.status === 'Active';
+      const membershipExpired = false; // Mock - in real system, check plan_expires_at
+      
+      if (isActive && !membershipExpired) {
+        // Record attendance
+        const attendance = {
+          id: Date.now(),
+          member_id: recognizedMember.id,
+          device_id: device_id || 'Face1',
+          check_in_time: new Date().toISOString(),
+          member_name: recognizedMember.name
+        };
+        
+        // Store attendance (in real system, save to database)
+        if (!dummyData.attendance) dummyData.attendance = [];
+        dummyData.attendance.push(attendance);
+        
+        console.log(`✅ Member recognized: ${recognizedMember.name}`);
+        
+        res.json({
+          success: true,
+          recognized: true,
+          member: {
+            id: recognizedMember.id,
+            name: recognizedMember.name,
+            face_id: recognizedMember.face_id,
+            status: 'Access Granted',
+            membership_status: 'Active'
+          },
+          attendance: attendance,
+          message: `Welcome ${recognizedMember.name}!`
+        });
+      } else {
+        res.json({
+          success: false,
+          recognized: true,
+          member: {
+            id: recognizedMember.id,
+            name: recognizedMember.name,
+            face_id: recognizedMember.face_id
+          },
+          error: 'Membership Expired',
+          message: 'Your membership has expired. Please renew.'
+        });
+      }
+    } else {
+      res.json({
+        success: false,
+        recognized: false,
+        error: 'Unknown Person',
+        message: 'Person not recognized in database'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Face recognition error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+      message: error.message
+    });
+  }
+});
+
+// Device check-in endpoint
+app.post('/api/device/check-in', (req, res) => {
+  const { member_id, device_id, check_in_time } = req.body;
+  
+  console.log('📝 Check-in request:', { member_id, device_id });
+  
+  try {
+    const member = dummyData.members?.find(m => m.id === member_id);
+    
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        error: 'Member Not Found',
+        message: 'Member does not exist'
+      });
+    }
+    
+    const attendance = {
+      id: Date.now(),
+      member_id: member_id,
+      device_id: device_id || 'Face1',
+      check_in_time: check_in_time || new Date().toISOString(),
+      member_name: member.name
+    };
+    
+    // Store attendance
+    if (!dummyData.attendance) dummyData.attendance = [];
+    dummyData.attendance.push(attendance);
+    
+    console.log(`✅ Check-in recorded: ${member.name}`);
+    
+    res.json({
+      success: true,
+      attendance: attendance,
+      member: {
+        id: member.id,
+        name: member.name,
+        status: member.status
+      },
+      message: 'Check-in recorded successfully'
+    });
+  } catch (error) {
+    console.error('❌ Check-in error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+      message: error.message
+    });
+  }
+});
+
+// Device verify member endpoint
+app.post('/api/device/verify-member', (req, res) => {
+  const { face_id, member_id } = req.body;
+  
+  console.log('🔍 Member verification request:', { face_id, member_id });
+  
+  try {
+    let member = null;
+    
+    if (face_id) {
+      member = dummyData.members?.find(m => m.face_id === face_id);
+    } else if (member_id) {
+      member = dummyData.members?.find(m => m.id === member_id);
+    }
+    
+    if (member) {
+      const isActive = member.status === 'Active';
+      const membershipExpired = false; // Mock - check plan_expires_at in real system
+      
+      res.json({
+        success: true,
+        verified: true,
+        member: {
+          id: member.id,
+          name: member.name,
+          face_id: member.face_id,
+          status: member.status,
+          membership_active: isActive && !membershipExpired
+        },
+        message: 'Member verified successfully'
+      });
+    } else {
+      res.json({
+        success: false,
+        verified: false,
+        error: 'Member Not Found',
+        message: 'Member not found in database'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Member verification error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+      message: error.message
+    });
+  }
+});
+
+// Get member by face_id endpoint
+app.get('/api/device/member/:face_id', (req, res) => {
+  const { face_id } = req.params;
+  
+  console.log('👤 Get member request:', { face_id });
+  
+  try {
+    const member = dummyData.members?.find(m => m.face_id === face_id);
+    
+    if (member) {
+      res.json({
+        success: true,
+        member: {
+          id: member.id,
+          name: member.name,
+          face_id: member.face_id,
+          status: member.status,
+          membership_type: member.membershipType,
+          phone: member.phone,
+          email: member.email
+        }
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: 'Member Not Found',
+        message: 'Member with this face_id not found'
+      });
+    }
+  } catch (error) {
+    console.error('❌ Get member error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+      message: error.message
+    });
+  }
+});
+
+// Get attendance records endpoint
+app.get('/api/device/attendance', (req, res) => {
+  const { device_id, date } = req.query;
+  
+  console.log('📊 Attendance records request:', { device_id, date });
+  
+  try {
+    let attendance = dummyData.attendance || [];
+    
+    // Filter by device_id if provided
+    if (device_id) {
+      attendance = attendance.filter(a => a.device_id === device_id);
+    }
+    
+    // Filter by date if provided
+    if (date) {
+      attendance = attendance.filter(a => 
+        a.check_in_time.startsWith(date)
+      );
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        attendance: attendance,
+        total_records: attendance.length
+      }
+    });
+  } catch (error) {
+    console.error('❌ Get attendance error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server Error',
+      message: error.message
+    });
+  }
+});
+
+// Device health check endpoint
+app.get('/api/device/health', (req, res) => {
+  const device_id = req.headers['x-device-id'] || req.query.device_id;
+  
+  console.log('🏥 Device health check:', { device_id });
+  
+  res.json({
+    success: true,
+    status: 'OK',
+    message: 'Device integration is working',
+    timestamp: new Date().toISOString(),
+    device_id: device_id,
+    endpoints: {
+      face_recognition: '/api/device/face-recognition',
+      check_in: '/api/device/check-in',
+      verify_member: '/api/device/verify-member',
+      get_member: '/api/device/member/:face_id',
+      attendance: '/api/device/attendance'
+    }
+  });
+});
+
 // 404 handler for API routes - Remove this problematic middleware
 
 // Serve React app for all non-API routes

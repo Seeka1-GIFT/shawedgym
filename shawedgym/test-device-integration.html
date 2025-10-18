@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Integration Test - ShawedGym</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .loading {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 ShawedGym Device Integration Test</h1>
+        <p>This page tests the device integration endpoints for face recognition and attendance tracking.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Test Information</h3>
+            <p><strong>API Base URL:</strong> <span id="apiUrl">http://localhost:3000/api</span></p>
+            <p><strong>Device ID:</strong> Face1</p>
+            <p><strong>Test Face ID:</strong> FACE_94_1703123456</p>
+            <p><strong>Test Member ID:</strong> 94</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🏥 Device Health Check</h3>
+            <button onclick="testHealth()">Test Health Check</button>
+            <div id="healthResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Face Recognition Test</h3>
+            <button onclick="testFaceRecognition()">Test Face Recognition</button>
+            <div id="faceResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Member Verification Test</h3>
+            <button onclick="testMemberVerification()">Test Member Verification</button>
+            <div id="verifyResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Check-in Test</h3>
+            <button onclick="testCheckIn()">Test Check-in</button>
+            <div id="checkInResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👤 Get Member Test</h3>
+            <button onclick="testGetMember()">Test Get Member</button>
+            <div id="getMemberResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Attendance Records Test</h3>
+            <button onclick="testGetAttendance()">Test Get Attendance</button>
+            <div id="attendanceResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Run All Tests</h3>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <div id="allTestsResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        const DEVICE_ID = 'Face1';
+        const TEST_FACE_ID = 'FACE_94_1703123456';
+        const TEST_MEMBER_ID = 94;
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Device-ID': DEVICE_ID,
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        function displayResult(elementId, result) {
+            const element = document.getElementById(elementId);
+            if (result.success) {
+                element.className = 'result success';
+                element.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                element.className = 'result error';
+                element.textContent = `Error: ${result.error || 'Unknown error'}`;
+            }
+        }
+
+        async function testHealth() {
+            const result = await makeRequest(`${API_BASE_URL}/device/health?device_id=${DEVICE_ID}`);
+            displayResult('healthResult', result);
+        }
+
+        async function testFaceRecognition() {
+            const result = await makeRequest(`${API_BASE_URL}/device/face-recognition`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    face_image: 'test_base64_image',
+                    device_id: DEVICE_ID,
+                    face_id: TEST_FACE_ID
+                })
+            });
+            displayResult('faceResult', result);
+        }
+
+        async function testMemberVerification() {
+            const result = await makeRequest(`${API_BASE_URL}/device/verify-member`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    face_id: TEST_FACE_ID,
+                    member_id: TEST_MEMBER_ID
+                })
+            });
+            displayResult('verifyResult', result);
+        }
+
+        async function testCheckIn() {
+            const result = await makeRequest(`${API_BASE_URL}/device/check-in`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    member_id: TEST_MEMBER_ID,
+                    device_id: DEVICE_ID,
+                    check_in_time: new Date().toISOString()
+                })
+            });
+            displayResult('checkInResult', result);
+        }
+
+        async function testGetMember() {
+            const result = await makeRequest(`${API_BASE_URL}/device/member/${TEST_FACE_ID}`);
+            displayResult('getMemberResult', result);
+        }
+
+        async function testGetAttendance() {
+            const result = await makeRequest(`${API_BASE_URL}/device/attendance?device_id=${DEVICE_ID}`);
+            displayResult('attendanceResult', result);
+        }
+
+        async function runAllTests() {
+            const allTestsResult = document.getElementById('allTestsResult');
+            allTestsResult.className = 'result loading';
+            allTestsResult.textContent = 'Running all tests...';
+
+            const tests = [
+                { name: 'Health Check', fn: testHealth },
+                { name: 'Face Recognition', fn: testFaceRecognition },
+                { name: 'Member Verification', fn: testMemberVerification },
+                { name: 'Check-in', fn: testCheckIn },
+                { name: 'Get Member', fn: testGetMember },
+                { name: 'Get Attendance', fn: testGetAttendance }
+            ];
+
+            const results = [];
+            for (const test of tests) {
+                try {
+                    const result = await test.fn();
+                    results.push({ name: test.name, success: result.success });
+                } catch (error) {
+                    results.push({ name: test.name, success: false, error: error.message });
+                }
+            }
+
+            const passedTests = results.filter(r => r.success).length;
+            const totalTests = results.length;
+            
+            allTestsResult.className = 'result success';
+            allTestsResult.textContent = `All Tests Completed!\n\nPassed: ${passedTests}/${totalTests}\nSuccess Rate: ${Math.round((passedTests/totalTests) * 100)}%\n\nDetailed Results:\n${results.map(r => `${r.success ? '✅' : '❌'} ${r.name}`).join('\n')}`;
+        }
+
+        // Auto-run health check on page load
+        window.onload = function() {
+            testHealth();
+        };
+    </script>
+</body>
+</html>
