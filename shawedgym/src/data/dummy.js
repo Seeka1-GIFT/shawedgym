@@ -20,6 +20,9 @@ export const members = [
     phone: '+252612345678',
     email: 'ahmed@example.com',
     photo: '',
+    photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+    face_id: 'FACE_1_1703123456',
+    external_person_id: '101'
   },
   {
     id: 2,
@@ -31,6 +34,9 @@ export const members = [
     phone: '+252612349999',
     email: 'hodan@example.com',
     photo: '',
+    photo_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
+    face_id: 'FACE_2_1703123457',
+    external_person_id: '102'
   },
   {
     id: 3,
@@ -42,6 +48,9 @@ export const members = [
     phone: '+252612348888',
     email: 'mahad@example.com',
     photo: '',
+    photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+    face_id: 'FACE_3_1703123458',
+    external_person_id: '103'
   },
 ];
 
