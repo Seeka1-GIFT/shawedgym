@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Fix Test - ShawedGym</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        .member-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .member-photo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ddd;
+        }
+        .placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ddd;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Photo Fix Test - ShawedGym</h1>
+        <p>This page tests the photo display fix for member photos.</p>
+        
+        <div class="test-section info">
+            <h3>📋 Test Information</h3>
+            <p><strong>API Base URL:</strong> <span id="apiUrl">http://localhost:3000/api</span></p>
+            <p><strong>Test Purpose:</strong> Verify that member photos display correctly after the fix</p>
+            <p><strong>Expected Result:</strong> Members should show photos from photo_url field</p>
+        </div>
+
+        <div class="test-section">
+            <h3>👥 Test Member Photos</h3>
+            <button onclick="testMemberPhotos()">Test Member Photos</button>
+            <div id="photoResult" class="result"></div>
+            
+            <div id="memberList" style="margin-top: 20px;">
+                <!-- Member photos will be displayed here -->
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Test Photo URLs</h3>
+            <button onclick="testPhotoUrls()">Test Photo URLs</button>
+            <div id="urlResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Results Summary</h3>
+            <div id="summaryResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+
+        async function makeRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+                
+                const data = await response.json();
+                return { success: response.ok, data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        function displayResult(elementId, result) {
+            const element = document.getElementById(elementId);
+            if (result.success) {
+                element.className = 'result success';
+                element.textContent = JSON.stringify(result.data, null, 2);
+            } else {
+                element.className = 'result error';
+                element.textContent = `Error: ${result.error || 'Unknown error'}`;
+            }
+        }
+
+        async function testMemberPhotos() {
+            const result = await makeRequest(`${API_BASE_URL}/members`);
+            displayResult('photoResult', result);
+            
+            if (result.success && result.data.data.members) {
+                displayMemberPhotos(result.data.data.members);
+            }
+        }
+
+        function displayMemberPhotos(members) {
+            const memberList = document.getElementById('memberList');
+            memberList.innerHTML = '';
+            
+            members.forEach(member => {
+                const memberCard = document.createElement('div');
+                memberCard.className = 'member-card';
+                
+                const photoHtml = (member.photo_url || member.photo) ? 
+                    `<img src="${member.photo_url || member.photo}" alt="${member.name}" class="member-photo" onError="this.style.display='none'; this.nextSibling.style.display='flex';" />` :
+                    '';
+                
+                const placeholderHtml = `<div class="placeholder" style="display: ${(member.photo_url || member.photo) ? 'none' : 'flex'}">👤</div>`;
+                
+                memberCard.innerHTML = `
+                    ${photoHtml}
+                    ${placeholderHtml}
+                    <div>
+                        <div style="font-weight: bold;">${member.name || 'Unknown'}</div>
+                        <div style="font-size: 12px; color: #666;">ID: ${member.id}</div>
+                        <div style="font-size: 12px; color: #666;">Photo URL: ${member.photo_url || 'None'}</div>
+                        <div style="font-size: 12px; color: #666;">Face ID: ${member.face_id || 'None'}</div>
+                    </div>
+                `;
+                
+                memberList.appendChild(memberCard);
+            });
+        }
+
+        async function testPhotoUrls() {
+            const result = await makeRequest(`${API_BASE_URL}/members`);
+            
+            if (result.success && result.data.data.members) {
+                const members = result.data.data.members;
+                const photoTests = [];
+                
+                for (const member of members) {
+                    if (member.photo_url) {
+                        try {
+                            const photoResponse = await fetch(member.photo_url, { method: 'HEAD' });
+                            photoTests.push({
+                                member: member.name,
+                                url: member.photo_url,
+                                accessible: photoResponse.ok,
+                                status: photoResponse.status
+                            });
+                        } catch (error) {
+                            photoTests.push({
+                                member: member.name,
+                                url: member.photo_url,
+                                accessible: false,
+                                error: error.message
+                            });
+                        }
+                    }
+                }
+                
+                const urlResult = document.getElementById('urlResult');
+                urlResult.className = 'result info';
+                urlResult.textContent = JSON.stringify(photoTests, null, 2);
+            }
+        }
+
+        async function runAllTests() {
+            const summaryResult = document.getElementById('summaryResult');
+            summaryResult.className = 'result loading';
+            summaryResult.textContent = 'Running tests...';
+
+            try {
+                // Test 1: Get members
+                const membersResult = await makeRequest(`${API_BASE_URL}/members`);
+                
+                // Test 2: Check photo fields
+                let photoFieldTests = [];
+                if (membersResult.success && membersResult.data.data.members) {
+                    const members = membersResult.data.data.members;
+                    photoFieldTests = members.map(member => ({
+                        name: member.name,
+                        hasPhoto: !!member.photo,
+                        hasPhotoUrl: !!member.photo_url,
+                        hasFaceId: !!member.face_id,
+                        photoUrl: member.photo_url || 'None'
+                    }));
+                }
+
+                // Test 3: Test photo accessibility
+                let photoAccessTests = [];
+                if (membersResult.success && membersResult.data.data.members) {
+                    const members = membersResult.data.data.members;
+                    for (const member of members) {
+                        if (member.photo_url) {
+                            try {
+                                const photoResponse = await fetch(member.photo_url, { method: 'HEAD' });
+                                photoAccessTests.push({
+                                    member: member.name,
+                                    accessible: photoResponse.ok,
+                                    status: photoResponse.status
+                                });
+                            } catch (error) {
+                                photoAccessTests.push({
+                                    member: member.name,
+                                    accessible: false,
+                                    error: error.message
+                                });
+                            }
+                        }
+                    }
+                }
+
+                const summary = {
+                    totalMembers: membersResult.success ? membersResult.data.data.members.length : 0,
+                    membersWithPhotos: photoFieldTests.filter(m => m.hasPhoto || m.hasPhotoUrl).length,
+                    membersWithFaceId: photoFieldTests.filter(m => m.hasFaceId).length,
+                    accessiblePhotos: photoAccessTests.filter(p => p.accessible).length,
+                    photoFieldTests: photoFieldTests,
+                    photoAccessTests: photoAccessTests
+                };
+
+                summaryResult.className = 'result success';
+                summaryResult.textContent = JSON.stringify(summary, null, 2);
+            } catch (error) {
+                summaryResult.className = 'result error';
+                summaryResult.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        // Auto-run tests on page load
+        window.onload = function() {
+            runAllTests();
+        };
+    </script>
+</body>
+</html>
