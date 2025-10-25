@@ -380,11 +380,81 @@ const registerGymOwner = async (req, res) => {
   }
 };
 
+// Reset user password (Admin only)
+const resetUserPassword = async (req, res) => {
+  try {
+    const { userId, newPassword } = req.body;
+
+    // Check if requester is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Only administrators can reset passwords'
+      });
+    }
+
+    if (!userId || !newPassword) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'User ID and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+
+    // Check if user exists
+    const userCheck = await pool.query('SELECT id, email, first_name, last_name, role FROM users WHERE id = $1', [userId]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'User not found'
+      });
+    }
+
+    const user = userCheck.rows[0];
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = NOW() WHERE id = $2',
+      [hashedPassword, userId]
+    );
+
+    console.log(`Password reset by admin for user: ${user.email}`);
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully',
+      data: {
+        userId: user.id,
+        email: user.email,
+        name: `${user.first_name} ${user.last_name}`
+      }
+    });
+
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      error: 'Server Error',
+      message: 'Failed to reset password'
+    });
+  }
+};
+
 module.exports = {
   register,
   registerGymOwner,
   login,
-  getCurrentUser
+  getCurrentUser,
+  resetUserPassword
 };
 
 
