@@ -117,8 +117,12 @@ const UserManagement = () => {
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-400">
-          Manage user accounts and reset passwords
+          Manage user accounts and reset passwords for your gym
         </p>
+        <div className="mt-2 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+          <Shield className="w-4 h-4" />
+          <span>Showing only users from your gym (Gym ID: {currentUser?.gym_id})</span>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -185,6 +189,9 @@ const UserManagement = () => {
                   Role
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Gym ID
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Created
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -224,6 +231,12 @@ const UserManagement = () => {
                     <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getRoleBadgeColor(user.role)}`}>
                       {user.role}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center text-sm text-gray-900 dark:text-gray-300">
+                      <Shield className="w-4 h-4 mr-2 text-blue-500" />
+                      <span className="font-mono font-semibold">{user.gym_id || '-'}</span>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
@@ -281,6 +294,12 @@ const UserManagement = () => {
                 </p>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
                   <strong>Role:</strong> <span className={`px-2 py-0.5 rounded text-xs ${getRoleBadgeColor(selectedUser.role)}`}>{selectedUser.role}</span>
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <strong>Gym ID:</strong> 
+                  <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+                    {selectedUser.gym_id || '-'}
+                  </span>
                 </p>
               </div>
 
