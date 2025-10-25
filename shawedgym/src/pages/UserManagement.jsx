@@ -12,9 +12,11 @@ const UserManagement = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [newPassword, setNewPassword] = useState('');
   const [resetting, setResetting] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   
   const currentUser = authHelpers.getUser();
   const isAdmin = currentUser?.role === 'admin';
+  const isSuperAdminGym = currentUser?.gym_id === 1;
 
   // Load users on mount
   useEffect(() => {
@@ -27,6 +29,7 @@ const UserManagement = () => {
       const response = await apiService.getUsers();
       if (response.success) {
         setUsers(response.data.users || []);
+        setIsSuperAdmin(response.data.isSuperAdmin || false);
       }
     } catch (error) {
       console.error('Failed to load users:', error);
@@ -117,11 +120,22 @@ const UserManagement = () => {
           </h1>
         </div>
         <p className="text-gray-600 dark:text-gray-400">
-          Manage user accounts and reset passwords for your gym
+          {isSuperAdminGym 
+            ? 'Manage all user accounts across all gyms (Super Admin Access)'
+            : 'Manage user accounts and reset passwords for your gym'}
         </p>
-        <div className="mt-2 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
-          <Shield className="w-4 h-4" />
-          <span>Showing only users from your gym (Gym ID: {currentUser?.gym_id})</span>
+        <div className="mt-2 flex items-center gap-2 text-sm">
+          {isSuperAdminGym ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full font-semibold">
+              <Shield className="w-4 h-4" />
+              <span>SUPER ADMIN - Full Access to All Gyms</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+              <Shield className="w-4 h-4" />
+              <span>Showing only users from your gym (Gym ID: {currentUser?.gym_id})</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -130,12 +144,14 @@ const UserManagement = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Total Users</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Total Users {isSuperAdminGym && <span className="text-purple-600">(All Gyms)</span>}
+              </p>
               <p className="text-3xl font-bold text-gray-900 dark:text-white mt-1">
                 {users.length}
               </p>
             </div>
-            <Users className="w-12 h-12 text-blue-500" />
+            <Users className={`w-12 h-12 ${isSuperAdminGym ? 'text-purple-500' : 'text-blue-500'}`} />
           </div>
         </div>
 
