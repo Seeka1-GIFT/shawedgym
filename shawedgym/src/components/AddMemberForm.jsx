@@ -14,8 +14,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     // New fields for device integration & tracking
     registeredAt: new Date().toISOString().slice(0,10),
     external_person_id: '',
-    photo_url: '',
-    face_id: '' // Auto-generated face ID
+    photo_url: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -69,11 +68,6 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     if (!formData.planId) {
       newErrors.planId = 'Please select a membership plan';
     }
-    
-    // Photo is required for face ID
-    if (!snapshotDataUrl && !formData.photo_url) {
-      newErrors.photo = 'Photo is required for face identification';
-    }
 
     // Optional field validation (only if provided)
     if (formData.registrationFee && isNaN(Number(formData.registrationFee))) {
@@ -94,20 +88,18 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
     setIsSubmitting(true);
 
     try {
-      // Generate unique face ID for this member
-      const faceId = `FACE_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
       // If no photo_url provided but snapshot available, upload it
       let photoUrl = formData.photo_url;
       if (!photoUrl && snapshotDataUrl) {
         const base64 = snapshotDataUrl;
         try {
-          const uploadRes = await api.post('/uploads/base64', { imageBase64: base64 });
-          const uploadJson = uploadRes?.data;
+          const uploadJson = await api.uploadBase64Image(base64);
           if (uploadJson?.success && uploadJson?.data?.url) {
             photoUrl = uploadJson.data.url;
           }
-        } catch (_) {}
+        } catch (err) {
+          console.error('Photo upload failed:', err);
+        }
       } else if (!photoUrl && canvasRef.current && videoRef.current && videoRef.current.videoWidth) {
         const canvas = canvasRef.current;
         const video = videoRef.current;
@@ -117,14 +109,14 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         ctx.drawImage(video, 0, 0);
         const base64 = canvas.toDataURL('image/jpeg', 0.9);
         try {
-          const uploadRes = await api.post('/uploads/base64', { imageBase64: base64 });
-          const uploadJson = uploadRes?.data;
+          const uploadJson = await api.uploadBase64Image(base64);
           if (uploadJson?.success && uploadJson?.data?.url) {
             photoUrl = uploadJson.data.url;
           }
-        } catch (_) {}
+        } catch (err) {
+          console.error('Photo upload failed:', err);
+        }
       }
-      
       // Prepare data for submission
       const memberData = {
         firstName: formData.firstName.trim(),
@@ -138,11 +130,8 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
         // New backend fields
         registered_at: formData.registeredAt,
         external_person_id: formData.external_person_id || undefined,
-        photo_url: photoUrl || formData.photo_url || snapshotDataUrl || undefined,
-        face_id: faceId // Auto-generated face ID for recognition
+        photo_url: photoUrl || formData.photo_url || undefined
       };
-      
-      console.log('📸 Submitting member with photo_url:', memberData.photo_url);
 
       await onMemberAdded(memberData);
     } catch (error) {
@@ -323,11 +312,9 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
           />
         </div>
 
-        {/* Photo capture - Required for Face ID */}
-        <div className="md:col-span-2 space-y-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Photo <span className="text-red-500">*</span> <span className="text-xs text-gray-500">(Required for Face ID)</span>
-          </label>
+        {/* Photo capture */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Photo</label>
           <div className="flex items-center gap-3">
             <video ref={videoRef} className="w-36 h-24 bg-black rounded object-cover" autoPlay playsInline muted />
             {snapshotDataUrl ? (
@@ -361,8 +348,6 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                 try {
                   const data = canvas.toDataURL('image/jpeg', 0.9);
                   setSnapshotDataUrl(data);
-                  console.log('📸 Snapshot taken, uploading...');
-                  
                   // Auto-upload and fill photo_url
                   setUploadingPhoto(true);
                   try {
@@ -370,29 +355,18 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
                     const uploadJson = uploadRes?.data;
                     if (uploadJson?.success && uploadJson?.data?.url) {
                       setFormData(prev => ({ ...prev, photo_url: uploadJson.data.url }));
-                      console.log('✅ Photo uploaded successfully:', uploadJson.data.url);
                     }
-                  } catch (error) {
-                    console.error('❌ Photo upload failed:', error);
-                  }
+                  } catch (_) {}
                   setUploadingPhoto(false);
                   // Stop camera after snapshot
                   try { if (cameraStream) cameraStream.getTracks().forEach(t => t.stop()); } catch (_) {}
-                } catch (error) {
-                  console.error('❌ Snapshot failed:', error);
-                }
+                } catch (_) {}
               }
             }} className="px-3 py-1 rounded bg-blue-600 text-white">Take Snapshot</button>
           </div>
           <div>
             <input name="photo_url" type="url" value={formData.photo_url} onChange={handleInputChange} placeholder="https://.../member.jpg" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" />
-            <p className="text-xs text-gray-500 mt-1">
-              <strong>Face ID:</strong> This photo will be automatically saved and used for face recognition. 
-              {uploadingPhoto ? ' Uploading photo…' : ' Take a clear snapshot for best recognition.'}
-            </p>
-            {errors.photo && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.photo}</p>
-            )}
+            <p className="text-xs text-gray-500 mt-1">Dooro mid: webcam snapshot (preferred) ama URL toos ah. {uploadingPhoto ? 'Uploading photo…' : ''}</p>
           </div>
         </div>
 
