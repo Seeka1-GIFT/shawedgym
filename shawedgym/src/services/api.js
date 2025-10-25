@@ -139,7 +139,7 @@ export const apiService = {
     data: data
   }),
   getCurrentUser: () => apiCall('/auth/me'),
-  resetPassword: (data) => apiCall('/auth/reset-password', {
+  resetUserPassword: (data) => apiCall('/auth/reset-password', {
     method: 'POST',
     data: data
   }),
