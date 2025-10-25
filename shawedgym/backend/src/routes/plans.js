@@ -14,13 +14,13 @@ router.get('/', authorizeRoles('admin', 'cashier'), plansController.getPlans);
 router.get('/:id', authorizeRoles('admin', 'cashier'), plansController.getPlan);
 
 // POST /api/plans - Create new plan
-router.post('/', authorizeRoles('admin'), plansController.createPlan);
+router.post('/', authorizeRoles('admin', 'cashier'), plansController.createPlan);
 
 // PUT /api/plans/:id - Update plan
-router.put('/:id', authorizeRoles('admin'), plansController.updatePlan);
+router.put('/:id', authorizeRoles('admin', 'cashier'), plansController.updatePlan);
 
 // DELETE /api/plans/:id - Delete plan
-router.delete('/:id', authorizeRoles('admin'), plansController.deletePlan);
+router.delete('/:id', authorizeRoles('admin', 'cashier'), plansController.deletePlan);
 
 module.exports = router;
 
