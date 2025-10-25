@@ -342,6 +342,12 @@ export const apiService = {
   // Equipment (mock endpoint for now)
   getEquipment: () => apiCall('/equipment'),
   
+  // Uploads
+  uploadBase64Image: (imageBase64) => apiCall('/uploads/base64', {
+    method: 'POST',
+    data: { imageBase64 }
+  }),
+  
   // Reports
   getFinancialReports: (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
