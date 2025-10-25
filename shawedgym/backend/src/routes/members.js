@@ -23,10 +23,10 @@ router.post('/', authorizeRoles('admin', 'cashier'), membersController.createMem
 router.put('/:id', authorizeRoles('admin', 'cashier'), membersController.updateMember);
 
 // DELETE /api/members/:id - Delete member
-router.delete('/:id', authorizeRoles('admin'), membersController.deleteMember);
+router.delete('/:id', authorizeRoles('admin', 'cashier'), membersController.deleteMember);
 
 // POST /api/members/:id/checkin - Check in member
-router.post('/:id/checkin', authorizeRoles('admin'), membersController.checkInMember);
+router.post('/:id/checkin', authorizeRoles('admin', 'cashier'), membersController.checkInMember);
 
 // POST /api/members/seed - quick seed member for testing
 router.post('/seed/create', async (req, res) => {
