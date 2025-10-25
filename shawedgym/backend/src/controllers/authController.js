@@ -407,8 +407,12 @@ const resetUserPassword = async (req, res) => {
       });
     }
 
-    // Check if user exists
-    const userCheck = await pool.query('SELECT id, email, first_name, last_name, role FROM users WHERE id = $1', [userId]);
+    // Check if user exists AND belongs to the same gym
+    const userCheck = await pool.query(
+      'SELECT id, email, first_name, last_name, role, gym_id FROM users WHERE id = $1', 
+      [userId]
+    );
+    
     if (userCheck.rows.length === 0) {
       return res.status(404).json({
         error: 'Not Found',
@@ -417,6 +421,14 @@ const resetUserPassword = async (req, res) => {
     }
 
     const user = userCheck.rows[0];
+    
+    // Verify user belongs to the same gym
+    if (user.gym_id !== req.user.gym_id) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'You can only reset passwords for users in your gym'
+      });
+    }
 
     // Hash new password
     const saltRounds = 10;
