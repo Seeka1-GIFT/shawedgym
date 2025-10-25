@@ -106,7 +106,23 @@ const Navbar = ({ theme, setTheme }) => {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-2">
+          <nav className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-200 dark:scrollbar-track-gray-700 hover:scrollbar-thumb-blue-600">
+            <style jsx>{`
+              nav::-webkit-scrollbar {
+                width: 6px;
+              }
+              nav::-webkit-scrollbar-track {
+                background: rgba(229, 231, 235, 0.3);
+                border-radius: 10px;
+              }
+              nav::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+                border-radius: 10px;
+              }
+              nav::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, #2563eb, #7c3aed);
+              }
+            `}</style>
             {NAV_ITEMS.filter(item => !item.roles || item.roles.includes(user?.role)).map(({ label, path, icon: Icon }) => (
               <NavLink
                 key={path}
@@ -125,6 +141,8 @@ const Navbar = ({ theme, setTheme }) => {
                 <span className="font-medium">{label}</span>
               </NavLink>
             ))}
+            {/* Extra padding at bottom for scroll visibility */}
+            <div className="h-4"></div>
           </nav>
 
           {/* Theme Toggle & User Section */}
