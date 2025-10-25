@@ -4,7 +4,7 @@ import {
   Home, Users, CreditCard, Package, Calendar, 
   UserCheck, ClipboardList, DollarSign, TrendingDown, 
   FileText, Settings, Menu, X, Sun, Moon, Dumbbell, 
-  Activity, Target, LogOut 
+  Activity, Target, LogOut, Shield 
 } from 'lucide-react';
 // NotificationSystem removed per request
 import GymSelector from './GymSelector.jsx';
@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { label: 'Payments', path: '/payments', icon: DollarSign, roles: ['admin', 'cashier'] },
   { label: 'Expenses', path: '/expenses', icon: TrendingDown, roles: ['admin'] },
   { label: 'Reports', path: '/reports', icon: FileText, roles: ['admin'] },
+  { label: 'User Management', path: '/users', icon: Shield, roles: ['admin'] },
   { label: 'Settings', path: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
