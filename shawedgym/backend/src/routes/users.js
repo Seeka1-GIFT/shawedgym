@@ -7,12 +7,24 @@ const { authorizeRoles } = require('../middleware/authorize');
 // Protect all user routes
 router.use(authMiddleware, authorizeRoles('admin'));
 
-// GET /api/users → list users
+// GET /api/users → list users (filtered by gym_id)
 router.get('/', async (req, res) => {
   try {
+    const gymId = req.user?.gym_id;
+    
+    if (!gymId) {
+      return res.status(400).json({ 
+        error: 'Bad Request', 
+        message: 'Gym ID is required' 
+      });
+    }
+
+    // Only return users from the same gym
     const result = await pool.query(
-      'SELECT id, email, first_name, last_name, role, created_at FROM users ORDER BY id DESC'
+      'SELECT id, email, first_name, last_name, role, gym_id, created_at FROM users WHERE gym_id = $1 ORDER BY id DESC',
+      [gymId]
     );
+    
     res.json({ success: true, data: { users: result.rows } });
   } catch (error) {
     console.error('Users list error:', error);
