@@ -148,57 +148,48 @@ body {
   background-clip: text;
 }
 
+/* Sidebar Navigation Scrollbar */
+nav.flex-1 {
+  scrollbar-width: thin;
+  scrollbar-color: #8b5cf6 transparent;
+  scroll-behavior: smooth;
+}
+
+nav.flex-1::-webkit-scrollbar {
+  width: 8px;
+}
+
+nav.flex-1::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+nav.flex-1::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+nav.flex-1::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #2563eb, #7c3aed);
+  background-clip: padding-box;
+}
+
+/* Dark mode scrollbar for nav */
+.dark nav.flex-1::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+  background-clip: padding-box;
+}
+
+.dark nav.flex-1::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
+  background-clip: padding-box;
+}
+
 /* Responsive utilities */
 @media (max-width: 768px) {
   .mobile-padding {
     padding: 1rem;
   }
-}
-
-/* Laptop view optimizations */
-@media (min-width: 1024px) {
-  .laptop-optimized {
-    max-width: 100%;
-    margin: 0;
-  }
-  
-  .laptop-sidebar {
-    width: 16rem; /* 256px - matches Shawed-POS */
-  }
-  
-  .laptop-content {
-    width: calc(100% - 16rem);
-    padding: 1rem;
-  }
-}
-
-/* Ensure full height layout */
-html, body, #root {
-  height: 100%;
-  overflow: hidden;
-}
-
-/* Hide scrollbars on main content to match Shawed-POS */
-.main-content-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e0 transparent;
-}
-
-.main-content-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.main-content-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.main-content-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 3px;
-}
-
-.main-content-scroll::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
-}
-
-.members-card img{display:none !important;}
+}.members-card img{display:none !important;}
