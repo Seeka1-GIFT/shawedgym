@@ -422,12 +422,19 @@ const resetUserPassword = async (req, res) => {
 
     const user = userCheck.rows[0];
     
-    // Verify user belongs to the same gym
-    if (user.gym_id !== req.user.gym_id) {
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: 'You can only reset passwords for users in your gym'
-      });
+    // SUPER ADMIN: gym_id = 1 can reset ANY user's password
+    const isSuperAdmin = req.user.gym_id === 1;
+    
+    if (!isSuperAdmin) {
+      // Regular admin: Verify user belongs to the same gym
+      if (user.gym_id !== req.user.gym_id) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You can only reset passwords for users in your gym'
+        });
+      }
+    } else {
+      console.log(`Super Admin (gym_id: 1) resetting password for user: ${user.email} (gym_id: ${user.gym_id})`);
     }
 
     // Hash new password
