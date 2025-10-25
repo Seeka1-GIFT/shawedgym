@@ -30,6 +30,7 @@ import * as ReportsPage from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
 import CheckIn from './pages/CheckIn.jsx';
 import Subscriptions from './pages/Subscriptions.jsx';
+import UserManagement from './pages/UserManagement.jsx';
 
 function App() {
   // Persist the user's theme choice in localStorage.  This state is
@@ -66,12 +67,13 @@ function App() {
           {/* Protected routes */}
           <Route path="/*" element={
             <ProtectedRoute>
-              <div className="flex h-screen overflow-hidden">
+              <div className="flex">
                 {/* Sidebar navigation.  On small screens the sidebar can be toggled via
                     the hamburger menu within the Navbar component. */}
                 <Navbar theme={theme} setTheme={setTheme} />
-                {/* Main content area optimized for laptop view - fills screen without empty space */}
-                <main className="flex-1 bg-gray-50 dark:bg-gray-900 overflow-y-auto main-content-scroll">
+                {/* Main content area.  A min-h-screen ensures that the main area
+                    stretches to full height.  Padding provides breathing room. */}
+                <main className="flex-1 min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
                   <Routes>
                     <Route path="/" element={<Navigate to="/dashboard" replace />} />
                     <Route path="/dashboard" element={<Dashboard />} />
@@ -87,6 +89,7 @@ function App() {
                     {(() => { const C = ReportsPage.default || ReportsPage.Reports; return <Route path="/reports" element={C ? <C /> : <></>} />; })()}
                     <Route path="/settings" element={<Settings theme={theme} setTheme={setTheme} />} />
                     <Route path="/checkin" element={<CheckIn />} />
+                    <Route path="/users" element={<UserManagement />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     {/* Redirect unknown paths back to the dashboard. */}
                     <Route path="*" element={<Navigate to="/dashboard" />} />
