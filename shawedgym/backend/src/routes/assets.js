@@ -14,13 +14,13 @@ router.get('/', authorizeRoles('admin', 'cashier'), assetsController.getAssets);
 router.get('/:id', authorizeRoles('admin', 'cashier'), assetsController.getAsset);
 
 // POST /api/assets - Create new asset
-router.post('/', authorizeRoles('admin'), assetsController.createAsset);
+router.post('/', authorizeRoles('admin', 'cashier'), assetsController.createAsset);
 
 // PUT /api/assets/:id - Update asset
-router.put('/:id', authorizeRoles('admin'), assetsController.updateAsset);
+router.put('/:id', authorizeRoles('admin', 'cashier'), assetsController.updateAsset);
 
 // DELETE /api/assets/:id - Delete asset
-router.delete('/:id', authorizeRoles('admin'), assetsController.deleteAsset);
+router.delete('/:id', authorizeRoles('admin', 'cashier'), assetsController.deleteAsset);
 
 module.exports = router;
 
