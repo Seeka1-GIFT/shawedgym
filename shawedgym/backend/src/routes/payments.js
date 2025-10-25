@@ -23,7 +23,7 @@ router.post('/', authorizeRoles('admin', 'cashier'), paymentsController.createPa
 router.put('/:id', authorizeRoles('admin', 'cashier'), paymentsController.updatePayment);
 
 // DELETE /api/payments/:id - Delete payment
-router.delete('/:id', authorizeRoles('admin'), paymentsController.deletePayment);
+router.delete('/:id', authorizeRoles('admin', 'cashier'), paymentsController.deletePayment);
 
 module.exports = router;
 
