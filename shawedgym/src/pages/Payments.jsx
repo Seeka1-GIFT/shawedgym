@@ -570,12 +570,20 @@ const Payments = () => {
       const planFee = Number(enriched?.planFee ?? payment.planFee ?? ((payment.amount && rgFee) ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
       const netAmount = Number(enriched?.total ?? (planFee + rgFee)) || 0;
       const date = payment.date || new Date().toISOString().split('T')[0];
-      // Force POS-80 layout for thermal printers
-      const format = 'pos80';
-      const pageSize = '80mm auto';
-      const containerWidth = '80mm';
-      const fontSize = '12px';
-      const headingSize = '14px';
+      // Choose paper size (persist preference). Options: '80mm' thermal or 'A4'
+      let sizePref = localStorage.getItem('receiptPrintSize');
+      if (!sizePref) {
+        const picked = window.prompt('Select receipt paper size: 80mm or A4', '80mm');
+        sizePref = (picked && /a4/i.test(picked)) ? 'A4' : '80mm';
+        localStorage.setItem('receiptPrintSize', sizePref);
+      }
+
+      // Compute layout based on size
+      const isA4 = sizePref === 'A4';
+      const pageSize = isA4 ? 'A4 portrait' : '80mm auto';
+      const containerWidth = isA4 ? '186mm' : '80mm'; // ~10mm margins on A4
+      const fontSize = isA4 ? '13px' : '12px';
+      const headingSize = isA4 ? '16px' : '14px';
       const html = `
         <html>
           <head>
@@ -604,7 +612,7 @@ const Payments = () => {
               .footer{padding:8px 10px 10px 10px;text-align:center;color:#64748b;font-size:10px}
               @media print {
                 body{margin:0;padding:0}
-                .receipt{width:80mm !important;margin:0 auto;font-size:12px}
+                .receipt{width:${containerWidth} !important;margin:0 auto;font-size:${fontSize}}
               }
             </style>
           </head>
