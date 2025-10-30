@@ -570,19 +570,20 @@ const Payments = () => {
       const planFee = Number(enriched?.planFee ?? payment.planFee ?? ((payment.amount && rgFee) ? (Number(payment.amount) - rgFee) : payment.amount) ?? 0) || 0;
       const netAmount = Number(enriched?.total ?? (planFee + rgFee)) || 0;
       const date = payment.date || new Date().toISOString().split('T')[0];
-      // Force POS-80 layout for thermal printers
-      const format = 'pos80';
-      const pageSize = '80mm auto';
-      const containerWidth = '80mm';
-      const fontSize = '12px';
-      const headingSize = '14px';
+      // Auto-fit to printer's selected paper (A4/A5/thermal). No prompts.
+      // We let the browser's print dialog determine the paper size.
+      const pageSize = 'auto';
+      const pageMargin = '5mm'; // small margin so content nearly fills the page
+      const containerWidth = '100%';
+      const fontSize = '12pt';
+      const headingSize = '14pt';
       const html = `
         <html>
           <head>
             <title>Receipt ${payment.transactionId || ''}</title>
             <style>
               *{box-sizing:border-box}
-              @page { size: ${pageSize}; margin: 0; }
+              @page { size: ${pageSize}; margin: ${pageMargin}; }
               body{font-family:Arial,Helvetica,sans-serif;padding:0;margin:0;color:#0f172a;background:#fff}
               .paper{width:${containerWidth}; margin:0 auto;}
               .receipt{width:${containerWidth}; font-size:${fontSize}; margin:0 auto}
@@ -604,7 +605,8 @@ const Payments = () => {
               .footer{padding:8px 10px 10px 10px;text-align:center;color:#64748b;font-size:10px}
               @media print {
                 body{margin:0;padding:0}
-                .receipt{width:80mm !important;margin:0 auto;font-size:12px}
+                /* Fill the printable area regardless of A4/A5/thermal selection */
+                .receipt{width:100% !important; margin:0 auto; font-size:${fontSize}}
               }
             </style>
           </head>
