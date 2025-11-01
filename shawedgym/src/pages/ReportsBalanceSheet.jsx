@@ -33,8 +33,34 @@ const ReportsBalanceSheet = () => {
       if (format === 'csv') {
         const a = document.createElement('a'); a.href = url; a.download = `balance_sheet_${start}_to_${end}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
       } else {
+        // Show confirmation dialog for print
+        const confirmed = window.confirm(
+          '⚠️ FADLAN:\n\n' +
+          'Print dialog-ka marka furmo:\n' +
+          '1. "Destination" ka dooro PRINTER-kaaga gacanta ah\n' +
+          '2. Ha dooran "Microsoft Print to PDF" (ma aha save PDF)\n' +
+          '3. Ka dib "Print" dhagsii\n\n' +
+          'Print samayn kartaa?'
+        );
+        
+        if (!confirmed) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
         const w = window.open(url, '_blank');
-        const done = () => { try { w.focus(); w.print(); } catch {} setTimeout(() => { try { w.close(); URL.revokeObjectURL(url); } catch {} }, 400); };
+        const done = () => { 
+          try { 
+            w.focus(); 
+            w.print(); 
+          } catch {} 
+          setTimeout(() => { 
+            try { 
+              w.close(); 
+              URL.revokeObjectURL(url); 
+            } catch {} 
+          }, 400); 
+        };
         if (w) { w.onload = done; setTimeout(done, 800); }
       }
     } catch (e) { console.error('Export failed', e); }
