@@ -128,10 +128,22 @@ const Reports = () => {
   // Print functionality
   const handlePrint = () => {
     try {
-      window.print();
+      // Show confirmation dialog with instructions
+      const confirmed = window.confirm(
+        '⚠️ FADLAN:\n\n' +
+        'Print dialog-ka marka furmo:\n' +
+        '1. "Destination" ka dooro PRINTER-kaaga gacanta ah\n' +
+        '2. Ha dooran "Microsoft Print to PDF" (ma aha save PDF)\n' +
+        '3. Ka dib "Print" dhagsii\n\n' +
+        'Print samayn kartaa?'
+      );
+      
+      if (confirmed) {
+        window.print();
+      }
     } catch (error) {
       console.error('Print failed:', error);
-      alert('Failed to print. Please try again.');
+      alert('Print failed. Fadlan markale isku day.');
     }
   };
 
