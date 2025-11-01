@@ -585,6 +585,7 @@ const Payments = () => {
               *{box-sizing:border-box}
               @page { size: ${pageSize}; margin: ${pageMargin}; }
               body{font-family:Arial,Helvetica,sans-serif;padding:0;margin:0;color:#0f172a;background:#fff}
+              .print-notice{background:#ff9800;color:#fff;padding:12px;text-align:center;font-weight:bold;margin-bottom:10px;border-radius:6px}
               .paper{width:${containerWidth}; margin:0 auto;}
               .receipt{width:${containerWidth}; font-size:${fontSize}; margin:0 auto}
               .card{background:#fff;border:none;overflow:hidden}
@@ -605,12 +606,14 @@ const Payments = () => {
               .footer{padding:8px 10px 10px 10px;text-align:center;color:#64748b;font-size:10px}
               @media print {
                 body{margin:0;padding:0}
+                .print-notice{display:none !important}
                 /* Fill the printable area regardless of A4/A5/thermal selection */
                 .receipt{width:100% !important; margin:0 auto; font-size:${fontSize}}
               }
             </style>
           </head>
           <body>
+            <div class="print-notice">⚠️ FADLAN: Print dialog-ka "Destination" ka dooro PRINTER-kaaga (ma aha "Microsoft Print to PDF")</div>
             <div class="paper receipt">
               <div class="card">
                 <div class="header">
@@ -695,8 +698,25 @@ const Payments = () => {
         }
       });
 
+      // Show reminder before opening print dialog
+      const showReminder = () => {
+        const confirmed = window.confirm(
+          '⚠️ FADLAN:\n' +
+          'Print dialog-ka marka furmo:\n\n' +
+          '1. "Destination" ka dooro PRINTER-kaaga gacanta ah\n' +
+          '2. Ha dooran "Microsoft Print to PDF"\n' +
+          '3. Ka dib "Print" dhagsii\n\n' +
+          'Print samayn kartaa?'
+        );
+        return confirmed;
+      };
+
+      if (!showReminder()) {
+        return; // User cancelled
+      }
+
       printViaIFrame().catch(() => printViaWindow()).catch(() => {
-        window.alert('Print failed. Please try again or allow pop-ups.');
+        window.alert('Print failed. Fadlan markale isku day oo ha hawl-garayn pop-ups.');
       });
     } catch (e) {
       console.error('Print failed', e);
