@@ -133,6 +133,7 @@ const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 dark:bg-gray-700 dark:text-white">
                 <option value="EVC-PLUS">EVC-PLUS</option>
                 <option value="E-DAHAB">E-DAHAB</option>
+                <option value="MERCHANT">MERCHANT</option>
                 <option value="bank_transfer">Bank Transfer</option>
                 <option value="Wallet">Wallet</option>
               </select>
@@ -510,6 +511,7 @@ const Payments = () => {
   const paymentMethodData = [
     { name: 'EVC-PLUS', value: enhancedPayments.filter(p => p.paymentMethod === 'EVC-PLUS').length, color: '#3B82F6' },
     { name: 'E-DAHAB', value: enhancedPayments.filter(p => p.paymentMethod === 'E-DAHAB').length, color: '#10B981' },
+    { name: 'MERCHANT', value: enhancedPayments.filter(p => p.paymentMethod === 'MERCHANT').length, color: '#10B981' },
     { name: 'Bank Transfer', value: enhancedPayments.filter(p => p.paymentMethod === 'Bank Transfer').length, color: '#8B5CF6' },
     { name: 'Wallet', value: enhancedPayments.filter(p => p.paymentMethod === 'Wallet').length, color: '#F59E0B' }
   ];
