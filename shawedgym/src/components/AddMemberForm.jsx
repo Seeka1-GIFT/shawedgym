@@ -292,6 +292,7 @@ const AddMemberForm = ({ onClose, onMemberAdded, planOptions = [] }) => {
               >
                 <option value="EVC-PLUS">EVC-PLUS</option>
                 <option value="E-DAHAB">E-DAHAB</option>
+                <option value="MERCHANT">MERCHANT</option>
                 <option value="bank_transfer">Bank Transfer</option>
                 <option value="wallet">Wallet</option>
               </select>
