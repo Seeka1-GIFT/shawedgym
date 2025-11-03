@@ -29,7 +29,7 @@ import * as ExpensesPage from './pages/Expenses.jsx';
 import * as ReportsPage from './pages/Reports.jsx';
 import Settings from './pages/Settings.jsx';
 import CheckIn from './pages/CheckIn.jsx';
-import Subscriptions from './pages/Subscriptions.jsx';
+// Subscriptions removed from app navigation
 import UserManagement from './pages/UserManagement.jsx';
 
 function App() {
@@ -79,7 +79,7 @@ function App() {
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/members" element={<Members />} />
                     <Route path="/plans" element={<Plans />} />
-                    <Route path="/subscriptions" element={<Subscriptions />} />
+                    {/* Subscriptions route removed */}
                     <Route path="/assets" element={<Assets />} />
                     <Route path="/classes" element={<Classes />} />
                     <Route path="/trainers" element={<Trainers />} />
