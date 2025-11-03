@@ -330,7 +330,9 @@ const updateMember = async (req, res) => {
       registered_at,
       plan_expires_at,
       external_person_id,
-      photo_url
+      photo_url,
+      // When provided, also sync latest payment method
+      paymentMethod
     } = req.body;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
@@ -390,6 +392,24 @@ const updateMember = async (req, res) => {
         gymId
       ]
     );
+
+    // If a paymentMethod is provided, update the latest payment for this member in this gym
+    try {
+      if (paymentMethod && String(paymentMethod).trim()) {
+        const lastPayment = await pool.query(
+          `SELECT id FROM payments WHERE member_id = $1 AND gym_id = $2 ORDER BY created_at DESC LIMIT 1`,
+          [id, gymId]
+        );
+        if (lastPayment.rows.length > 0) {
+          await pool.query(
+            `UPDATE payments SET method = $1, updated_at = NOW() WHERE id = $2 AND gym_id = $3`,
+            [paymentMethod, lastPayment.rows[0].id, gymId]
+          );
+        }
+      }
+    } catch (syncErr) {
+      console.error('Sync payment method on updateMember failed:', syncErr);
+    }
 
     res.json({
       success: true,
