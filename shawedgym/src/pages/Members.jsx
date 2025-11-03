@@ -242,9 +242,9 @@ const Members = () => {
         membershipType: data.get('membershipType') || editingMember.membership_type,
         // Map Date of Registration field to dateOfBirth param for backward compatibility
         dateOfBirth: data.get('dateOfBirth') || editingMember.date_of_birth,
-        photo_url: newPhotoUrl || undefined
-        // registrationFee and paymentMethod are intentionally collected for UI parity
-        // but are ignored by the backend update endpoint at the moment
+        photo_url: newPhotoUrl || undefined,
+        // Pass paymentMethod so backend can sync latest payment record
+        paymentMethod: data.get('paymentMethod') || undefined
       };
       await apiService.updateMember(editingMember.id, payload);
       const refreshResponse = await apiService.getMembers({ search: searchTerm });
