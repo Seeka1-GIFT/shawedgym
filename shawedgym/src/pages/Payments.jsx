@@ -21,7 +21,7 @@ const AddPaymentModal = ({ onClose, onPaymentAdded, memberOptions, planOptions }
     memberId: '',
     planId: '',
     amount: '',
-    method: 'cash',
+    method: 'EVC-PLUS',
     description: '',
     status: 'completed'
   });
@@ -195,7 +195,7 @@ const Payments = () => {
   const [newPayment, setNewPayment] = useState({
     memberId: '',
     amount: '',
-    method: 'Cash',
+    method: 'EVC-PLUS',
     description: '',
     planId: ''
   });
@@ -948,8 +948,8 @@ const Payments = () => {
             </div>
           </div>
 
-          {/* Horizontal Transaction List */}
-          <div className="space-y-4">
+          {/* Horizontal Transaction List (scrollable) */}
+          <div className="max-h-[65vh] overflow-y-auto pr-1 space-y-4">
             {filteredPayments.map((payment) => {
               const StatusIcon = getStatusIcon(payment.status);
               const PaymentMethodIcon = getPaymentMethodIcon(payment.paymentMethod);
