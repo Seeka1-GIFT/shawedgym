@@ -225,7 +225,8 @@ export const apiService = {
   
   // Payments
   getPayments: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
+    const withDefaults = { limit: 1000, page: 1, ...params };
+    const queryString = new URLSearchParams(withDefaults).toString();
     return apiCall(`/payments${queryString ? '?' + queryString : ''}`);
   },
   getPaymentStats: () => apiCall('/payments/stats/revenue'),
