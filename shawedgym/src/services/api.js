@@ -201,7 +201,9 @@ export const apiService = {
   
   // Members
   getMembers: (params = {}) => {
-    const queryString = new URLSearchParams(params).toString();
+    // Ensure we request a large enough page so UI can show all members for a gym
+    const withDefaults = { limit: 1000, page: 1, ...params };
+    const queryString = new URLSearchParams(withDefaults).toString();
     return apiCall(`/members${queryString ? '?' + queryString : ''}`);
   },
   getMemberStats: () => apiCall('/members/stats/dashboard'),
