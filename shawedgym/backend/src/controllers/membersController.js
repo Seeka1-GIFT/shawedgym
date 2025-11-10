@@ -45,7 +45,13 @@ const getMembers = async (req, res) => {
   try {
     console.log('getMembers called with user:', req.user);
     const { page = 1, limit = 20, search } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    let limitNumber = parseInt(limit, 10);
+    if (Number.isNaN(limitNumber) || limitNumber <= 0) {
+      limitNumber = 200; // default to larger page size so all members are visible
+    }
+    limitNumber = Math.min(limitNumber, 1000); // hard cap to prevent runaway queries
+    const offset = (pageNumber - 1) * limitNumber;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
     console.log('getMembers - gymId:', gymId, 'user:', req.user);
@@ -74,7 +80,7 @@ const getMembers = async (req, res) => {
     }
 
     query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(parseInt(limit), offset);
+    queryParams.push(limitNumber, offset);
 
     console.log('getMembers - Final query:', query);
     console.log('getMembers - Query params:', queryParams);
@@ -90,7 +96,7 @@ const getMembers = async (req, res) => {
     });
 
     const totalMembers = parseInt(countResult.rows[0].count);
-    const totalPages = Math.ceil(totalMembers / parseInt(limit));
+    const totalPages = Math.ceil(totalMembers / limitNumber);
 
     res.json({
       success: true,
@@ -98,9 +104,9 @@ const getMembers = async (req, res) => {
         members: membersResult.rows,
         pagination: {
           total: totalMembers,
-          page: parseInt(page),
+          page: pageNumber,
           pages: totalPages,
-          limit: parseInt(limit)
+          limit: limitNumber
         }
       }
     });
