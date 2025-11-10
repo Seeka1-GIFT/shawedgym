@@ -5,7 +5,13 @@ const getPayments = async (req, res) => {
   try {
     console.log('getPayments called with user:', req.user);
     const { page = 1, limit = 20, status, memberId } = req.query;
-    const offset = (page - 1) * limit;
+    const pageNumber = Math.max(parseInt(page, 10) || 1, 1);
+    let limitNumber = parseInt(limit, 10);
+    if (Number.isNaN(limitNumber) || limitNumber <= 0) {
+      limitNumber = 200;
+    }
+    limitNumber = Math.min(limitNumber, 1000);
+    const offset = (pageNumber - 1) * limitNumber;
     const gymId = req.user?.gym_id; // Get gym_id from authenticated user
 
     console.log('getPayments - gymId:', gymId, 'user:', req.user);
@@ -47,7 +53,7 @@ const getPayments = async (req, res) => {
     }
 
     query += ` ORDER BY p.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    queryParams.push(parseInt(limit), offset);
+    queryParams.push(limitNumber, offset);
 
     console.log('getPayments - Final query:', query);
     console.log('getPayments - Query params:', queryParams);
@@ -63,7 +69,7 @@ const getPayments = async (req, res) => {
     });
 
     const totalPayments = parseInt(countResult.rows[0].count);
-    const totalPages = Math.ceil(totalPayments / parseInt(limit));
+    const totalPages = Math.ceil(totalPayments / limitNumber);
 
     res.json({
       success: true,
@@ -71,9 +77,9 @@ const getPayments = async (req, res) => {
         payments: paymentsResult.rows,
         pagination: {
           total: totalPayments,
-          page: parseInt(page),
+          page: pageNumber,
           pages: totalPages,
-          limit: parseInt(limit)
+          limit: limitNumber
         }
       }
     });
