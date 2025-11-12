@@ -224,26 +224,40 @@ const createMember = async (req, res) => {
       }
     }
 
+    // Fetch selected plan to align membership type / duration
+    let plan = null;
+    if (planId) {
+      try {
+        const planRes = await pool.query(
+          `SELECT id, name, price, duration FROM plans WHERE id = $1 AND gym_id = $2 LIMIT 1`,
+          [planId, gymId]
+        );
+        if (planRes.rows.length) {
+          plan = planRes.rows[0];
+        }
+      } catch (planErr) {
+        console.error('createMember - Fetch plan error:', planErr);
+      }
+    }
+
     // Insert with unique email to avoid duplicate constraint
     const uniqueEmail = normalizedEmail + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    const membershipTypeValue = (membershipType && membershipType.trim())
+      || (plan && plan.name)
+      || 'Standard';
     
     // Determine membership start/end
     const startAt = registered_at ? new Date(registered_at) : new Date();
     let expiresAt = null;
 
-    // Derive plan duration in days from plans.duration if available, default 30 days
-    try {
-      if (planId) {
-        const planRes = await pool.query('SELECT duration FROM plans WHERE id = $1 AND gym_id = $2', [planId, gymId]);
-        if (planRes.rows.length) {
-          const months = Number(planRes.rows[0].duration) || 1; // duration stored as months
-          const tmp = new Date(startAt);
-          tmp.setMonth(tmp.getMonth() + months);
-          expiresAt = tmp;
-        }
-      }
-    } catch (e) {
-      // fallback: 30 days
+    if (plan && plan.duration !== undefined && plan.duration !== null) {
+      const months = Number(plan.duration) || 1;
+      const tmp = new Date(startAt);
+      tmp.setMonth(tmp.getMonth() + months);
+      expiresAt = tmp;
+    } else if (planId) {
+      // Plan selected but duration missing -> default 30 days
       const tmp = new Date(startAt);
       tmp.setDate(tmp.getDate() + 30);
       expiresAt = tmp;
@@ -254,25 +268,26 @@ const createMember = async (req, res) => {
          first_name, last_name, email, phone, membership_type, status,
          gym_id, created_at, registered_at, plan_expires_at, face_id, photo_url
        ) 
-       VALUES ($1, $2, $3, $4, 'Standard', 'Active', $5, NOW(), $6, $7, $8, $9) 
+       VALUES ($1, $2, $3, $4, $5, 'Active', $6, NOW(), $7, $8, $9, $10) 
        RETURNING *`,
-      [firstName, lastName, uniqueEmail, phone, gymId, startAt, expiresAt, external_person_id || null, photo_url || null]
+      [
+        firstName,
+        lastName,
+        uniqueEmail,
+        phone,
+        membershipTypeValue,
+        gymId,
+        startAt,
+        expiresAt,
+        external_person_id || null,
+        photo_url || null
+      ]
     );
 
     const member = result.rows[0];
 
     // Create a SINGLE payment that combines Registration Fee + first Membership payment
     try {
-      let plan = null;
-      if (planId) {
-        // Prefer explicit plan id scoped to this gym
-        const planById = await pool.query(
-          `SELECT id, name, price FROM plans WHERE id = $1 AND gym_id = $2 LIMIT 1`,
-          [planId, gymId]
-        );
-        if (planById.rows.length > 0) plan = planById.rows[0];
-      }
-
       const reg = Number(registrationFeeValue) || 0;
       const planAmount = plan ? Number(plan.price) : 0;
       const totalAmount = reg + planAmount;
